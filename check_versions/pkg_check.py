@@ -1,0 +1,184 @@
+import json
+import os
+import sys
+
+from copy import deepcopy
+
+import common.const as const
+import pkg_reporter
+from check_versions.common import utils
+from check_versions.common import base_config, logger, PKG_DIR
+from check_versions.common import salt_utils
+
+node_tmpl = {
+    'role': '',
+    'node_group': '',
+    'status': const.NODE_DOWN,
+    'pillars': {},
+    'grains': {}
+}
+
+
+class CloudPackageChecker(object):
+    _config = base_config
+
+    def __init__(self):
+        logger.info("Collecting nodes for package check")
+        # simple salt rest client
+        self.salt = salt_utils.SaltRemote()
+
+        # Keys for all nodes
+        # this is not working in scope of 2016.8.3, will overide with list
+        # cls.node_keys = cls.salt.list_keys()
+
+        logger.debug("Collecting node names existing in the cloud")
+        self.node_keys = {
+            'minions': base_config.all_nodes
+        }
+
+        # all that answer ping
+        _active = self.salt.get_active_nodes()
+        logger.debug("Nodes responded: {}".format(_active))
+        # just inventory for faster interaction
+        # iterate through all accepted nodes and create a dict for it
+        self.nodes = {}
+        for _name in self.node_keys['minions']:
+            _nc = utils.get_node_code(_name)
+            _rmap = const.all_roles_map
+            _role = _rmap[_nc] if _nc in _rmap else 'unknown'
+            _status = const.NODE_UP if _name in _active else const.NODE_DOWN
+
+            self.nodes[_name] = deepcopy(node_tmpl)
+            self.nodes[_name]['node_group'] = _nc
+            self.nodes[_name]['role'] = _role
+            self.nodes[_name]['status'] = _status
+
+        logger.debug("{} nodes collected".format(len(self.nodes)))
+
+    def collect_installed_packages(self):
+        """
+        Collect installed packages on each node
+        sets 'installed' dict property in the class
+
+        :return: none
+        """
+        # form an all nodes compound string to use in salt
+        _active_nodes_string = self.salt.compound_string_from_list(
+            filter(
+                lambda nd: self.nodes[nd]['status'] == const.NODE_UP,
+                self.nodes
+            )
+        )
+        # Prepare script
+        _script_filename = "pkg_versions.py"
+        _p = os.path.join(PKG_DIR, 'scripts', _script_filename)
+        with open(_p, 'rt') as fd:
+            _script = fd.read().splitlines()
+
+        _storage_path = os.path.join(
+            base_config.salt_file_root, base_config.salt_scripts_folder
+        )
+        _result = self.salt.mkdir("cfg01*", _storage_path)
+        logger.debug(
+            "Tried to create folder on master. Salt returned: {}".format(
+                _result
+            )
+        )
+        # Form cache, source and target path
+        _cache_path = os.path.join(_storage_path, _script_filename)
+        _source_path = os.path.join(
+            'salt://',
+            base_config.salt_scripts_folder,
+            _script_filename
+        )
+        _target_path = os.path.join(
+            '/root',
+            base_config.salt_scripts_folder,
+            _script_filename
+        )
+
+        logger.debug("Creating file in cache '{}'".format(_cache_path))
+        _result = self.salt.f_touch_master(_cache_path)
+        _result = self.salt.f_append_master(_cache_path, _script)
+        # command salt to copy file to minions
+        logger.debug("Creating script target folder '{}'".format(_cache_path))
+        _result = self.salt.mkdir(
+            _active_nodes_string,
+            os.path.join(
+                '/root',
+                base_config.salt_scripts_folder
+            ),
+            tgt_type="compound"
+        )
+        logger.debug("Copying script to all nodes")
+        _result = self.salt.get_file(
+            _active_nodes_string,
+            _source_path,
+            _target_path,
+            tgt_type="compound"
+        )
+        # execute pkg collecting script
+        logger.debug("Running script to all nodes")
+        # handle results for each node
+        _result = self.salt.cmd(
+            _active_nodes_string,
+            'cmd.run',
+            param='python {}'.format(_target_path),
+            expr_form="compound"
+        )
+        for key in self.nodes.keys():
+            # due to much data to be passed from salt, it is happening in order
+            if key in _result:
+                _text = _result[key]
+                _dict = json.loads(_text[_text.find('{'):])
+                self.nodes[key]['packages'] = _dict
+            else:
+                self.nodes[key]['packages'] = {}
+            logger.info("{} has {} packages installed".format(
+                key,
+                len(self.nodes[key]['packages'].keys())
+            ))
+
+    def collect_packages(self):
+        """
+        Check package versions in repos vs installed
+
+        :return: no return values, all date put to dict in place
+        """
+        _all_packages = {}
+        for node_name, node_value in self.nodes.iteritems():
+            for package_name in node_value['packages']:
+                if package_name not in _all_packages:
+                    _all_packages[package_name] = {}
+                _all_packages[package_name][node_name] = node_value
+
+        # TODO: process data for per-package basis
+
+        self.all_packages = _all_packages
+
+    def create_html_report(self, filename):
+        """
+        Create static html showing packages diff per node
+
+        :return: buff with html
+        """
+        _report = pkg_reporter.ReportToFile(
+            pkg_reporter.HTMLPackageVersions(),
+            filename
+        )
+        _report(self.nodes)
+
+
+# init connection to salt and collect minion data
+cl = CloudPackageChecker()
+
+# collect data on installed packages
+cl.collect_installed_packages()
+
+# diff installed and candidates
+# cl.collect_packages()
+
+# report it
+cl.create_html_report("./pkg_versions.html")
+
+sys.exit(0)
