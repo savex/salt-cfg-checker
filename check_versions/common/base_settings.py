@@ -34,7 +34,10 @@ class TestsConfigurationBase(object):
     salt_file_root = os.environ.get('SALT_FILE_ROOT', None)
     salt_scripts_folder = os.environ.get('SALT_SCRIPTS_FOLDER', 'test_scripts')
 
-    all_nodes = utils.get_nodes_list(os.environ.get('CI_ALL_NODES', None))
+    all_nodes = utils.get_nodes_list(
+        os.environ.get('CI_ALL_NODES', None),
+        os.environ.get('SALT_NODE_LIST_FILE', None)
+    )
     skip_nodes = utils.node_string_to_list(os.environ.get(
         'CI_SKIP_NODES',
         None

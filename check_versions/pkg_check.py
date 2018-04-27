@@ -7,7 +7,7 @@ from copy import deepcopy
 import common.const as const
 import pkg_reporter
 from check_versions.common import utils
-from check_versions.common import base_config, logger, PKG_DIR
+from check_versions.common import base_config, logger, logger_cli, PKG_DIR
 from check_versions.common import salt_utils
 
 node_tmpl = {
@@ -23,7 +23,7 @@ class CloudPackageChecker(object):
     _config = base_config
 
     def __init__(self):
-        logger.info("Collecting nodes for package check")
+        logger_cli.info("Collecting nodes for package check")
         # simple salt rest client
         self.salt = salt_utils.SaltRemote()
 
@@ -31,14 +31,14 @@ class CloudPackageChecker(object):
         # this is not working in scope of 2016.8.3, will overide with list
         # cls.node_keys = cls.salt.list_keys()
 
-        logger.debug("Collecting node names existing in the cloud")
+        logger_cli.info("Collecting node names existing in the cloud")
         self.node_keys = {
             'minions': base_config.all_nodes
         }
 
         # all that answer ping
         _active = self.salt.get_active_nodes()
-        logger.debug("Nodes responded: {}".format(_active))
+        logger_cli.info("Nodes responded: {}".format(_active))
         # just inventory for faster interaction
         # iterate through all accepted nodes and create a dict for it
         self.nodes = {}
@@ -53,7 +53,7 @@ class CloudPackageChecker(object):
             self.nodes[_name]['role'] = _role
             self.nodes[_name]['status'] = _status
 
-        logger.debug("{} nodes collected".format(len(self.nodes)))
+        logger_cli.info("{} nodes collected".format(len(self.nodes)))
 
     def collect_installed_packages(self):
         """
@@ -62,6 +62,7 @@ class CloudPackageChecker(object):
 
         :return: none
         """
+        logger_cli.info("Collecting installed packages")
         # form an all nodes compound string to use in salt
         _active_nodes_string = self.salt.compound_string_from_list(
             filter(
@@ -74,16 +75,16 @@ class CloudPackageChecker(object):
         _p = os.path.join(PKG_DIR, 'scripts', _script_filename)
         with open(_p, 'rt') as fd:
             _script = fd.read().splitlines()
-
         _storage_path = os.path.join(
             base_config.salt_file_root, base_config.salt_scripts_folder
         )
-        _result = self.salt.mkdir("cfg01*", _storage_path)
-        logger.debug(
-            "Tried to create folder on master. Salt returned: {}".format(
-                _result
+        logger_cli.info(
+            "Uploading script {} to master's file cache folder: '{}'".format(
+                _script_filename,
+                _storage_path
             )
         )
+        _result = self.salt.mkdir("cfg01*", _storage_path)
         # Form cache, source and target path
         _cache_path = os.path.join(_storage_path, _script_filename)
         _source_path = os.path.join(
@@ -110,7 +111,7 @@ class CloudPackageChecker(object):
             ),
             tgt_type="compound"
         )
-        logger.debug("Copying script to all nodes")
+        logger_cli.info("Running script to all active nodes")
         _result = self.salt.get_file(
             _active_nodes_string,
             _source_path,
@@ -134,7 +135,7 @@ class CloudPackageChecker(object):
                 self.nodes[key]['packages'] = _dict
             else:
                 self.nodes[key]['packages'] = {}
-            logger.info("{} has {} packages installed".format(
+            logger_cli.info("{} has {} packages installed".format(
                 key,
                 len(self.nodes[key]['packages'].keys())
             ))
@@ -163,7 +164,7 @@ class CloudPackageChecker(object):
         :return: buff with html
         """
         _report = pkg_reporter.ReportToFile(
-            pkg_reporter.HTMLPackageVersions(),
+            pkg_reporter.HTMLPackageCandidates(),
             filename
         )
         _report(self.nodes)

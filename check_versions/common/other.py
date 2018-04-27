@@ -67,12 +67,12 @@ class Utils(object):
         else:
             raise ConfigException(_message)
 
-    def get_nodes_list(self, env):
+    def get_nodes_list(self, env, nodes_list):
         _list = []
         if env is None:
             # nothing supplied, use the one in repo
             try:
-                with open(os.path.join(PKG_DIR, 'etc', 'nodes.list')) as _f:
+                with open(os.path.join(PKG_DIR, nodes_list)) as _f:
                     _list.extend(_f.read().splitlines())
             except IOError as e:
                 raise ConfigException("Error while loading file, '{}': "

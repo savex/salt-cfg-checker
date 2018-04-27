@@ -90,7 +90,7 @@ class _TMPLBase(_Base):
 
 
 # Package versions report
-class HTMLPackageVersions(_TMPLBase):
+class HTMLPackageCandidates(_TMPLBase):
     tmpl = "pkg_versions_tmpl.j2"
 
     @staticmethod
