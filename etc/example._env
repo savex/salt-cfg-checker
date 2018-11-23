@@ -1,0 +1,36 @@
+# CI Checker
+# Environment file example
+
+# Either open a tunnel from your hosts using 
+# 'ssh -L 16969:<cfg-IP>:6969 <user>@<lab-IP>'
+# Or run it from within a cloud
+
+# Not used so far, reserved
+# CI_TESTS_WORK_DIR=
+
+# Main log file of the tests
+CEE8_LOGFILE = 'ci_checker.log'
+
+# Salt master host to connect to
+SALT_URL=127.0.0.1
+
+# Salt master port.
+# Note that you can safely execute second master
+# on the same cfg node with diferent port and set logging to ALL
+SALT_PORT=16969
+
+# User and password to auth on master. Can be found in /srv/salt/...
+SALT_USER=salt
+SALT_PASSWORD=*****
+
+# default timeout for salt calls
+SALT_TIMEOUT=30
+
+# Folder where salt points its filesystem: salt://
+SALT_FILE_ROOT=/usr/share/salt-formulas/env/
+
+# Subfolder with scripts to be uploaded
+SALT_SCRIPTS_FOLDER=test_scripts
+
+# All nodes list file overide
+SALT_NODE_LIST_FILE=etc/example._list

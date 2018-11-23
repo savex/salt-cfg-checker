@@ -1,0 +1,51 @@
+# CI Checker
+# Nodes list file example
+
+# Nodes list can be obtained by executing 
+# following command from the Salt Master
+# 'salt-key -l accepted'
+
+# Nodes can be commented out 
+# in order to exclude them from tests
+
+# Also, there is an env. vars with similar function
+# Check README.md
+
+bmk01.multinode-ha.int
+bmk02.multinode-ha.int
+cfg01.multinode-ha.int
+cid01.multinode-ha.int
+cid02.multinode-ha.int
+cid03.multinode-ha.int
+cmp001.multinode-ha.int
+cmp002.multinode-ha.int
+ctl01.multinode-ha.int
+ctl02.multinode-ha.int
+ctl03.multinode-ha.int
+dbs01.multinode-ha.int
+dbs02.multinode-ha.int
+dbs03.multinode-ha.int
+gtw01.multinode-ha.int
+gtw02.multinode-ha.int
+gtw03.multinode-ha.int
+kvm01.multinode-ha.int
+kvm02.multinode-ha.int
+kvm03.multinode-ha.int
+kvm04.multinode-ha.int
+kvm05.multinode-ha.int
+kvm06.multinode-ha.int
+#mdb01.multinode-ha.int
+#mdb02.multinode-ha.int
+#mdb03.multinode-ha.int
+#mon01.multinode-ha.int
+#mon02.multinode-ha.int
+#mon03.multinode-ha.int
+#mondb01.multinode-ha.int
+#mondb02.multinode-ha.int
+#mondb03.multinode-ha.int
+msg01.multinode-ha.int
+msg02.multinode-ha.int
+msg03.multinode-ha.int
+prx01.multinode-ha.int
+prx02.multinode-ha.int
+share01.multinode-ha.int
