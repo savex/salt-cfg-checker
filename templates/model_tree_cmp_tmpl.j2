@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Model Tree Changes</title>
+    <style>
+        body {
+            font-family: Verdana, Geneva, Tahoma, sans-serif;
+            font-size: 90% !important;
+        }
+        .dot_green {
+            float: left;
+            color: green;
+            margin-right: 0.5em;
+            margin-top: 0.2em;
+        }
+        .dot_red {
+            float: left;
+            color: red;
+            margin-right: 0.5em;
+            margin-top: 0.2em;
+        }
+        .dot_empty {
+            float: left;
+            color: darkgray;
+            margin-right: 0.5em;
+            margin-top: 0.2em;
+        }
+        /* Style the tab */
+        .tab {
+            float: left;
+            width: 130px;
+            border: 1px solid #fff;
+            background-color: #efe;
+        }
+
+        /* Style the buttons that are used to open the tab content */
+        .tab button {
+            display: block;
+            background-color: inherit;
+            color: Black;
+            border: none;
+            outline: none;
+            font-family: "Lucida Console", Monaco, monospace;
+            text-align: left;
+            cursor: pointer;
+            transition: 0.3s;
+            font-size: 1.3em;
+            width: 100%;
+            padding: 1px;
+            margin: 1px;
+        }
+
+        button > div.node_name {
+            float: left;
+            font-size: 1.3em;
+        }
+
+        .smallgreytext {
+            float: right;
+            font-size: 0.7em;
+            color: gray;
+        }
+
+        /* Change background color of buttons on hover */
+        .tab button:hover {
+            background-color: #7b7;
+        }
+
+        /* Create an active/current "tab button" class */
+        .tab button.active {
+            background-color: #8c8;
+            color: white;
+        }
+
+        /* Style the tab content */
+        .tabcontent {
+            display: none;
+            position: absolute;
+            font-size: 1em;
+            padding: 0.5em;
+            right: -10%;
+            top: 0%;
+            transform: translateX(-12%);
+            width: calc(100% - 170px);
+            overflow-x: scroll;
+            overflow-wrap: break-word;
+        }
+
+        table {
+            border: 0 hidden;
+            width: 100%;
+        }
+        tr:nth-child(even) {
+            background-color: #fff;
+        }
+        tr:nth-child(odd) {
+            background-color: #ddd;
+        }
+        .Header {
+            background-color: #bbb;
+            color: Black;
+            width: 30%;
+            text-align: center;
+        }
+        .pkgName {
+            font-size: 1em;
+            padding-left: 10px;
+        }
+
+        .version {
+            font-size: 1.1em;
+            text-align: left;
+        }
+
+        .differ {
+            background-color: #eaa;
+        }
+        /* Tooltip container */
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            border-bottom: 1px dotted black;
+        }
+
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            background-color: black;
+            font-family: "Lucida Console", Monaco, monospace;
+            font-size: 0.5em;
+            width: auto;
+            color: #fff;
+            border-radius: 6px;
+            padding: 5px 5px;
+
+            /* Position the tooltip */
+            position: absolute;
+            z-index: 1;
+        }
+
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+        }
+
+    </style>
+    <script language="JavaScript">
+        function init() {
+            // Declare all variables
+            var i, tabcontent, tablinks;
+
+            // Get all elements with class="tabcontent" and hide them
+            tabcontent = document.getElementsByClassName("tabcontent");
+            for (i = 1; i < tabcontent.length; i++) {
+                tabcontent[i].style.display = "none";
+            }
+            tabcontent[0].style.display = "block";
+
+            // Get all elements with class="tablinks" and remove the class "active"
+            tablinks = document.getElementsByClassName("tablinks");
+            for (i = 1; i < tablinks.length; i++) {
+                tablinks[i].className = tablinks[i].className.replace(" active", "");
+            }
+            tablinks[0].className += " active";
+
+        }
+        function openTab(evt, tabName) {
+            // Declare all variables
+            var i, tabcontent, tablinks;
+
+            // Get all elements with class="tabcontent" and hide them
+            tabcontent = document.getElementsByClassName("tabcontent");
+            for (i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].style.display = "none";
+            }
+
+            // Get all elements with class="tablinks" and remove the class "active"
+            tablinks = document.getElementsByClassName("tablinks");
+            for (i = 0; i < tablinks.length; i++) {
+                tablinks[i].className = tablinks[i].className.replace(" active", "");
+            }
+
+            // Show the current tab, and add an "active" class to the link that opened the tab
+            document.getElementById(tabName).style.display = "block";
+            evt.currentTarget.className += " active";
+        }
+    </script>
+</head>
+<body onload="init()">
+<div class="tab">
+  <button class="tablinks" onclick="openTab(event, 'mdl_changes')">
+    <div class="node_name">Model changes</div>
+    <div class="smallgreytext">({{ counters['mdl_diff'] }})</div>
+  </button>
+</div>
+<div id="mdl_changes" class="tabcontent">
+    <table class="pkgversions">
+        <tbody>
+        <tr>
+            <td class="Header">Package name</td>
+            <td class="Header">Installed</td>
+            <td class="Header">Candidate</td>
+        </tr>
+        <tr><td colspan=3>Package with different versions uniq for this node</td></tr>
+            <td class="pkgName">class:cluster:param1</td>
+            <td class="version differ">
+                <div class="tooltip">Value1
+                    <pre class="tooltiptext">raw text from the diff | linebreaks }}</pre>
+                </div>
+            </td>
+            <td class="version">Value2</td>
+        </tbody>
+    </table>
+</div>
+</body>
+</html>

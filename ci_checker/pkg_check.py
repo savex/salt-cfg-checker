@@ -5,10 +5,10 @@ import sys
 from copy import deepcopy
 
 import common.const as const
-import pkg_reporter
-from check_versions.common import utils
-from check_versions.common import base_config, logger, logger_cli, PKG_DIR
-from check_versions.common import salt_utils
+import reporter
+from ci_checker.common import utils
+from ci_checker.common import base_config, logger, logger_cli, PKG_DIR
+from ci_checker.common import salt_utils
 
 node_tmpl = {
     'role': '',
@@ -163,11 +163,11 @@ class CloudPackageChecker(object):
 
         :return: buff with html
         """
-        _report = pkg_reporter.ReportToFile(
-            pkg_reporter.HTMLPackageCandidates(),
+        _report = reporter.ReportToFile(
+            reporter.HTMLPackageCandidates(),
             filename
         )
-        _report(self.nodes)
+        _report(nodes=self.nodes)
 
 
 # init connection to salt and collect minion data

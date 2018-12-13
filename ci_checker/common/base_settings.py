@@ -8,7 +8,7 @@ Attributes:
 
 import os
 
-from check_versions.common.other import utils
+from ci_checker.common.other import utils
 
 PKG_DIR = os.path.dirname(__file__)
 PKG_DIR = os.path.join(PKG_DIR, os.pardir, os.pardir)
@@ -23,7 +23,7 @@ class TestsConfigurationBase(object):
     """
 
     name = "CiTestsBaseConfig"
-    logfile_name = 'ci_packages.log'
+    logfile_name = 'ci_checker.log'
     working_folder = os.environ.get('CI_TESTS_WORK_DIR', _default_work_folder)
     salt_host = os.environ.get('SALT_URL', None)
     salt_port = os.environ.get('SALT_PORT', '6969')

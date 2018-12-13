@@ -3,7 +3,7 @@ import six
 import abc
 import os
 
-from check_versions.common import const
+from ci_checker.common import const
 
 pkg_dir = os.path.dirname(__file__)
 pkg_dir = os.path.join(pkg_dir, os.pardir)
@@ -56,11 +56,12 @@ class _TMPLBase(_Base):
     def _count_totals(data):
         data['counters']['total_nodes'] = len(data['nodes'])
 
-    def __call__(self, nodes):
+    def __call__(self, nodes={}, mdl_diff={}):
         # init data structures
         data = self.common_data()
         data.update({
-            "nodes": nodes
+            "nodes": nodes,
+            "compare": data
         })
 
         # add template specific data
@@ -141,6 +142,19 @@ class HTMLPackageCandidates(_TMPLBase):
                     pkg_value['fail_uniq'] = False
 
         data['counters']['total_packages'] = _all_pkg
+
+
+# Package versions report
+class HTMLModelCompare(_TMPLBase):
+    tmpl = "model_tree_cmp_tmpl.j2"
+
+    def _extend_data(self, data):
+        # extend data with the compare dict
+
+        # counters - mdl_diff
+        data['counters']['mdl_diff'] = 51
+
+        pass
 
 
 class ReportToFile(object):

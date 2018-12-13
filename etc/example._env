@@ -15,7 +15,7 @@ CEE8_LOGFILE = 'ci_checker.log'
 SALT_URL=127.0.0.1
 
 # Salt master port.
-# Note that you can safely execute second master
+# Note that you can safely execute second master (not on production)
 # on the same cfg node with diferent port and set logging to ALL
 SALT_PORT=16969
 

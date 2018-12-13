@@ -1,9 +1,9 @@
 import os
 import re
 
-from check_versions.common.const import all_roles_map
+from ci_checker.common.const import all_roles_map
 
-from check_versions.common.exception import ConfigException
+from ci_checker.common.exception import ConfigException
 
 PKG_DIR = os.path.dirname(__file__)
 PKG_DIR = os.path.join(PKG_DIR, os.pardir, os.pardir)
@@ -72,6 +72,8 @@ class Utils(object):
         if env is None:
             # nothing supplied, use the one in repo
             try:
+                if not nodes_list:
+                    return []
                 with open(os.path.join(PKG_DIR, nodes_list)) as _f:
                     _list.extend(_f.read().splitlines())
             except IOError as e:

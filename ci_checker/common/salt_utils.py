@@ -5,8 +5,8 @@ import os
 import requests
 import time
 
-from check_versions.common.base_settings import base_config as config
-from check_versions.common import logger
+from ci_checker.common.base_settings import base_config as config
+from ci_checker.common import logger
 
 
 def list_to_target_string(node_list, separator):

@@ -69,7 +69,7 @@ ifs_data = get_ifs_data()
 # _ifs = sorted(ifs_data.keys())
 # _ifs.remove("lo")
 # for _idx in range(len(_ifs)):
-#     print("{}: {}, {}, {}".format(
+#     print("\t{}:\t{},\t\t{},\t{}".format(
 #         _ifs[_idx],
 #         " ".join(ifs_data[_ifs[_idx]]['ipv4'].keys()),
 #         ifs_data[_ifs[_idx]]['mtu'],
