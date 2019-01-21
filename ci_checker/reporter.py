@@ -56,12 +56,12 @@ class _TMPLBase(_Base):
     def _count_totals(data):
         data['counters']['total_nodes'] = len(data['nodes'])
 
-    def __call__(self, nodes={}, mdl_diff={}):
+    def __call__(self, payload):
         # init data structures
         data = self.common_data()
         data.update({
-            "nodes": nodes,
-            "compare": data
+            "nodes": payload['nodes'],
+            "diffs": payload['diffs']
         })
 
         # add template specific data
@@ -149,12 +149,11 @@ class HTMLModelCompare(_TMPLBase):
     tmpl = "model_tree_cmp_tmpl.j2"
 
     def _extend_data(self, data):
-        # extend data with the compare dict
+        # move names into separate place
+        data["names"] = data["diffs"].pop("diff_names")
 
         # counters - mdl_diff
-        data['counters']['mdl_diff'] = 51
-
-        pass
+        data['counters']['mdl_diff'] = len(data["diffs"].keys())
 
 
 class ReportToFile(object):

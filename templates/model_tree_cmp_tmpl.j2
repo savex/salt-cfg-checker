@@ -103,13 +103,27 @@
             width: 30%;
             text-align: center;
         }
+        .param {
+            font-size: 0.8em;
+            color: #555;
+            padding-left: 50px;
+            padding-right: 10px;
+        }
+        .class_file {
+            font-size: 0.8em;
+            font-weight: bold;
+            min-width: 300px;
+            text-align: left;
+            color: black;
+        }
+
         .pkgName {
             font-size: 1em;
             padding-left: 10px;
         }
 
         .version {
-            font-size: 1.1em;
+            font-size: 0.8em;
             text-align: left;
         }
 
@@ -196,18 +210,28 @@
     <table class="pkgversions">
         <tbody>
         <tr>
-            <td class="Header">Package name</td>
-            <td class="Header">Installed</td>
-            <td class="Header">Candidate</td>
+            <td class="Header">Reclass path</td>
+            <td class="Header">{{ names[0] }}</td>
+            <td class="Header">{{ names[1] }}</td>
         </tr>
-        <tr><td colspan=3>Package with different versions uniq for this node</td></tr>
-            <td class="pkgName">class:cluster:param1</td>
-            <td class="version differ">
-                <div class="tooltip">Value1
-                    <pre class="tooltiptext">raw text from the diff | linebreaks }}</pre>
+        <tr><td colspan=3>Changes found in the model</td></tr>
+        {% for diff in diffs.keys() | sort %}
+        <tr>
+            <td class="pkgName">
+                <div class="class_file">{{ diffs[diff]["class_file"] }}</div>
+                <div class="param">{{ diffs[diff]["param"] }}</div>
+            </td>
+            <td class="version">
+                <div class="tooltip">{{ diffs[diff]["str_short"][0] | linebreaks }}
+                    <pre class="tooltiptext">{{ diffs[diff]["str_values"][0] | linebreaks }}</pre>
                 </div>
             </td>
-            <td class="version">Value2</td>
+            <td class="version">
+                <div class="tooltip">{{ diffs[diff]["str_short"][1] | linebreaks }}
+                    <pre class="tooltiptext">{{ diffs[diff]["str_values"][1] | linebreaks }}</pre>
+            </td>
+        </tr>
+        {% endfor %}
         </tbody>
     </table>
 </div>

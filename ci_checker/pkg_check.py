@@ -167,7 +167,10 @@ class CloudPackageChecker(object):
             reporter.HTMLPackageCandidates(),
             filename
         )
-        _report(nodes=self.nodes)
+        _report({
+            "nodes": self.nodes,
+            "diffs": {}
+        })
 
 
 # init connection to salt and collect minion data

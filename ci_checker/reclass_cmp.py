@@ -44,7 +44,7 @@ class ModelComparer(object):
                 "Error loading file '{}': {}".format(fname, e.message)
             )
             raise Exception("CRITICAL: Failed to load YAML data: {}".format(
-                e.message
+                e.message + e.strerror
             ))
 
     def load_model_tree(self, name, root_path="/srv/salt/reclass"):
@@ -71,7 +71,9 @@ class ModelComparer(object):
             folders = path[start:].split(os.sep)
             subdir = {}
             # create generator of files that are not hidden
-            _subfiles = (file for file in files if not file.startswith("."))
+            _exts = ('.yml', '.yaml')
+            _subfiles = (file for file in files
+                         if file.endswith(_exts) and not file.startswith('.'))
             for _file in _subfiles:
                 # cut file extension. All reclass files are '.yml'
                 _subnode = _file
@@ -79,8 +81,16 @@ class ModelComparer(object):
                 subdir[_subnode] = self.load_yaml_class(
                     os.path.join(path, _file)
                 )
-                # Save original filepath, just in case
-                subdir[_subnode]["_source"] = os.path.join(path[start:], _file)
+                try:
+                    # Save original filepath, just in case
+                    subdir[_subnode]["_source"] = os.path.join(
+                        path[start:],
+                        _file
+                    )
+                except Exception:
+                    logger.warning(
+                        "Non-yaml file detected: {}".format(_file)
+                    )
             # creating dict structure out of folder list. Pure python magic
             parent = reduce(dict.get, folders[:-1], raw_tree)
             parent[folders[-1]] = subdir
@@ -98,10 +108,21 @@ class ModelComparer(object):
                 _new_path = path + ":" + k
                 if k == "_source":
                     continue
-                if k not in dict2:
+                if dict2 is None or k not in dict2:
                     # no key in dict2
-                    _report[_new_path] = [dict1[k], "N/A"]
-                    logger_cli.info(
+                    _report[_new_path] = {
+                        "type": "value",
+                        "raw_values": [dict1[k], "N/A"],
+                        "str_values": [
+                            "{}".format(dict1[k]),
+                            "n/a"
+                        ],
+                        "str_short": [
+                            "{:25.25}...".format(str(dict1[k])),
+                            "n/a"
+                        ]
+                    }
+                    logger.info(
                         "{}: {}, {}".format(_new_path, dict1[k], "N/A")
                     )
                 else:
@@ -128,16 +149,34 @@ class ModelComparer(object):
                                 dict2[k]
                             )
                         )
+                        _original = ["= {}".format(item) for item in dict1[k]]
                         if _removed or _added:
                             _removed_str_lst = ["- {}".format(item)
                                                 for item in _removed]
                             _added_str_lst = ["+ {}".format(item)
                                               for item in _added]
-                            _report[_new_path] = [
-                                dict1[k],
-                                _removed_str_lst + _added_str_lst
-                            ]
-                            logger_cli.info(
+                            _report[_new_path] = {
+                                "type": "list",
+                                "raw_values": [
+                                    dict1[k],
+                                    _removed_str_lst + _added_str_lst
+                                ],
+                                "str_values": [
+                                    "{}".format('\n'.join(_original)),
+                                    "{}\n{}".format(
+                                        '\n'.join(_removed_str_lst),
+                                        '\n'.join(_added_str_lst)
+                                    )
+                                ],
+                                "str_short": [
+                                    "{} items".format(len(dict1[k])),
+                                    "{}\n{}".format(
+                                        '\n'.join(_removed_str_lst),
+                                        '\n'.join(_added_str_lst)
+                                    )
+                                ]
+                            }
+                            logger.info(
                                 "{}:\n"
                                 "{} original items total".format(
                                     _new_path,
@@ -145,17 +184,32 @@ class ModelComparer(object):
                                 )
                             )
                             if _removed:
-                                logger_cli.info(
+                                logger.info(
                                     "{}".format('\n'.join(_removed_str_lst))
                                 )
                             if _added:
-                                logger_cli.info(
+                                logger.info(
                                     "{}".format('\n'.join(_added_str_lst))
                                 )
                     else:
                         if dict1[k] != dict2[k]:
-                            _report[_new_path] = [dict1[k], dict2[k]]
-                            logger_cli.info("{}: {}, {}".format(
+                            _str1 = str(dict1[k])
+                            _str1_cut = "{:20.20}...".format(str(dict1[k]))
+                            _str2 = str(dict2[k])
+                            _str2_cut = "{:20.20}...".format(str(dict2[k]))
+                            _report[_new_path] = {
+                                "type": "value",
+                                "raw_values": [dict1[k], dict2[k]],
+                                "str_values": [
+                                    "{}".format(dict1[k]),
+                                    "{}".format(dict2[k])
+                                ],
+                                "str_short": [
+                                    _str1 if len(_str1) < 20 else _str1_cut,
+                                    _str2 if len(_str1) < 20 else _str2_cut,
+                                ]
+                            }
+                            logger.info("{}: {}, {}".format(
                                 _new_path,
                                 dict1[k],
                                 dict2[k]
@@ -164,8 +218,25 @@ class ModelComparer(object):
         # tmp report for keys
         diff_report = find_changes(
             self.models["inspur_Aug"],
-            self.models['inspur_Dec']
+            self.models["inspur_Original"]
         )
+        # prettify the report
+        for key in diff_report.keys():
+            # break the key in two parts
+            _ext = ".yml"
+            if ".yaml" in key:
+                _ext = ".yaml"
+            _split = key.split(_ext)
+            _file_path = _split[0]
+            _param_path = "none"
+            if len(_split) > 1:
+                _param_path = _split[1]
+            diff_report[key].update({
+                "class_file": _file_path + _ext,
+                "param": _param_path,
+            })
+
+        diff_report["diff_names"] = ["inspur_Aug", "inspur_Original"]
         return diff_report
 
 
@@ -177,15 +248,20 @@ if __name__ == '__main__':
         '/Users/savex/proj/inspur_hc/reclass_cmp/reclass-20180810'
     )
     mComparer.load_model_tree(
-        'inspur_Dec',
-        '/Users/savex/proj/inspur_hc/reclass_cmp/reclass-20181210'
+        'inspur_Original',
+        '/Users/savex/proj/inspur_hc/reclass_cmp/reclass_original'
     )
     diffs = mComparer.generate_model_report_tree()
 
+    report_file = "./mdl_diff_original.html"
     report = reporter.ReportToFile(
         reporter.HTMLModelCompare(),
-        './mdl_diff.html'
+        report_file
     )
-    report(mdl_diff=diffs)
+    logger_cli.info("...generating report to {}".format(report_file))
+    report({
+        "nodes": {},
+        "diffs": diffs
+    })
     # with open("./gen_tree.json", "w+") as _out:
     #     _out.write(json.dumps(mComparer.generate_model_report_tree))
