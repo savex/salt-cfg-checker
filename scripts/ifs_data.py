@@ -32,6 +32,18 @@ def get_linked_devices(if_name):
         _name = if_name[:if_name.index('@')]
     else:
         _name = if_name
+    # identify device type
+    _dev_link_path = shell('readlink /sys/class/net/{}'.format(_name))
+    _type = "unknown"
+    if len(_dev_link_path) > 0:
+        _tmp = _dev_link_path.split('/')
+        _tmp = _tmp[_tmp.index("devices") + 1]
+        if _tmp.startswith("pci"):
+            _type = "physical"
+        elif _tmp.startswith("virtual"):
+            _type = "virtual"
+
+    # get linked devices if any
     _links = shell(
         "find /sys/class/net/{}/ -type l".format(_name)
     )
@@ -48,7 +60,7 @@ def get_linked_devices(if_name):
                 _lower = []
             _lower.append(_line[6:])
 
-    return _lower, _upper
+    return _lower, _upper, _type
 
 
 def get_ifs_data():
@@ -66,7 +78,7 @@ def get_ifs_data():
             _tmp = line.split(':')
             _if_name = _tmp[1].strip()
             _if_options = _tmp[2].strip().split(' ')
-            _lower, _upper = get_linked_devices(_if_name)
+            _lower, _upper, _type = get_linked_devices(_if_name)
             _if_data['order'] = _tmp[0]
             _if_data['mtu'], _if_options = cut_option("mtu", _if_options)
             _if_data['qlen'], _if_options = cut_option("qlen", _if_options)
@@ -74,6 +86,7 @@ def get_ifs_data():
             _if_data['other'] = _if_options
             _if_data['ipv4'] = {}
             _if_data['mac'] = {}
+            _if_data['type'] = _type
             _if_data['upper'] = _upper
             _if_data['lower'] = _lower
             _ifs[_if_name] = _if_data
@@ -114,12 +127,14 @@ else:
     for _idx in range(len(_ifs)):
         _linked = ""
         if ifs_data[_ifs[_idx]]['lower']:
-            _linked += "lower:{}".format(
+            _linked += "lower:{} ".format(
                 ','.join(ifs_data[_ifs[_idx]]['lower'])
             )
         if ifs_data[_ifs[_idx]]['upper']:
-            _linked += "upper:{}".format(ifs_data[_ifs[_idx]]['upper'])
-        print("{0:30} {1:18} {2:19} {3:5} {4:4} {5}".format(
+            _linked += "upper:{} ".format(ifs_data[_ifs[_idx]]['upper'])
+        _linked = _linked.strip()
+        print("{0:8} {1:30} {2:18} {3:19} {4:5} {5:4} {6}".format(
+            ifs_data[_ifs[_idx]]['type'],
             _ifs[_idx],
             ",".join(ifs_data[_ifs[_idx]]['mac'].keys()),
             ",".join(ifs_data[_ifs[_idx]]['ipv4'].keys()),
