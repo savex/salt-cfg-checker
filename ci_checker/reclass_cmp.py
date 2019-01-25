@@ -3,13 +3,11 @@
 - class tree comparison
 """
 import itertools
-# import json
 import os
 import yaml
 
 import reporter
-from ci_checker.common import utils
-from ci_checker.common import base_config, logger, logger_cli, PKG_DIR
+from ci_checker.common import logger, logger_cli
 
 
 global prefix_name
@@ -110,16 +108,18 @@ class ModelComparer(object):
         return True
 
     def generate_model_report_tree(self):
-        """Use all loaded models to generate comparison table with
+        """Use two loaded models to generate comparison table with
         values are groupped by YAML files
         """
         def find_changes(dict1, dict2, path=""):
             _report = {}
             for k in dict1.keys():
+                # yamls might load values as non-str types
                 if not isinstance(k, str):
                     _new_path = path + ":" + str(k)
                 else:
                     _new_path = path + ":" + k
+                # ignore _source key
                 if k == "_source":
                     continue
                 # check if this is an env name cluster entry
