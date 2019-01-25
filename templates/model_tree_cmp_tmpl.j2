@@ -120,11 +120,14 @@
         .pkgName {
             font-size: 1em;
             padding-left: 10px;
+            max-width: 800px;
         }
 
         .version {
-            font-size: 0.8em;
+            font-size: 1em;
             text-align: left;
+            max-width: 400px;
+            overflow-wrap: break-word;
         }
 
         .differ {
@@ -222,13 +225,10 @@
                 <div class="param">{{ diffs[diff]["param"] }}</div>
             </td>
             <td class="version">
-                <div class="tooltip">{{ diffs[diff]["str_short"][0] | linebreaks }}
-                    <pre class="tooltiptext">{{ diffs[diff]["str_values"][0] | linebreaks }}</pre>
-                </div>
+                <div><pre>{{ diffs[diff]["str_values"][0] | linebreaks }}</pre></div>
             </td>
             <td class="version">
-                <div class="tooltip">{{ diffs[diff]["str_short"][1] | linebreaks }}
-                    <pre class="tooltiptext">{{ diffs[diff]["str_values"][1] | linebreaks }}</pre>
+                <div><pre>{{ diffs[diff]["str_values"][1] | linebreaks }}</pre></div>
             </td>
         </tr>
         {% endfor %}

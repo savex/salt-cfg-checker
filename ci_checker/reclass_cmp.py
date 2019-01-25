@@ -12,6 +12,17 @@ from ci_checker.common import utils
 from ci_checker.common import base_config, logger, logger_cli, PKG_DIR
 
 
+global prefix_name
+global model_name_1, model_path_1
+global model_name_2, model_path_2
+
+prefix_name = "emk"
+model_name_1 = "dev"
+model_path_1 = "/Users/savex/proj/mediakind/reclass-dev"
+model_name_2 = "stg"
+model_path_2 = "/Users/savex/proj/mediakind/reclass-stg"
+
+
 class ModelComparer(object):
     """Collection of functions to compare model data.
     """
@@ -105,20 +116,34 @@ class ModelComparer(object):
         def find_changes(dict1, dict2, path=""):
             _report = {}
             for k in dict1.keys():
-                _new_path = path + ":" + k
+                if not isinstance(k, str):
+                    _new_path = path + ":" + str(k)
+                else:
+                    _new_path = path + ":" + k
                 if k == "_source":
                     continue
-                if dict2 is None or k not in dict2:
+                # check if this is an env name cluster entry
+                if dict2 is not None and \
+                        k == model_name_1 and \
+                        model_name_2 in dict2.keys():
+                    k1 = model_name_1
+                    k2 = model_name_2
+                    if type(dict1[k1]) is dict:
+                        if path == "":
+                            _new_path = k1
+                        _child_report = find_changes(
+                            dict1[k1],
+                            dict2[k2],
+                            _new_path
+                        )
+                        _report.update(_child_report)
+                elif dict2 is None or k not in dict2:
                     # no key in dict2
                     _report[_new_path] = {
                         "type": "value",
                         "raw_values": [dict1[k], "N/A"],
                         "str_values": [
                             "{}".format(dict1[k]),
-                            "n/a"
-                        ],
-                        "str_short": [
-                            "{:25.25}...".format(str(dict1[k])),
                             "n/a"
                         ]
                     }
@@ -135,20 +160,38 @@ class ModelComparer(object):
                             _new_path
                         )
                         _report.update(_child_report)
-                    elif type(dict1[k]) is list:
+                    elif type(dict1[k]) is list and type(dict2[k]) is list:
                         # use ifilterfalse to compare lists of dicts
-                        _removed = list(
-                            itertools.ifilterfalse(
-                                lambda x: x in dict2[k],
-                                dict1[k]
+                        try:
+                            _removed = list(
+                                itertools.ifilterfalse(
+                                    lambda x: x in dict2[k],
+                                    dict1[k]
+                                )
                             )
-                        )
-                        _added = list(
-                            itertools.ifilterfalse(
-                                lambda x: x in dict1[k],
-                                dict2[k]
+                            _added = list(
+                                itertools.ifilterfalse(
+                                    lambda x: x in dict1[k],
+                                    dict2[k]
+                                )
                             )
-                        )
+                        except TypeError as e:
+                            # debug routine,
+                            # should not happen, due to list check above
+                            logger.error(
+                                "Caught lambda type mismatch: {}".format(
+                                    e.message
+                                )
+                            )
+                            logger_cli.warning(
+                                "Types mismatch for correct compare: "
+                                "{}, {}".format(
+                                    type(dict1[k]),
+                                    type(dict2[k])
+                                )
+                            )
+                            _removed = None
+                            _added = None
                         _original = ["= {}".format(item) for item in dict1[k]]
                         if _removed or _added:
                             _removed_str_lst = ["- {}".format(item)
@@ -163,13 +206,6 @@ class ModelComparer(object):
                                 ],
                                 "str_values": [
                                     "{}".format('\n'.join(_original)),
-                                    "{}\n{}".format(
-                                        '\n'.join(_removed_str_lst),
-                                        '\n'.join(_added_str_lst)
-                                    )
-                                ],
-                                "str_short": [
-                                    "{} items".format(len(dict1[k])),
                                     "{}\n{}".format(
                                         '\n'.join(_removed_str_lst),
                                         '\n'.join(_added_str_lst)
@@ -192,33 +228,41 @@ class ModelComparer(object):
                                     "{}".format('\n'.join(_added_str_lst))
                                 )
                     else:
-                        if dict1[k] != dict2[k]:
-                            _str1 = str(dict1[k])
-                            _str1_cut = "{:20.20}...".format(str(dict1[k]))
-                            _str2 = str(dict2[k])
-                            _str2_cut = "{:20.20}...".format(str(dict2[k]))
+                        # in case of type mismatch
+                        # considering it as not equal
+                        d1 = dict1
+                        d2 = dict2
+                        val1 = d1[k] if isinstance(d1, dict) else d1
+                        val2 = d2[k] if isinstance(d2, dict) else d2
+                        try:
+                            match = val1 == val2
+                        except TypeError as e:
+                            logger.warning(
+                                "One of the values is not a dict: "
+                                "{}, {}".format(
+                                    str(dict1),
+                                    str(dict2)
+                                ))
+                            match = False
+                        if not match:
                             _report[_new_path] = {
                                 "type": "value",
-                                "raw_values": [dict1[k], dict2[k]],
+                                "raw_values": [val1, val2],
                                 "str_values": [
-                                    "{}".format(dict1[k]),
-                                    "{}".format(dict2[k])
-                                ],
-                                "str_short": [
-                                    _str1 if len(_str1) < 20 else _str1_cut,
-                                    _str2 if len(_str1) < 20 else _str2_cut,
+                                    "{}".format(val1),
+                                    "{}".format(val2)
                                 ]
                             }
                             logger.info("{}: {}, {}".format(
                                 _new_path,
-                                dict1[k],
-                                dict2[k]
+                                val1,
+                                val2
                             ))
             return _report
         # tmp report for keys
         diff_report = find_changes(
-            self.models["inspur_Aug"],
-            self.models["inspur_Original"]
+            self.models[model_name_1],
+            self.models[model_name_2]
         )
         # prettify the report
         for key in diff_report.keys():
@@ -236,7 +280,7 @@ class ModelComparer(object):
                 "param": _param_path,
             })
 
-        diff_report["diff_names"] = ["inspur_Aug", "inspur_Original"]
+        diff_report["diff_names"] = [model_name_1, model_name_2]
         return diff_report
 
 
@@ -244,16 +288,17 @@ class ModelComparer(object):
 if __name__ == '__main__':
     mComparer = ModelComparer()
     mComparer.load_model_tree(
-        'inspur_Aug',
-        '/Users/savex/proj/inspur_hc/reclass_cmp/reclass-20180810'
+        model_name_1,
+        model_path_1
     )
     mComparer.load_model_tree(
-        'inspur_Original',
-        '/Users/savex/proj/inspur_hc/reclass_cmp/reclass_original'
+        model_name_2,
+        model_path_2
     )
     diffs = mComparer.generate_model_report_tree()
 
-    report_file = "./mdl_diff_original.html"
+    report_file = \
+        prefix_name + "-" + model_name_1 + "-vs-" + model_name_2 + ".html"
     report = reporter.ReportToFile(
         reporter.HTMLModelCompare(),
         report_file
