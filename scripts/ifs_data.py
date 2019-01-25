@@ -54,7 +54,9 @@ def get_linked_devices(if_name):
     for line in _links.splitlines():
         _line = line.rsplit('/', 1)[1]
         if _line.startswith("upper_"):
-            _upper = _line[6:]
+            if not _upper:
+                _upper = []
+            _upper.append(_line[6:])
         elif _line.startswith("lower_"):
             if not _lower:
                 _lower = []
@@ -131,7 +133,9 @@ else:
                 ','.join(ifs_data[_ifs[_idx]]['lower'])
             )
         if ifs_data[_ifs[_idx]]['upper']:
-            _linked += "upper:{} ".format(ifs_data[_ifs[_idx]]['upper'])
+            _linked += "upper:{} ".format(
+                ','.join(ifs_data[_ifs[_idx]]['upper'])
+            )
         _linked = _linked.strip()
         print("{0:8} {1:30} {2:18} {3:19} {4:5} {5:4} {6}".format(
             ifs_data[_ifs[_idx]]['type'],
