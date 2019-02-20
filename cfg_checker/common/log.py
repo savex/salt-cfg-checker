@@ -79,7 +79,7 @@ def setup_loggers(name, def_level=logging.DEBUG, log_fname=None):
         logger.addHandler(fh)
 
     logger_cli = logging.getLogger(name + ".cli")
-    logger_cli.setLevel(logging.DEBUG)
+    logger_cli.setLevel(logging.INFO)
     if len(logger_cli.handlers) == 0:
         logger_cli.addHandler(sh)
 

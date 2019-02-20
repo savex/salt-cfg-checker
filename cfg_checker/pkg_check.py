@@ -21,7 +21,7 @@ node_tmpl = {
 
 class CloudPackageChecker(object):
     def __init__(self):
-        logger_cli.info("Collecting nodes for package check")
+        logger_cli.info("### Collecting nodes for package check")
         # simple salt rest client
         self.salt = salt_utils.SaltRemote()
 
@@ -29,14 +29,14 @@ class CloudPackageChecker(object):
         # this is not working in scope of 2016.8.3, will overide with list
         # cls.node_keys = cls.salt.list_keys()
 
-        logger_cli.info("Collecting node names existing in the cloud")
+        logger_cli.info("### Collecting node names existing in the cloud")
         self.node_keys = {
             'minions': config.all_nodes
         }
 
         # all that answer ping
         _active = self.salt.get_active_nodes()
-        logger_cli.info("Nodes responded: {}".format(_active))
+        logger_cli.debug("-> Nodes responded: {}".format(_active))
         # just inventory for faster interaction
         # iterate through all accepted nodes and create a dict for it
         self.nodes = {}
@@ -51,7 +51,7 @@ class CloudPackageChecker(object):
             self.nodes[_name]['role'] = _role
             self.nodes[_name]['status'] = _status
 
-        logger_cli.info("{} nodes collected".format(len(self.nodes)))
+        logger_cli.info("-> {} nodes collected".format(len(self.nodes)))
 
     def collect_installed_packages(self):
         """
@@ -60,7 +60,7 @@ class CloudPackageChecker(object):
 
         :return: none
         """
-        logger_cli.info("Collecting installed packages")
+        logger_cli.info("### Collecting installed packages")
         # form an all nodes compound string to use in salt
         _active_nodes_string = self.salt.compound_string_from_list(
             filter(
@@ -76,8 +76,8 @@ class CloudPackageChecker(object):
         _storage_path = os.path.join(
             config.salt_file_root, config.salt_scripts_folder
         )
-        logger_cli.info(
-            "Uploading script {} to master's file cache folder: '{}'".format(
+        logger_cli.debug(
+            "# Uploading script {} to master's file cache folder: '{}'".format(
                 _script_filename,
                 _storage_path
             )
@@ -96,11 +96,11 @@ class CloudPackageChecker(object):
             _script_filename
         )
 
-        logger.debug("Creating file in cache '{}'".format(_cache_path))
+        logger_cli.debug("# Creating file in cache '{}'".format(_cache_path))
         _result = self.salt.f_touch_master(_cache_path)
         _result = self.salt.f_append_master(_cache_path, _script)
         # command salt to copy file to minions
-        logger.debug("Creating script target folder '{}'".format(_cache_path))
+        logger_cli.debug("# Creating script target folder '{}'".format(_cache_path))
         _result = self.salt.mkdir(
             _active_nodes_string,
             os.path.join(
@@ -109,7 +109,7 @@ class CloudPackageChecker(object):
             ),
             tgt_type="compound"
         )
-        logger_cli.info("Running script to all active nodes")
+        logger_cli.info("-> Running script to all active nodes")
         _result = self.salt.get_file(
             _active_nodes_string,
             _source_path,
@@ -133,10 +133,11 @@ class CloudPackageChecker(object):
                 self.nodes[key]['packages'] = _dict
             else:
                 self.nodes[key]['packages'] = {}
-            logger_cli.info("{} has {} packages installed".format(
+            logger_cli.debug("# {} has {} packages installed".format(
                 key,
                 len(self.nodes[key]['packages'].keys())
             ))
+        logger_cli.info("-> Done")
 
     def collect_packages(self):
         """
@@ -161,6 +162,7 @@ class CloudPackageChecker(object):
 
         :return: buff with html
         """
+        logger_cli.info("### Generating report to '{}'".format(filename))
         _report = reporter.ReportToFile(
             reporter.HTMLPackageCandidates(),
             filename
@@ -169,6 +171,7 @@ class CloudPackageChecker(object):
             "nodes": self.nodes,
             "diffs": {}
         })
+        logger_cli.info("-> Done")
 
 
 if __name__ == '__main__':

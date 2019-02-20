@@ -1,6 +1,7 @@
 import argparse
 import os
 import sys
+from logging import INFO,  DEBUG
 
 import reporter
 from cfg_checker.common import utils, const
@@ -17,7 +18,6 @@ class MyParser(argparse.ArgumentParser):
     def error(self, message):
         sys.stderr.write('Error: {0}\n\n'.format(message))
         self.print_help()
-
 
 
 def help_message():
@@ -61,6 +61,12 @@ def net_report(args):
 def config_check_entrypoint():
     # Main entrypointр
     parser = MyParser(prog="Cloud configuration checker")
+    parser.add_argument(
+        "-d",
+        "--debug",
+        action="store_true", default=False,
+        help="Set CLI logging level to DEBUG"
+    )
     subparsers = parser.add_subparsers(dest='command')
     # packages
     pkg_parser = subparsers.add_parser(
@@ -106,6 +112,12 @@ def config_check_entrypoint():
     
     #parse arguments
     args = parser.parse_args()
+
+    # Handle options
+    if args.debug:
+        logger_cli.setLevel(DEBUG)
+    else:
+        logger_cli.setLevel(INFO)
 
     # Execute the command
     result = args.func(args)
