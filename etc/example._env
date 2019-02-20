@@ -1,15 +1,12 @@
-# CI Checker
+# Cfg Checker
 # Environment file example
 
 # Either open a tunnel from your hosts using 
 # 'ssh -L 16969:<cfg-IP>:6969 <user>@<lab-IP>'
 # Or run it from within a cloud
 
-# Not used so far, reserved
-# CI_TESTS_WORK_DIR=
-
 # Main log file of the tests
-CEE8_LOGFILE = 'ci_checker.log'
+LOGFILE = 'cfg_checker.log'
 
 # Salt master host to connect to
 SALT_URL=127.0.0.1

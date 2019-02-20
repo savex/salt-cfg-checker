@@ -1,11 +1,11 @@
 from exceptions import Exception
 
 
-class CiCheckerBaseExceptions(Exception):
+class CheckerBaseExceptions(Exception):
     pass
 
 
-class CheckerException(CiCheckerBaseExceptions):
+class CheckerException(CheckerBaseExceptions):
     def __init__(self, message, *args, **kwargs):
         super(CheckerException, self).__init__(message, *args, **kwargs)
         # get the trace

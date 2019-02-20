@@ -5,8 +5,7 @@ import os
 import requests
 import time
 
-from ci_checker.common.base_settings import base_config as config
-from ci_checker.common import logger
+from cfg_checker.common import logger, config
 
 
 def list_to_target_string(node_list, separator):

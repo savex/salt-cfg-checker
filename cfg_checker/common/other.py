@@ -1,13 +1,14 @@
 import os
 import re
 
-from ci_checker.common.const import all_roles_map
+from cfg_checker.common.const import all_roles_map
 
-from ci_checker.common.exception import ConfigException
+from cfg_checker.common.exception import ConfigException
 
-PKG_DIR = os.path.dirname(__file__)
-PKG_DIR = os.path.join(PKG_DIR, os.pardir, os.pardir)
-PKG_DIR = os.path.normpath(PKG_DIR)
+pkg_dir = os.path.dirname(__file__)
+pkg_dir = os.path.join(pkg_dir, os.pardir, os.pardir)
+pkg_dir = os.path.normpath(pkg_dir)
+pkg_dir = os.path.abspath(pkg_dir)
 
 
 class Utils(object):
@@ -74,7 +75,7 @@ class Utils(object):
             try:
                 if not nodes_list:
                     return []
-                with open(os.path.join(PKG_DIR, nodes_list)) as _f:
+                with open(os.path.join(pkg_dir, nodes_list)) as _f:
                     _list.extend(_f.read().splitlines())
             except IOError as e:
                 raise ConfigException("Error while loading file, '{}': "

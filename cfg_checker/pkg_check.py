@@ -4,11 +4,11 @@ import sys
 
 from copy import deepcopy
 
-import common.const as const
 import reporter
-from ci_checker.common import utils
-from ci_checker.common import base_config, logger, logger_cli, PKG_DIR
-from ci_checker.common import salt_utils
+
+from cfg_checker.common import utils, const
+from cfg_checker.common import config, logger, logger_cli, pkg_dir
+from cfg_checker.common import salt_utils
 
 node_tmpl = {
     'role': '',
@@ -20,7 +20,7 @@ node_tmpl = {
 
 
 class CloudPackageChecker(object):
-    _config = base_config
+    _config = config
 
     def __init__(self):
         logger_cli.info("Collecting nodes for package check")
@@ -173,16 +173,17 @@ class CloudPackageChecker(object):
         })
 
 
-# init connection to salt and collect minion data
-cl = CloudPackageChecker()
+if __name__ == '__main__':
+    # init connection to salt and collect minion data
+    cl = CloudPackageChecker()
 
-# collect data on installed packages
-cl.collect_installed_packages()
+    # collect data on installed packages
+    cl.collect_installed_packages()
 
-# diff installed and candidates
-# cl.collect_packages()
+    # diff installed and candidates
+    # cl.collect_packages()
 
-# report it
-cl.create_html_report("./pkg_versions.html")
+    # report it
+    cl.create_html_report("./pkg_versions.html")
 
-sys.exit(0)
+    sys.exit(0)

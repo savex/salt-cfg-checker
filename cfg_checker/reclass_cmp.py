@@ -7,7 +7,7 @@ import os
 import yaml
 
 import reporter
-from ci_checker.common import logger, logger_cli
+from cfg_checker.common import logger, logger_cli
 
 
 global prefix_name

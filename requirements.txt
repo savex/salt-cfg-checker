@@ -1,3 +1,4 @@
 six
 pyyaml
 jinja2
+requests
