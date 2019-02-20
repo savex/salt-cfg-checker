@@ -31,7 +31,11 @@ def help_message():
 
 def pkg_check(args):
     # create package versions report
-    _filename = args.file
+    if args.file:
+        _filename = args.file
+    else:
+        logger_cli.error("ERROR: no report filename supplied")
+        return
     # init connection to salt and collect minion data
     pChecker = CloudPackageChecker()
     # collect data on installed packages
@@ -74,6 +78,7 @@ def config_check_entrypoint():
         '--file',
         help="HTML filename to save report"
     )
+    pkg_report_parser.set_defaults(func=pkg_check)
 
     # networking
     net_parser = subparsers.add_parser(
@@ -109,4 +114,7 @@ def config_check_entrypoint():
     return
 
 if __name__ == '__main__':
-    config_check_entrypoint()
+    try:
+        config_check_entrypoint()
+    except Exception as e:
+        logger_cli.error("ERROR: {}".format(e.message))

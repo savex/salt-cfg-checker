@@ -20,8 +20,6 @@ node_tmpl = {
 
 
 class CloudPackageChecker(object):
-    _config = config
-
     def __init__(self):
         logger_cli.info("Collecting nodes for package check")
         # simple salt rest client
@@ -33,7 +31,7 @@ class CloudPackageChecker(object):
 
         logger_cli.info("Collecting node names existing in the cloud")
         self.node_keys = {
-            'minions': base_config.all_nodes
+            'minions': config.all_nodes
         }
 
         # all that answer ping
@@ -72,11 +70,11 @@ class CloudPackageChecker(object):
         )
         # Prepare script
         _script_filename = "pkg_versions.py"
-        _p = os.path.join(PKG_DIR, 'scripts', _script_filename)
+        _p = os.path.join(pkg_dir, 'scripts', _script_filename)
         with open(_p, 'rt') as fd:
             _script = fd.read().splitlines()
         _storage_path = os.path.join(
-            base_config.salt_file_root, base_config.salt_scripts_folder
+            config.salt_file_root, config.salt_scripts_folder
         )
         logger_cli.info(
             "Uploading script {} to master's file cache folder: '{}'".format(
@@ -89,12 +87,12 @@ class CloudPackageChecker(object):
         _cache_path = os.path.join(_storage_path, _script_filename)
         _source_path = os.path.join(
             'salt://',
-            base_config.salt_scripts_folder,
+            config.salt_scripts_folder,
             _script_filename
         )
         _target_path = os.path.join(
             '/root',
-            base_config.salt_scripts_folder,
+            config.salt_scripts_folder,
             _script_filename
         )
 
@@ -107,7 +105,7 @@ class CloudPackageChecker(object):
             _active_nodes_string,
             os.path.join(
                 '/root',
-                base_config.salt_scripts_folder
+                config.salt_scripts_folder
             ),
             tgt_type="compound"
         )
