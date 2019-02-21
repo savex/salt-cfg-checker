@@ -9,6 +9,7 @@ from cfg_checker.common import config, logger, logger_cli, pkg_dir
 from cfg_checker.clients import salt
 
 from cfg_checker.pkg_check import CloudPackageChecker
+from cfg_checker.network_checks import NetworkChecker
 
 pkg_dir = os.path.dirname(__file__)
 pkg_dir = os.path.normpath(pkg_dir)
@@ -47,13 +48,17 @@ def pkg_check(args):
 
 
 def net_check(args):
-    print("This is net check routine")
+    netChecker = NetworkChecker()
+    netChecker.collect_network_info()
+    netChecker.print_network_report()
 
     return
 
 
 def net_report(args):
-    print("This is net check routine")
+    netChecker = NetworkChecker()
+    netChecker.collect_network_info()
+    netChecker.create_html_report()
 
     return
 

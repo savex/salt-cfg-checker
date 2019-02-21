@@ -156,6 +156,14 @@ class HTMLModelCompare(_TMPLBase):
         data['counters']['mdl_diff'] = len(data["diffs"].keys())
 
 
+class HTMLNetworkReport(_TMPLBase):
+    tmpl = "network_check_tmpl.j2"
+
+    def _extend_data(self, data):
+
+        return
+
+
 class ReportToFile(object):
     def __init__(self, report, target):
         self.report = report
