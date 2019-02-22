@@ -48,7 +48,7 @@ class NetworkChecker(SaltNodes):
         logger_cli.info("### Building network tree")
         # match physical interfaces by MAC addresses
         _all_nets = {}
-        for host, node_data in _nodes.iteritems():
+        for host, node_data in self.nodes.iteritems():
             for net_name, net_data in node_data['networks'].iteritems():
                 # get ips and calculate subnets
                 if net_name == 'lo':
