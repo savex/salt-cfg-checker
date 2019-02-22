@@ -1,6 +1,7 @@
 import argparse
 import os
 import sys
+import traceback
 from logging import INFO,  DEBUG
 
 import reporter
@@ -134,4 +135,12 @@ if __name__ == '__main__':
     try:
         config_check_entrypoint()
     except Exception as e:
-        logger_cli.error("ERROR: {}".format(e.message))
+        exc_type, exc_value, exc_traceback = sys.exc_info()
+        logger_cli.error("\nERROR: {}\n\n{}".format(
+            e.message,
+            "".join(traceback.format_exception(
+                exc_type,
+                exc_value,
+                exc_traceback
+            ))
+        ))

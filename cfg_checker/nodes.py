@@ -19,7 +19,7 @@ node_tmpl = {
 
 class SaltNodes(object):
     def __init__(self):
-        logger_cli.info("### Collecting nodes for package check")
+        logger_cli.info("### Collecting nodes")
         # simple salt rest client
         self.salt = salt_utils.SaltRemote()
 

@@ -1,6 +1,7 @@
 import json
 import os
 import sys
+import ipaddress
 
 from copy import deepcopy
 
@@ -36,7 +37,57 @@ class NetworkChecker(SaltNodes):
             ))
         logger_cli.info("-> Done collecting networks data")
 
-        return
+        # dump collected data to speed up coding
+        # with open('dump.json', 'w+') as ff:
+        #     ff.write(json.dumps(self.nodes))
+
+        # load dump data
+        # with open('dump.json', 'r') as ff:
+        #     _nodes = json.loads(ff.read())
+
+        logger_cli.info("### Building network tree")
+        # match physical interfaces by MAC addresses
+        _all_nets = {}
+        for host, node_data in _nodes.iteritems():
+            for net_name, net_data in node_data['networks'].iteritems():
+                # get ips and calculate subnets
+                if net_name == 'lo':
+                    continue
+                _ip4s = net_data['ipv4']
+                for _ip_str in _ip4s.keys():
+                    _if = ipaddress.IPv4Interface(_ip_str)
+                    if not any(_if.ip in net for net in _all_nets.keys()):
+                        # IP not fits into existing networks
+                        if _if.network not in _all_nets.keys():
+                            _all_nets[_if.network] = {}
+                        
+                        _all_nets[_if.network][host] = {}
+                        _all_nets[_if.network][host]['text'] = \
+                                "{0:30}: {1:19} {2:5} {3:4}".format(
+                                    net_name,
+                                    str(_if.ip),
+                                    net_data['mtu'],
+                                    net_data['state']
+                                )
+                        _all_nets[_if.network][host]['if_data'] = net_data
+                    else:
+                        # There is a network that ip fits into
+                        for _net in _all_nets.keys():
+                            if _if.ip in _net:
+                                if host not in _all_nets[_net]:
+                                    _all_nets[_net][host] = {}
+                                _all_nets[_net][host]['text'] = \
+                                    "{0:30}: {1:19} {2:5} {3:4}".format(
+                                        net_name,
+                                        str(_if.ip),
+                                        net_data['mtu'],
+                                        net_data['state']
+                                    )
+                                _all_nets[_net][host]['if_data'] = \
+                                    net_data
+
+        # save collected info
+        self.all_networks = _all_nets
 
     def print_network_report(self):
         """
@@ -44,8 +95,17 @@ class NetworkChecker(SaltNodes):
 
         :return: none
         """
-        
-        return
+        for network, nodes in self.all_networks.iteritems():
+            logger_cli.info("-> {}".format(str(network)))
+            names = sorted(nodes.keys())
+
+            for hostname in names:
+                logger_cli.info(
+                    "\t{0:10} {1}".format(
+                        hostname.split('.')[0],
+                        nodes[hostname]['text']
+                    )
+                )
     
     def create_html_report(self, filename):
         """
