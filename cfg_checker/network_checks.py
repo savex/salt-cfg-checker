@@ -89,6 +89,11 @@ class NetworkChecker(SaltNodes):
         # save collected info
         self.all_networks = _all_nets
 
+        # Get networks from reclass
+        # TODO: 
+
+        return
+
     def print_network_report(self):
         """
         Create text report for CLI
