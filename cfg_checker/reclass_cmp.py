@@ -10,21 +10,15 @@ import reporter
 from cfg_checker.common import logger, logger_cli
 
 
-global prefix_name
-global model_name_1, model_path_1
-global model_name_2, model_path_2
-
-prefix_name = "emk"
-model_name_1 = "dev"
-model_path_1 = "/Users/savex/proj/mediakind/reclass-dev"
-model_name_2 = "stg"
-model_path_2 = "/Users/savex/proj/mediakind/reclass-stg"
-
-
 class ModelComparer(object):
     """Collection of functions to compare model data.
     """
     models = {}
+    models_path = "/srv/salt/reclass"
+    model_name_1 = "source"
+    model_path_1 = os.path.join(models_path, model_name_1)
+    model_name_2 = "target"
+    model_path_2 = os.path.join(models_path, model_name_1)
 
     @staticmethod
     def load_yaml_class(fname):
@@ -73,16 +67,16 @@ class ModelComparer(object):
         # Look Ma! I am walking the file tree with no recursion!
         for path, dirs, files in os.walk(root_path):
             # if this is a hidden folder, ignore it
-            _filders_list = path[start:].split(os.sep)
-            if any(item.startswith(".") for item in _filders_list):
+            _folders_list = path[start:].split(os.sep)
+            if any(item.startswith(".") for item in _folders_list):
                 continue
             # cut absolute part of the path and split folder names
             folders = path[start:].split(os.sep)
             subdir = {}
             # create generator of files that are not hidden
             _exts = ('.yml', '.yaml')
-            _subfiles = (file for file in files
-                         if file.endswith(_exts) and not file.startswith('.'))
+            _subfiles = (_fl for _fl in files
+                         if _fl.endswith(_exts) and not _fl.startswith('.'))
             for _file in _subfiles:
                 # cut file extension. All reclass files are '.yml'
                 _subnode = _file
@@ -124,10 +118,10 @@ class ModelComparer(object):
                     continue
                 # check if this is an env name cluster entry
                 if dict2 is not None and \
-                        k == model_name_1 and \
-                        model_name_2 in dict2.keys():
-                    k1 = model_name_1
-                    k2 = model_name_2
+                        k == self.model_name_1 and \
+                        self.model_name_2 in dict2.keys():
+                    k1 = self.model_name_1
+                    k2 = self.model_name_2
                     if type(dict1[k1]) is dict:
                         if path == "":
                             _new_path = k1
@@ -261,8 +255,8 @@ class ModelComparer(object):
             return _report
         # tmp report for keys
         diff_report = find_changes(
-            self.models[model_name_1],
-            self.models[model_name_2]
+            self.models[self.model_name_1],
+            self.models[self.model_name_2]
         )
         # prettify the report
         for key in diff_report.keys():
@@ -280,25 +274,25 @@ class ModelComparer(object):
                 "param": _param_path,
             })
 
-        diff_report["diff_names"] = [model_name_1, model_name_2]
+        diff_report["diff_names"] = [self.model_name_1, self.model_name_2]
         return diff_report
 
 
-# temporary executing the parser as a main prog
-if __name__ == '__main__':
+def compare_models():
+    # Do actual compare using hardcoded model names
     mComparer = ModelComparer()
     mComparer.load_model_tree(
-        model_name_1,
-        model_path_1
+        mComparer.model_name_1,
+        mComparer.model_path_1
     )
     mComparer.load_model_tree(
-        model_name_2,
-        model_path_2
+        mComparer.model_name_2,
+        mComparer.model_path_2
     )
     diffs = mComparer.generate_model_report_tree()
 
     report_file = \
-        prefix_name + "-" + model_name_1 + "-vs-" + model_name_2 + ".html"
+        mComparer.model_name_1 + "-vs-" + mComparer.model_name_2 + ".html"
     report = reporter.ReportToFile(
         reporter.HTMLModelCompare(),
         report_file
@@ -310,3 +304,10 @@ if __name__ == '__main__':
     })
     # with open("./gen_tree.json", "w+") as _out:
     #     _out.write(json.dumps(mComparer.generate_model_report_tree))
+
+    return
+
+
+# temporary executing the parser as a main prog
+if __name__ == '__main__':
+    compare_models()
