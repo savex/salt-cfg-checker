@@ -283,13 +283,15 @@ class SaltRemote(SaltRest):
     def list_minions(self):
         """
             Fails in salt version 2016.3.8
+            Works starting from 2017.7.7
             api returns dict of minions with grains
         """
-        return self.salt_request('get', 'minions')
+        return self.salt_request('get', 'minions')[0]
 
     def list_keys(self):
         """
             Fails in salt version 2016.3.8
+            Works starting from 2017.7.7
             api should return dict:
             {
                 'local': [],
@@ -303,6 +305,7 @@ class SaltRemote(SaltRest):
 
     def get_status(self):
         """
+            Fails in salt version 2017.7.7
             'runner' client is the equivalent of 'salt-run'
             Returns the
         """
@@ -312,6 +315,10 @@ class SaltRemote(SaltRest):
         )
 
     def get_active_nodes(self):
+        """Used when other minion list metods fail
+        
+        :return: json result from salt test.ping
+        """
         if config.skip_nodes:
             logger.info("Nodes to be skipped: {0}".format(config.skip_nodes))
             return self.cmd(

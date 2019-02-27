@@ -11,7 +11,6 @@ import reporter
 from cfg_checker.common.exception import CheckerException, ConfigException
 from cfg_checker.common import utils, const
 from cfg_checker.common import config, logger, logger_cli, pkg_dir
-from cfg_checker.clients import salt
 
 import cfg_checker.reclass_cmp as reclass_cmp
 from cfg_checker.pkg_check import CloudPackageChecker

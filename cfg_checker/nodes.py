@@ -25,20 +25,39 @@ class SaltNodes(object):
 
         # Keys for all nodes
         # this is not working in scope of 2016.8.3, will overide with list
-        # cls.node_keys = cls.salt.list_keys()
+        logger_cli.info("# Collecting node names existing in the cloud")
+        try:
+            _keys = self.salt.list_keys()
+            _str = []
+            for _k, _v in _keys.iteritems():
+                _str.append("{}: {}".format(_k, len(_v)))
+            logger_cli.info("-> keys collected: {}".format(", ".join(_str)))
 
-        logger_cli.info("### Collecting node names existing in the cloud")
-        self.node_keys = {
-            'minions': config.all_nodes
-        }
+            self.node_keys = {
+                'minions': _keys['minions']
+            }
+        except Exception as e:
+            _keys = None
+            self.node_keys = None
+        
+        # List of minions with grains
+        _minions = self.salt.list_minions()
+        if _minions:
+            logger_cli.info("-> api reported {} active minions".format(len(_minions)))
+        elif not self.node_keys:
+            # this is the last resort
+            _minions = config.load_nodes_list()
+            logger_cli.info("-> {} nodes loaded from list file".format(len(_minions)))
+        else:
+            _minions = self.node_keys['minions']
 
-        # all that answer ping
+        # in case API not listed minions, we need all that answer ping
         _active = self.salt.get_active_nodes()
-        logger_cli.debug("-> Nodes responded: {}".format(_active))
+        logger_cli.info("-> nodes responded: {}".format(len(_active)))
         # just inventory for faster interaction
         # iterate through all accepted nodes and create a dict for it
         self.nodes = {}
-        for _name in self.node_keys['minions']:
+        for _name in _minions:
             _nc = utils.get_node_code(_name)
             _rmap = const.all_roles_map
             _role = _rmap[_nc] if _nc in _rmap else 'unknown'

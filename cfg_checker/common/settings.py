@@ -13,6 +13,12 @@ _default_work_folder = os.path.normpath(pkg_dir)
 
 
 class CheckerConfiguration(object):
+    def load_nodes_list():
+        return utils.get_nodes_list(
+            os.environ.get('CFG_ALL_NODES', None),
+            os.environ.get('SALT_NODE_LIST_FILE', None)
+        )
+
     def _init_values(self):
         """Load values from environment variables or put default ones
         """
@@ -39,10 +45,7 @@ class CheckerConfiguration(object):
             'SALT_SCRIPTS_FOLDER',
             'cfg_checker_scripts'
         )
-        self.all_nodes = utils.get_nodes_list(
-            os.environ.get('CFG_ALL_NODES', None),
-            os.environ.get('SALT_NODE_LIST_FILE', None)
-        )
+
         self.skip_nodes = utils.node_string_to_list(os.environ.get(
             'CFG_SKIP_NODES',
             None
