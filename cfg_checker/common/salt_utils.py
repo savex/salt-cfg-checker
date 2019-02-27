@@ -1,11 +1,66 @@
 """
 Module to handle interaction with salt
 """
+import json
 import os
 import requests
 import time
 
-from cfg_checker.common import logger, config
+from cfg_checker.common import logger, logger_cli, config
+from cfg_checker.common.other import shell
+from cfg_checker.common.exception import SaltException, InvalidReturnException
+
+
+def _extract_password(_raw):
+    if not isinstance(_raw, unicode):
+        raise InvalidReturnException(_raw)
+    else:
+        try:
+            _json = json.loads(_raw)
+        except ValueError as e:
+            raise SaltException(
+                "Return value is not a json: '{}'".format(_raw)
+            )
+    
+    return _json["local"]
+
+
+def get_remote_env_password():
+    """Uses ssh call with configured options to get password from salt master
+
+    :return: password string
+    """
+    _salt_cmd = "salt-call --out=json pillar.get _param:salt_api_password"
+    _ssh_cmd = ["ssh"]
+    # Build SSH cmd
+    if config.ssh_key:
+        _ssh_cmd.append("-i " + config.ssh_key)
+    if config.ssh_user:
+        _ssh_cmd.append(config.ssh_user+'@'+config.ssh_host)
+    else:
+        _ssh_cmd.append(config.ssh_host)
+    if config.ssh_uses_sudo:
+        _ssh_cmd.append("sudo")
+    
+    _ssh_cmd.append(_salt_cmd)
+    _ssh_cmd = " ".join(_ssh_cmd)
+    logger_cli.debug("### Calling salt: '{}'".format(_ssh_cmd))
+    _result = shell(_ssh_cmd)
+    if len(_result) < 1:
+        raise InvalidReturnException("Empty value returned for '{}".format(
+            _ssh_cmd
+        ))
+    else:
+        return _extract_password(_result)
+
+def get_local_password():
+    """Calls salt locally to get password from the pillar
+
+    :return: password string
+    """
+    _cmd = "salt-call --out=json pillar.get _param:salt_api_password"
+    _result = shell(_cmd)
+    return _extract_password(_result)
 
 
 def list_to_target_string(node_list, separator):
@@ -49,7 +104,7 @@ class SaltRest(object):
             data = {}
         _path = os.path.join(self.uri, path)
         if path == 'login':
-            _data = str(data).replace(config.salt_pass, "*****")
+            _data = str(data).replace(self._pass, "*****")
         else:
             _data = data
         logger.debug("POST '{}'\nHeaders: '{}'\nCookies: {}\nBody: {}".format(
@@ -66,12 +121,17 @@ class SaltRest(object):
         )
 
     def _login(self):
+        # if there is no password - try to get local, if this available
+        if config.salt_env == "local":
+            _pass = get_local_password()
+        else:
+            _pass = get_remote_env_password()
         login_payload = {
             'username': config.salt_user,
-            'password': config.salt_pass,
+            'password': _pass,
             'eauth': 'pam'
         }
-
+        self._pass = _pass
         logger.debug("Logging in to salt master...")
         _response = self.post(login_payload, path='login')
 

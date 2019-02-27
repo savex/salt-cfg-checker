@@ -8,7 +8,7 @@ from logging import INFO,  DEBUG
 
 import reporter
 
-from cfg_checker.common.exception import ConfigException
+from cfg_checker.common.exception import CheckerException, ConfigException
 from cfg_checker.common import utils, const
 from cfg_checker.common import config, logger, logger_cli, pkg_dir
 from cfg_checker.clients import salt
@@ -220,6 +220,12 @@ def config_check_entrypoint():
         '--file',
         help="HTML filename to save report"
     )
+    parser.add_argument(
+        '-s',
+        '--sudo',
+        action='store_true', default=True,
+        help="Use sudo for getting salt creds"
+    )
     subparsers = parser.add_subparsers(dest='command')
     # packages
     pkg_parser = subparsers.add_parser(
@@ -290,6 +296,9 @@ def config_check_entrypoint():
         logger_cli.info("\nPlease, check arguments")
         return
 
+    # Pass externally configured values
+    config.ssh_uses_sudo = args.sudo
+    
     # Handle options
     if args.debug:
         logger_cli.setLevel(DEBUG)
@@ -323,7 +332,7 @@ def config_check_entrypoint():
 if __name__ == '__main__':
     try:
         config_check_entrypoint()
-    except ConfigException as e:
+    except CheckerException as e:
         logger_cli.error("\nERROR: {}".format(
             e.message
         ))

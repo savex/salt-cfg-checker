@@ -1,7 +1,7 @@
 import os
 
 from exception import ConfigException
-from log import logger
+from log import logger, logger_cli
 from other import utils
 
 pkg_dir = os.path.dirname(__file__)
@@ -25,10 +25,14 @@ class CheckerConfiguration(object):
         self.date_format = "%Y-%m-%d %H:%M:%S.%f%z"
         self.default_tz = "UTC"
 
+        self.ssh_uses_sudo = False
+        self.ssh_key = os.environ.get('SSH_KEY', None)
+        self.ssh_user = os.environ.get('SSH_USER', None)
+        self.ssh_host = os.environ.get('SSH_HOST', None)
+
         self.salt_host = os.environ.get('SALT_URL', None)
         self.salt_port = os.environ.get('SALT_PORT', '6969')
         self.salt_user = os.environ.get('SALT_USER', 'salt')
-        self.salt_pass = os.environ.get('SALT_PASSWORD', None)
         self.salt_timeout = os.environ.get('SALT_TIMEOUT', 30)
         self.salt_file_root = os.environ.get('SALT_FILE_ROOT', None)
         self.salt_scripts_folder = os.environ.get(
@@ -44,9 +48,9 @@ class CheckerConfiguration(object):
             None
         ))
 
-    @staticmethod
-    def _init_env(env_name=None):
-        """[summary]
+    def _init_env(self, env_name=None):
+        """Inits the environment vars from the env file
+        Uses simple validation for the values and names
 
         Keyword Arguments:
             env_name {str} -- environment name to search configuration
@@ -58,14 +62,14 @@ class CheckerConfiguration(object):
         """
         # load env file as init os.environment with its values
         if env_name is None:
-            _env_name = 'default'
+            _env_name = 'local'
         else:
             _env_name = env_name
         _config_path = os.path.join(pkg_dir, 'etc', _env_name + '.env')
         if os.path.isfile(_config_path):
             with open(_config_path) as _f:
                 _list = _f.read().splitlines()
-            logger.debug("Loading env vars from '{}'".format(_config_path))
+            logger_cli.info("# Loading env vars from '{}'".format(_config_path))
         else:
             raise ConfigException(
                 "Failed to load enviroment vars from '{}'".format(
@@ -94,7 +98,8 @@ class CheckerConfiguration(object):
                 )
             )
         else:
-            logger.debug("Loaded total of '{}' vars".format(len(_list)))
+            logger_cli.debug("-> ...loaded total of '{}' vars".format(len(_list)))
+            self.salt_env = _env_name
 
     def __init__(self):
         """Base configuration class. Only values that are common for all scripts

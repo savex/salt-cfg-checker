@@ -1,5 +1,6 @@
 import os
 import re
+import subprocess
 
 from cfg_checker.common.const import all_roles_map
 
@@ -9,6 +10,15 @@ pkg_dir = os.path.dirname(__file__)
 pkg_dir = os.path.join(pkg_dir, os.pardir, os.pardir)
 pkg_dir = os.path.normpath(pkg_dir)
 pkg_dir = os.path.abspath(pkg_dir)
+
+
+def shell(command):
+    _ps = subprocess.Popen(
+        command.split(),
+        stdout=subprocess.PIPE
+    ).communicate()[0].decode()
+
+    return _ps
 
 
 class Utils(object):
