@@ -192,8 +192,8 @@ def config_check_entrypoint():
 
     :return: - no return value
     """
-    # Main entrypointр
-    parser = MyParser(prog="Cloud configuration checker")
+    # Main entrypoint
+    parser = MyParser(prog="# Mirantis Cloud configuration checker")
     
     # Parsers (each parser can have own arguments)
     # - subparsers (command)
@@ -328,7 +328,7 @@ def config_check_entrypoint():
 
     logger.debug(result)
 
-if __name__ == '__main__':
+def cli_main():
     try:
         config_check_entrypoint()
     except CheckerException as e:
@@ -344,3 +344,6 @@ if __name__ == '__main__':
                 exc_traceback
             ))
         ))
+
+if __name__ == '__main__':
+    cli_main()

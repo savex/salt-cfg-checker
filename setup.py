@@ -22,7 +22,7 @@ dependencies = [
 
 entry_points = {
     "console_scripts":
-        "cfg_checker = cfg_checker:cfg_check"
+        "mcp_checker = cfg_checker.cfg_check:cli_main"
 }
 
 
