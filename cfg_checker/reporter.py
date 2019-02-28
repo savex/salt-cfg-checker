@@ -59,9 +59,12 @@ class _TMPLBase(_Base):
     def __call__(self, payload):
         # init data structures
         data = self.common_data()
+        # payload should have pre-sorted structure
+        # system, nodes, clusters, and the rest in other
         data.update({
             "nodes": payload['nodes'],
-            "diffs": payload['diffs']
+            "all_diffs": payload['diffs'],
+            "tabs": {}
         })
 
         # add template specific data
@@ -150,10 +153,12 @@ class HTMLModelCompare(_TMPLBase):
 
     def _extend_data(self, data):
         # move names into separate place
-        data["names"] = data["diffs"].pop("diff_names")
-
+        data["names"] = data["all_diffs"].pop("diff_names")
+        data["tabs"] = data.pop("all_diffs")
+        
         # counters - mdl_diff
-        data['counters']['mdl_diff'] = len(data["diffs"].keys())
+        for _tab in data["tabs"].keys():
+            data['counters'][_tab] = len(data["tabs"][_tab]["diffs"].keys())
 
 
 class HTMLNetworkReport(_TMPLBase):

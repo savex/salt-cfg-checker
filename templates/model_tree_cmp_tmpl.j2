@@ -204,12 +204,15 @@
 </head>
 <body onload="init()">
 <div class="tab">
-  <button class="tablinks" onclick="openTab(event, 'mdl_changes')">
-    <div class="node_name">Model changes</div>
-    <div class="smallgreytext">({{ counters['mdl_diff'] }})</div>
+{% for tab in tabs.keys() | sort %}
+  <button class="tablinks" onclick="openTab(event, '{{ tab }}')">
+    <div class="node_name">{{ tab }}</div>
+    <div class="smallgreytext">({{ counters[tab] }})</div>
   </button>
+{% endfor %}
 </div>
-<div id="mdl_changes" class="tabcontent">
+{% for tab in tabs.keys() | sort %}
+<div id="{{ tab }}" class="tabcontent">
     <table class="pkgversions">
         <tbody>
         <tr>
@@ -217,23 +220,24 @@
             <td class="Header">{{ names[0] }}</td>
             <td class="Header">{{ names[1] }}</td>
         </tr>
-        <tr><td colspan=3>Changes found in the model</td></tr>
-        {% for diff in diffs.keys() | sort %}
+        <tr><td colspan=3>Changes found in {{ tabs[tab]["path"] }}</td></tr>
+        {% for diff in tabs[tab]["diffs"].keys() | sort %}
         <tr>
             <td class="pkgName">
-                <div class="class_file">{{ diffs[diff]["class_file"] }}</div>
-                <div class="param">{{ diffs[diff]["param"] }}</div>
+                <div class="class_file">{{ tabs[tab]["diffs"][diff]["class_file"] }}</div>
+                <div class="param">{{ tabs[tab]["diffs"][diff]["param"] }}</div>
             </td>
             <td class="version">
-                <div><pre>{{ diffs[diff]["str_values"][0] | linebreaks }}</pre></div>
+                <div><pre>{{ tabs[tab]["diffs"][diff]["str_values"][0] | linebreaks }}</pre></div>
             </td>
             <td class="version">
-                <div><pre>{{ diffs[diff]["str_values"][1] | linebreaks }}</pre></div>
+                <div><pre>{{ tabs[tab]["diffs"][diff]["str_values"][1] | linebreaks }}</pre></div>
             </td>
         </tr>
         {% endfor %}
         </tbody>
     </table>
 </div>
+{% endfor %}
 </body>
 </html>

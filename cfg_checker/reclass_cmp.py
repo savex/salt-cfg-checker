@@ -10,9 +10,35 @@ import reporter
 from cfg_checker.common import logger, logger_cli
 
 
+def get_element(element_path, input_data):     
+    paths = element_path.split(":")
+    data = input_data
+    for i in range(0, len(paths)):
+        data = data[paths[i]]
+    return data
+
+
+def pop_element(element_path, input_data):     
+    paths = element_path.split(":")
+    data = input_data
+    # Search for last dict
+    for i in range(0, len(paths)-1):
+        data = data[paths[i]]
+    # pop the actual element
+    return data.pop(paths[-1])
+
+
 class ModelComparer(object):
     """Collection of functions to compare model data.
     """
+    # key order is important
+    _model_parts = {
+        "01_nodes": "nodes",
+        "02_system": "classes:system",
+        "03_cluster": "classes:cluster",
+        "04_other": "classes"
+    }
+    
     models = {}
     models_path = "/srv/salt/reclass"
     model_name_1 = "source"
@@ -97,189 +123,214 @@ class ModelComparer(object):
             # creating dict structure out of folder list. Pure python magic
             parent = reduce(dict.get, folders[:-1], raw_tree)
             parent[folders[-1]] = subdir
+        
+        self.models[name] = {}
+        # Brake in according to pathes
+        _parts = self._model_parts.keys()
+        _parts = sorted(_parts)
+        for ii in range(0, len(_parts)):
+            self.models[name][_parts[ii]] = pop_element(
+                self._model_parts[_parts[ii]],
+                raw_tree[root_key]
+            )
+        
         # save it as a single data object
-        self.models[name] = raw_tree[root_key]
+        self.models[name]["all_diffs"] = raw_tree[root_key]
         return True
+
+    def find_changes(self, dict1, dict2, path=""):
+        _report = {}
+        for k in dict1.keys():
+            # yamls might load values as non-str types
+            if not isinstance(k, str):
+                _new_path = path + ":" + str(k)
+            else:
+                _new_path = path + ":" + k
+            # ignore _source key
+            if k == "_source":
+                continue
+            # check if this is an env name cluster entry
+            if dict2 is not None and \
+                    k == self.model_name_1 and \
+                    self.model_name_2 in dict2.keys():
+                k1 = self.model_name_1
+                k2 = self.model_name_2
+                if type(dict1[k1]) is dict:
+                    if path == "":
+                        _new_path = k1
+                    _child_report = self.find_changes(
+                        dict1[k1],
+                        dict2[k2],
+                        _new_path
+                    )
+                    _report.update(_child_report)
+            elif dict2 is None or k not in dict2:
+                # no key in dict2
+                _report[_new_path] = {
+                    "type": "value",
+                    "raw_values": [dict1[k], "N/A"],
+                    "str_values": [
+                        "{}".format(dict1[k]),
+                        "n/a"
+                    ]
+                }
+                logger.info(
+                    "{}: {}, {}".format(_new_path, dict1[k], "N/A")
+                )
+            else:
+                if type(dict1[k]) is dict:
+                    if path == "":
+                        _new_path = k
+                    _child_report = self.find_changes(
+                        dict1[k],
+                        dict2[k],
+                        _new_path
+                    )
+                    _report.update(_child_report)
+                elif type(dict1[k]) is list and type(dict2[k]) is list:
+                    # use ifilterfalse to compare lists of dicts
+                    try:
+                        _removed = list(
+                            itertools.ifilterfalse(
+                                lambda x: x in dict2[k],
+                                dict1[k]
+                            )
+                        )
+                        _added = list(
+                            itertools.ifilterfalse(
+                                lambda x: x in dict1[k],
+                                dict2[k]
+                            )
+                        )
+                    except TypeError as e:
+                        # debug routine,
+                        # should not happen, due to list check above
+                        logger.error(
+                            "Caught lambda type mismatch: {}".format(
+                                e.message
+                            )
+                        )
+                        logger_cli.warning(
+                            "Types mismatch for correct compare: "
+                            "{}, {}".format(
+                                type(dict1[k]),
+                                type(dict2[k])
+                            )
+                        )
+                        _removed = None
+                        _added = None
+                    _original = ["= {}".format(item) for item in dict1[k]]
+                    if _removed or _added:
+                        _removed_str_lst = ["- {}".format(item)
+                                            for item in _removed]
+                        _added_str_lst = ["+ {}".format(item)
+                                            for item in _added]
+                        _report[_new_path] = {
+                            "type": "list",
+                            "raw_values": [
+                                dict1[k],
+                                _removed_str_lst + _added_str_lst
+                            ],
+                            "str_values": [
+                                "{}".format('\n'.join(_original)),
+                                "{}\n{}".format(
+                                    '\n'.join(_removed_str_lst),
+                                    '\n'.join(_added_str_lst)
+                                )
+                            ]
+                        }
+                        logger.info(
+                            "{}:\n"
+                            "{} original items total".format(
+                                _new_path,
+                                len(dict1[k])
+                            )
+                        )
+                        if _removed:
+                            logger.info(
+                                "{}".format('\n'.join(_removed_str_lst))
+                            )
+                        if _added:
+                            logger.info(
+                                "{}".format('\n'.join(_added_str_lst))
+                            )
+                else:
+                    # in case of type mismatch
+                    # considering it as not equal
+                    d1 = dict1
+                    d2 = dict2
+                    val1 = d1[k] if isinstance(d1, dict) else d1
+                    val2 = d2[k] if isinstance(d2, dict) else d2
+                    try:
+                        match = val1 == val2
+                    except TypeError as e:
+                        logger.warning(
+                            "One of the values is not a dict: "
+                            "{}, {}".format(
+                                str(dict1),
+                                str(dict2)
+                            ))
+                        match = False
+                    if not match:
+                        _report[_new_path] = {
+                            "type": "value",
+                            "raw_values": [val1, val2],
+                            "str_values": [
+                                "{}".format(val1),
+                                "{}".format(val2)
+                            ]
+                        }
+                        logger.info("{}: {}, {}".format(
+                            _new_path,
+                            val1,
+                            val2
+                        ))
+        return _report
+
 
     def generate_model_report_tree(self):
         """Use two loaded models to generate comparison table with
         values are groupped by YAML files
         """
-        def find_changes(dict1, dict2, path=""):
-            _report = {}
-            for k in dict1.keys():
-                # yamls might load values as non-str types
-                if not isinstance(k, str):
-                    _new_path = path + ":" + str(k)
-                else:
-                    _new_path = path + ":" + k
-                # ignore _source key
-                if k == "_source":
-                    continue
-                # check if this is an env name cluster entry
-                if dict2 is not None and \
-                        k == self.model_name_1 and \
-                        self.model_name_2 in dict2.keys():
-                    k1 = self.model_name_1
-                    k2 = self.model_name_2
-                    if type(dict1[k1]) is dict:
-                        if path == "":
-                            _new_path = k1
-                        _child_report = find_changes(
-                            dict1[k1],
-                            dict2[k2],
-                            _new_path
-                        )
-                        _report.update(_child_report)
-                elif dict2 is None or k not in dict2:
-                    # no key in dict2
-                    _report[_new_path] = {
-                        "type": "value",
-                        "raw_values": [dict1[k], "N/A"],
-                        "str_values": [
-                            "{}".format(dict1[k]),
-                            "n/a"
-                        ]
-                    }
-                    logger.info(
-                        "{}: {}, {}".format(_new_path, dict1[k], "N/A")
-                    )
-                else:
-                    if type(dict1[k]) is dict:
-                        if path == "":
-                            _new_path = k
-                        _child_report = find_changes(
-                            dict1[k],
-                            dict2[k],
-                            _new_path
-                        )
-                        _report.update(_child_report)
-                    elif type(dict1[k]) is list and type(dict2[k]) is list:
-                        # use ifilterfalse to compare lists of dicts
-                        try:
-                            _removed = list(
-                                itertools.ifilterfalse(
-                                    lambda x: x in dict2[k],
-                                    dict1[k]
-                                )
-                            )
-                            _added = list(
-                                itertools.ifilterfalse(
-                                    lambda x: x in dict1[k],
-                                    dict2[k]
-                                )
-                            )
-                        except TypeError as e:
-                            # debug routine,
-                            # should not happen, due to list check above
-                            logger.error(
-                                "Caught lambda type mismatch: {}".format(
-                                    e.message
-                                )
-                            )
-                            logger_cli.warning(
-                                "Types mismatch for correct compare: "
-                                "{}, {}".format(
-                                    type(dict1[k]),
-                                    type(dict2[k])
-                                )
-                            )
-                            _removed = None
-                            _added = None
-                        _original = ["= {}".format(item) for item in dict1[k]]
-                        if _removed or _added:
-                            _removed_str_lst = ["- {}".format(item)
-                                                for item in _removed]
-                            _added_str_lst = ["+ {}".format(item)
-                                              for item in _added]
-                            _report[_new_path] = {
-                                "type": "list",
-                                "raw_values": [
-                                    dict1[k],
-                                    _removed_str_lst + _added_str_lst
-                                ],
-                                "str_values": [
-                                    "{}".format('\n'.join(_original)),
-                                    "{}\n{}".format(
-                                        '\n'.join(_removed_str_lst),
-                                        '\n'.join(_added_str_lst)
-                                    )
-                                ]
-                            }
-                            logger.info(
-                                "{}:\n"
-                                "{} original items total".format(
-                                    _new_path,
-                                    len(dict1[k])
-                                )
-                            )
-                            if _removed:
-                                logger.info(
-                                    "{}".format('\n'.join(_removed_str_lst))
-                                )
-                            if _added:
-                                logger.info(
-                                    "{}".format('\n'.join(_added_str_lst))
-                                )
-                    else:
-                        # in case of type mismatch
-                        # considering it as not equal
-                        d1 = dict1
-                        d2 = dict2
-                        val1 = d1[k] if isinstance(d1, dict) else d1
-                        val2 = d2[k] if isinstance(d2, dict) else d2
-                        try:
-                            match = val1 == val2
-                        except TypeError as e:
-                            logger.warning(
-                                "One of the values is not a dict: "
-                                "{}, {}".format(
-                                    str(dict1),
-                                    str(dict2)
-                                ))
-                            match = False
-                        if not match:
-                            _report[_new_path] = {
-                                "type": "value",
-                                "raw_values": [val1, val2],
-                                "str_values": [
-                                    "{}".format(val1),
-                                    "{}".format(val2)
-                                ]
-                            }
-                            logger.info("{}: {}, {}".format(
-                                _new_path,
-                                val1,
-                                val2
-                            ))
-            return _report
-        # tmp report for keys
-        diff_report = find_changes(
-            self.models[self.model_name_1],
-            self.models[self.model_name_2]
-        )
-        # prettify the report
-        for key in diff_report.keys():
-            # break the key in two parts
-            _ext = ".yml"
-            if ".yaml" in key:
-                _ext = ".yaml"
-            _split = key.split(_ext)
-            _file_path = _split[0]
-            _param_path = "none"
-            if len(_split) > 1:
-                _param_path = _split[1]
-            diff_report[key].update({
-                "class_file": _file_path + _ext,
-                "param": _param_path,
-            })
+        # We are to cut both models into logical pieces
+        # nodes, will not be equal most of the time
+        # system, must be pretty much the same or we in trouble
+        # cluster, will be the most curious part for comparison
+        # other, all of the rest
 
-        diff_report["diff_names"] = [self.model_name_1, self.model_name_2]
-        return diff_report
+        _diff_report = {}
+        for _key in self._model_parts.keys():
+            # tmp report for keys
+            _tmp_diffs = self.find_changes(
+                self.models[self.model_name_1][_key],
+                self.models[self.model_name_2][_key]
+            )
+            # prettify the report
+            for key in _tmp_diffs.keys():
+                # break the key in two parts
+                _ext = ".yml"
+                if ".yaml" in key:
+                    _ext = ".yaml"
+                _split = key.split(_ext)
+                _file_path = _split[0]
+                _param_path = "none"
+                if len(_split) > 1:
+                    _param_path = _split[1]
+                _tmp_diffs[key].update({
+                    "class_file": _file_path + _ext,
+                    "param": _param_path,
+                })
+            _diff_report[_key[3:]] = {
+                "path": self._model_parts[_key],
+                "diffs": _tmp_diffs
+            }
+
+        _diff_report["diff_names"] = [self.model_name_1, self.model_name_2]
+        return _diff_report
 
 
 def compare_models():
-    # Do actual compare using hardcoded model names
+    # Do actual compare using model names from the class
     mComparer = ModelComparer()
     mComparer.load_model_tree(
         mComparer.model_name_1,
@@ -289,18 +340,25 @@ def compare_models():
         mComparer.model_name_2,
         mComparer.model_path_2
     )
+    # Models should have similar structure to be compared
+    # classes/system
+    # classes/cluster
+    # nodes
+    
     diffs = mComparer.generate_model_report_tree()
 
     report_file = \
         mComparer.model_name_1 + "-vs-" + mComparer.model_name_2 + ".html"
+    # HTML report class is post-callable
     report = reporter.ReportToFile(
         reporter.HTMLModelCompare(),
         report_file
     )
     logger_cli.info("...generating report to {}".format(report_file))
+    # report will have tabs for each of the comparable entities in diffs
     report({
         "nodes": {},
-        "diffs": diffs
+        "all_diffs": diffs,
     })
     # with open("./gen_tree.json", "w+") as _out:
     #     _out.write(json.dumps(mComparer.generate_model_report_tree))
