@@ -33,7 +33,7 @@ class Utils(object):
         :param message: True if validate should return error check message
         :return: False if checks failed, True if all checks passed
         """
-        _message = "Validation passed"
+        _message = "# Validation passed"
 
         def _result():
             return (True, _message) if message else True
@@ -45,11 +45,11 @@ class Utils(object):
                 return _result()
             else:
                 # log warning here
-                _message = "Node code is unknown, '{}'. " \
-                           "Please, update map".format(_code)
+                _message = "# Node code is unknown, '{}'. " \
+                           "# Please, update map".format(_code)
         else:
             # log warning here
-            _message = "Node name is invalid, '{}'".format(fqdn)
+            _message = "# Node name is invalid, '{}'".format(fqdn)
 
         # put other checks here
 
@@ -88,7 +88,7 @@ class Utils(object):
                 with open(os.path.join(pkg_dir, nodes_list)) as _f:
                     _list.extend(_f.read().splitlines())
             except IOError as e:
-                raise ConfigException("Error while loading file, '{}': "
+                raise ConfigException("# Error while loading file, '{}': "
                                       "{}".format(e.filename, e.strerror))
         else:
             _list.extend(self.node_string_to_list(env))

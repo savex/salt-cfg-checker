@@ -35,7 +35,7 @@ class NetworkChecker(SaltNodes):
                 key,
                 len(self.nodes[key]['networks'].keys())
             ))
-        logger_cli.info("-> Done collecting networks data")
+        logger_cli.info("-> done collecting networks data")
 
         # dump collected data to speed up coding
         # with open('dump.json', 'w+') as ff:

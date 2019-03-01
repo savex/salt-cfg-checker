@@ -75,7 +75,7 @@ class CheckerConfiguration(object):
             logger_cli.info("# Loading env vars from '{}'".format(_config_path))
         else:
             raise ConfigException(
-                "Failed to load enviroment vars from '{}'".format(
+                "# Failed to load enviroment vars from '{}'".format(
                     _config_path
                 )
             )
@@ -96,7 +96,7 @@ class CheckerConfiguration(object):
         # if there was errors, report them
         if _errors:
             raise ConfigException(
-                "Environment file failed validation in lines: {}".format(
+                "# Environment file failed validation in lines: {}".format(
                     "\n".join(_errors)
                 )
             )

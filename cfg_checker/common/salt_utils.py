@@ -19,7 +19,7 @@ def _extract_password(_raw):
             _json = json.loads(_raw)
         except ValueError as e:
             raise SaltException(
-                "Return value is not a json: '{}'".format(_raw)
+                "# Return value is not a json: '{}'".format(_raw)
             )
     
     return _json["local"]
@@ -47,7 +47,7 @@ def get_remote_env_password():
     logger_cli.debug("### Calling salt: '{}'".format(_ssh_cmd))
     _result = shell(_ssh_cmd)
     if len(_result) < 1:
-        raise InvalidReturnException("Empty value returned for '{}".format(
+        raise InvalidReturnException("# Empty value returned for '{}".format(
             _ssh_cmd
         ))
     else:
@@ -88,7 +88,7 @@ class SaltRest(object):
 
     def get(self, path='', headers=default_headers, cookies=None):
         _path = os.path.join(self.uri, path)
-        logger.debug("GET '{}'\nHeaders: '{}'\nCookies: {}".format(
+        logger.debug("# GET '{}'\nHeaders: '{}'\nCookies: {}".format(
             _path,
             headers,
             cookies
@@ -107,7 +107,7 @@ class SaltRest(object):
             _data = str(data).replace(self._pass, "*****")
         else:
             _data = data
-        logger.debug("POST '{}'\nHeaders: '{}'\nCookies: {}\nBody: {}".format(
+        logger.debug("# POST '{}'\nHeaders: '{}'\nCookies: {}\nBody: {}".format(
             _path,
             headers,
             cookies,
@@ -132,7 +132,7 @@ class SaltRest(object):
             'eauth': 'pam'
         }
         self._pass = _pass
-        logger.debug("Logging in to salt master...")
+        logger.debug("# Logging in to salt master...")
         _response = self.post(login_payload, path='login')
 
         if _response.ok:
@@ -143,7 +143,7 @@ class SaltRest(object):
             return self._auth['response']['token']
         else:
             raise EnvironmentError(
-                "HTTP:{}, Not authorized?".format(_response.status_code)
+                "# HTTP:{}, Not authorized?".format(_response.status_code)
             )
 
     def salt_request(self, fn, *args, **kwargs):
@@ -159,7 +159,7 @@ class SaltRest(object):
         if _len < 1024:
             _content = _response.content
         logger.debug(
-            "Response (HTTP {}/{}), {}: {}".format(
+            "# Response (HTTP {}/{}), {}: {}".format(
                 _response.status_code,
                 _response.reason,
                 _len,
@@ -170,7 +170,7 @@ class SaltRest(object):
             return _response.json()['return']
         else:
             raise EnvironmentError(
-                "Salt Error: HTTP:{}, '{}'".format(
+                "# Salt Error: HTTP:{}, '{}'".format(
                     _response.status_code,
                     _response.reason
                 )
@@ -214,7 +214,7 @@ class SaltRemote(SaltRest):
             return _response[0]
         else:
             raise EnvironmentError(
-                "Unexpected response from from salt-api/LocalClient: "
+                "# Unexpected response from from salt-api/LocalClient: "
                 "{}".format(_response)
             )
 
@@ -233,7 +233,7 @@ class SaltRemote(SaltRest):
             return _response[0]
         else:
             raise EnvironmentError(
-                "Unexpected response from from salt-api/RunnerClient: "
+                "# Unexpected response from from salt-api/RunnerClient: "
                 "{}".format(_response)
             )
 
@@ -254,7 +254,7 @@ class SaltRemote(SaltRest):
             return _response
         else:
             raise EnvironmentError(
-                "Salt Error: '{}'".format(_response['return']))
+                "# Salt Error: '{}'".format(_response['return']))
 
     def pillar_request(self, node_target, pillar_submodule, argument):
         # example cli: 'salt "ctl01*" pillar.keys rsyslog'
@@ -320,7 +320,7 @@ class SaltRemote(SaltRest):
         :return: json result from salt test.ping
         """
         if config.skip_nodes:
-            logger.info("Nodes to be skipped: {0}".format(config.skip_nodes))
+            logger.info("# Nodes to be skipped: {0}".format(config.skip_nodes))
             return self.cmd(
                 '* and not ' + list_to_target_string(
                     config.skip_nodes,

@@ -17,7 +17,11 @@ Be sure to
  - if node listing fails, execute `salt-key` on master 
    and create an `etc/nodes.list` file with minions list
 
-To be updated.
+TODO:
+- Check root on startup, exit
+- Prepare script to create venv
+- Format reclass compare file
+- Update messages to same style
 
 Cheers!
 
