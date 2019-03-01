@@ -5,8 +5,7 @@ import ipaddress
 
 from copy import deepcopy
 
-import reporter
-
+from cfg_checker import reporter
 from cfg_checker.common import utils, const
 from cfg_checker.common import config, logger, logger_cli, pkg_dir
 from cfg_checker.common import salt_utils
@@ -128,19 +127,3 @@ class NetworkChecker(SaltNodes):
             "diffs": {}
         })
         logger_cli.info("-> Done")
-
-
-if __name__ == '__main__':
-    # init connection to salt and collect minion data
-    cl = NetworkChecker()
-
-    # collect data on installed packages
-    cl.collect_network_info()
-
-    # diff installed and candidates
-    # cl.collect_packages()
-
-    # report it
-    cl.create_html_report("./pkg_versions.html")
-
-    sys.exit(0)

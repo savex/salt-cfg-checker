@@ -21,8 +21,12 @@ dependencies = [
 ]
 
 entry_points = {
-    "console_scripts":
-        "mcp_checker = cfg_checker.cfg_check:cli_main"
+    "console_scripts": [
+        "mcp-checker = cfg_checker.cfg_check:cli_main",
+        "package-report = cfg_checker.cli.package",
+        "network-check = cfg_checker.cli.network",
+        "reclass-compare = cfg_checker.cli.reclass"
+    ]
 }
 
 

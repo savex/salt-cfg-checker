@@ -6,7 +6,7 @@ import itertools
 import os
 import yaml
 
-import reporter
+from cfg_checker import reporter
 from cfg_checker.common import logger, logger_cli
 
 
@@ -328,44 +328,37 @@ class ModelComparer(object):
         _diff_report["diff_names"] = [self.model_name_1, self.model_name_2]
         return _diff_report
 
+    def compare_models(self):
+        # Do actual compare using model names from the class
+        self.load_model_tree(
+            self.model_name_1,
+            self.model_path_1
+        )
+        self.load_model_tree(
+            self.model_name_2,
+            self.model_path_2
+        )
+        # Models should have similar structure to be compared
+        # classes/system
+        # classes/cluster
+        # nodes
 
-def compare_models():
-    # Do actual compare using model names from the class
-    mComparer = ModelComparer()
-    mComparer.load_model_tree(
-        mComparer.model_name_1,
-        mComparer.model_path_1
-    )
-    mComparer.load_model_tree(
-        mComparer.model_name_2,
-        mComparer.model_path_2
-    )
-    # Models should have similar structure to be compared
-    # classes/system
-    # classes/cluster
-    # nodes
-    
-    diffs = mComparer.generate_model_report_tree()
+        diffs = self.generate_model_report_tree()
 
-    report_file = \
-        mComparer.model_name_1 + "-vs-" + mComparer.model_name_2 + ".html"
-    # HTML report class is post-callable
-    report = reporter.ReportToFile(
-        reporter.HTMLModelCompare(),
-        report_file
-    )
-    logger_cli.info("...generating report to {}".format(report_file))
-    # report will have tabs for each of the comparable entities in diffs
-    report({
-        "nodes": {},
-        "all_diffs": diffs,
-    })
-    # with open("./gen_tree.json", "w+") as _out:
-    #     _out.write(json.dumps(mComparer.generate_model_report_tree))
+        report_file = \
+            self.model_name_1 + "-vs-" + self.model_name_2 + ".html"
+        # HTML report class is post-callable
+        report = reporter.ReportToFile(
+            reporter.HTMLModelCompare(),
+            report_file
+        )
+        logger_cli.info("...generating report to {}".format(report_file))
+        # report will have tabs for each of the comparable entities in diffs
+        report({
+            "nodes": {},
+            "all_diffs": diffs,
+        })
+        # with open("./gen_tree.json", "w+") as _out:
+        #     _out.write(json.dumps(mComparer.generate_model_report_tree))
 
-    return
-
-
-# temporary executing the parser as a main prog
-if __name__ == '__main__':
-    compare_models()
+        return
