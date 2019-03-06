@@ -6,7 +6,7 @@ import itertools
 import os
 import yaml
 
-from cfg_checker import reporter
+from cfg_checker.reports import reporter
 from cfg_checker.common import logger, logger_cli
 
 

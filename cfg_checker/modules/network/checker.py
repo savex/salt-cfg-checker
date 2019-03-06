@@ -5,7 +5,7 @@ import ipaddress
 
 from copy import deepcopy
 
-from cfg_checker import reporter
+from cfg_checker.reports import reporter
 from cfg_checker.common import utils, const
 from cfg_checker.common import config, logger, logger_cli, pkg_dir
 from cfg_checker.common import salt_utils

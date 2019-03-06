@@ -1,4 +1,4 @@
-from cfg_checker.packages.checker import CloudPackageChecker
+from cfg_checker.modules.packages.checker import CloudPackageChecker
 
 
 if __name__ == '__main__':

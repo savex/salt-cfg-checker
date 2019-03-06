@@ -1,4 +1,4 @@
-from cfg_checker.network.checker import NetworkChecker
+from cfg_checker.modules.network.checker import NetworkChecker
 
 if __name__ == '__main__':
     # init connection to salt and collect minion data
