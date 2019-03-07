@@ -20,7 +20,7 @@ class CloudPackageChecker(SaltNodes):
         :return: none
         """
         logger_cli.info("### Collecting installed packages")
-        _result = self.execute_script("pkg_versions.py")
+        _result = self.execute_script_on_active_nodes("pkg_versions.py")
 
         for key in self.nodes.keys():
             # due to much data to be passed from salt, it is happening in order

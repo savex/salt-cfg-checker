@@ -13,6 +13,23 @@ from cfg_checker.nodes import SaltNodes, node_tmpl
 
 
 class NetworkChecker(SaltNodes):
+    @staticmethod
+    def _map_network_for_host(host, if_class, net_list, data):
+        if not any(if_class.ip in net for net in net_list.keys()):
+            # IP not fits into existing networks
+            if if_class.network not in net_list.keys():
+                # create subnet key
+                net_list[if_class.network] = {}
+            # add the host to the dict
+            net_list[if_class.network][host] = data
+        else:
+            # There is a network that ip fits into
+            for _net in net_list.keys():
+                if if_class.ip in _net:
+                    net_list[_net][host] = data
+
+        return net_list
+
     def collect_network_info(self):
         """
         Collects info on the network using ifs_data.py script
@@ -20,7 +37,7 @@ class NetworkChecker(SaltNodes):
         :return: none
         """
         logger_cli.info("### Collecting network data")
-        _result = self.execute_script("ifs_data.py", args=["json"])
+        _result = self.execute_script_on_active_nodes("ifs_data.py", args=["json"])
 
         for key in self.nodes.keys():
             # due to much data to be passed from salt, it is happening in order
@@ -45,53 +62,56 @@ class NetworkChecker(SaltNodes):
         #     _nodes = json.loads(ff.read())
 
         logger_cli.info("### Building network tree")
-        # match physical interfaces by MAC addresses
+        # match interfaces by IP subnets
         _all_nets = {}
         for host, node_data in self.nodes.iteritems():
             for net_name, net_data in node_data['networks'].iteritems():
                 # get ips and calculate subnets
                 if net_name == 'lo':
+                    # skip the localhost
                     continue
                 _ip4s = net_data['ipv4']
                 for _ip_str in _ip4s.keys():
+                     # create interface class
                     _if = ipaddress.IPv4Interface(_ip_str)
-                    if not any(_if.ip in net for net in _all_nets.keys()):
-                        # IP not fits into existing networks
-                        if _if.network not in _all_nets.keys():
-                            _all_nets[_if.network] = {}
-                        
-                        _all_nets[_if.network][host] = {}
-                        _all_nets[_if.network][host]['text'] = \
-                                "{0:30}: {1:19} {2:5} {3:4}".format(
-                                    net_name,
-                                    str(_if.ip),
-                                    net_data['mtu'],
-                                    net_data['state']
-                                )
-                        _all_nets[_if.network][host]['if_data'] = net_data
-                    else:
-                        # There is a network that ip fits into
-                        for _net in _all_nets.keys():
-                            if _if.ip in _net:
-                                if host not in _all_nets[_net]:
-                                    _all_nets[_net][host] = {}
-                                _all_nets[_net][host]['text'] = \
-                                    "{0:30}: {1:19} {2:5} {3:4}".format(
-                                        net_name,
-                                        str(_if.ip),
-                                        net_data['mtu'],
-                                        net_data['state']
-                                    )
-                                _all_nets[_net][host]['if_data'] = \
-                                    net_data
+                    net_data['name'] = net_name
+                    net_data['if'] = _if
+
+                    _all_nets = self._map_network_for_host(
+                        host,
+                        _if,
+                        _all_nets,
+                        net_data
+                    )
 
         # save collected info
         self.all_networks = _all_nets
 
-        # Get networks from reclass
-        # TODO: 
 
-        return
+    def collect_reclass_networks(self):
+        # Get networks from reclass and mark them
+        _reclass_nets = {}
+        # Get required pillars
+        self.get_specific_pillar_for_nodes("linux:network")
+        for node in self.nodes.keys():
+            _pillar = self.nodes[node]['pillars']['linux']['network']['interface']
+            for _if_name, _if_data in _pillar.iteritems():
+                if 'address' in _if_data:
+                    _if = ipaddress.IPv4Interface(
+                        _if_data['address'] + '/' + _if_data['netmask']
+                    )
+                    _if_data['name'] = _if_name
+                    _if_data['if'] = _if
+
+                    _reclass_nets = self._map_network_for_host(
+                        node,
+                        _if,
+                        _reclass_nets,
+                        _if_data
+                    )
+
+        self.reclass_nets = _reclass_nets
+
 
     def print_network_report(self):
         """
@@ -104,11 +124,14 @@ class NetworkChecker(SaltNodes):
             names = sorted(nodes.keys())
 
             for hostname in names:
+                _text = "{0:30}: {1:19} {2:5} {3:4}".format(
+                    nodes[hostname]['name'],
+                    str(nodes[hostname]['if'].ip),
+                    nodes[hostname]['mtu'],
+                    nodes[hostname]['state']
+                )
                 logger_cli.info(
-                    "\t{0:10} {1}".format(
-                        hostname.split('.')[0],
-                        nodes[hostname]['text']
-                    )
+                    "\t{0:10} {1}".format(hostname.split('.')[0], _text)
                 )
     
     def create_html_report(self, filename):

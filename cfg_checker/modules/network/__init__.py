@@ -6,6 +6,7 @@ from cfg_checker.common import logger_cli
 def do_check(args):
     logger_cli.info("# Network check (CLI output)")
     netChecker = checker.NetworkChecker()
+    netChecker.collect_reclass_networks()
     netChecker.collect_network_info()
     netChecker.print_network_report()
 

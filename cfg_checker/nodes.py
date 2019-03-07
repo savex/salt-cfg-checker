@@ -70,17 +70,36 @@ class SaltNodes(object):
 
         logger_cli.info("-> {} nodes collected".format(len(self.nodes)))
 
-    def get_nodes(self):
-        return self.nodes
-    
-    def execute_script(self, script_filename, args=[]):
         # form an all nodes compound string to use in salt
-        _active_nodes_string = self.salt.compound_string_from_list(
+        self.active_nodes_compound = self.salt.compound_string_from_list(
             filter(
                 lambda nd: self.nodes[nd]['status'] == const.NODE_UP,
                 self.nodes
             )
         )
+
+    def get_nodes(self):
+        return self.nodes
+
+    def get_specific_pillar_for_nodes(self, pillar_path):
+        """Function gets pillars on given path for all nodes
+
+        :return: no return value, data pulished internally
+        """
+        logger_cli.info("# Collecting node pillars for '{}'".format(pillar_path))
+        _result = self.salt.pillar_get(self.active_nodes_compound, pillar_path)
+        for node, data in self.nodes.iteritems():
+            _pillar_keys = pillar_path.split(':')
+            _data = data['pillars']
+            # pre-create nested dict
+            for idx in range(0, len(_pillar_keys)-1):
+                _key = _pillar_keys[idx]
+                if _key not in _data:
+                    _data[_key] = {}
+                _data = _data[_key]
+            _data[_pillar_keys[-1]] = _result[node]
+    
+    def execute_script_on_active_nodes(self, script_filename, args=[]):
         # Prepare script
         _p = os.path.join(pkg_dir, 'scripts', script_filename)
         with open(_p, 'rt') as fd:
@@ -114,7 +133,7 @@ class SaltNodes(object):
         # command salt to copy file to minions
         logger_cli.debug("# Creating script target folder '{}'".format(_cache_path))
         _result = self.salt.mkdir(
-            _active_nodes_string,
+            self.active_nodes_compound,
             os.path.join(
                 '/root',
                 config.salt_scripts_folder
@@ -123,7 +142,7 @@ class SaltNodes(object):
         )
         logger_cli.info("-> Running script to all active nodes")
         _result = self.salt.get_file(
-            _active_nodes_string,
+            self.active_nodes_compound,
             _source_path,
             _target_path,
             tgt_type="compound"
@@ -133,7 +152,7 @@ class SaltNodes(object):
         # handle results for each node
         _script_arguments = " ".join(args) if args else ""
         _result = self.salt.cmd(
-            _active_nodes_string,
+            self.active_nodes_compound,
             'cmd.run',
             param='python {} {}'.format(_target_path, _script_arguments),
             expr_form="compound"
