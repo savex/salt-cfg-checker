@@ -37,7 +37,7 @@ def do_list(args):
 
 
 def do_diff(args):
-    logger_cli.info("Reclass comparer (HTML report: '{}'".format(args.file))
+    logger_cli.info("# Reclass comparer (HTML report: '{}'".format(args.file))
     _filename = args_utils.get_file_arg(args)
 
     # checking folder params

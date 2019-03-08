@@ -19,7 +19,7 @@ class CloudPackageChecker(SaltNodes):
 
         :return: none
         """
-        logger_cli.info("### Collecting installed packages")
+        logger_cli.info("# Collecting installed packages")
         _result = self.execute_script_on_active_nodes("pkg_versions.py")
 
         for key in self.nodes.keys():
@@ -30,7 +30,7 @@ class CloudPackageChecker(SaltNodes):
                 self.nodes[key]['packages'] = _dict
             else:
                 self.nodes[key]['packages'] = {}
-            logger_cli.debug("# {} has {} packages installed".format(
+            logger_cli.debug("... {} has {} packages installed".format(
                 key,
                 len(self.nodes[key]['packages'].keys())
             ))
@@ -59,7 +59,7 @@ class CloudPackageChecker(SaltNodes):
 
         :return: buff with html
         """
-        logger_cli.info("### Generating report to '{}'".format(filename))
+        logger_cli.info("# Generating report to '{}'".format(filename))
         _report = reporter.ReportToFile(
             reporter.HTMLPackageCandidates(),
             filename

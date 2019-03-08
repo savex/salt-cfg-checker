@@ -36,7 +36,7 @@ class NetworkChecker(SaltNodes):
 
         :return: none
         """
-        logger_cli.info("### Collecting network data")
+        logger_cli.info("# Mapping node runtime network data")
         _result = self.execute_script_on_active_nodes("ifs_data.py", args=["json"])
 
         for key in self.nodes.keys():
@@ -47,7 +47,7 @@ class NetworkChecker(SaltNodes):
                 self.nodes[key]['networks'] = _dict
             else:
                 self.nodes[key]['networks'] = {}
-            logger_cli.debug("# {} has {} networks".format(
+            logger_cli.debug("... {} has {} networks".format(
                 key,
                 len(self.nodes[key]['networks'].keys())
             ))
@@ -85,10 +85,11 @@ class NetworkChecker(SaltNodes):
                     )
 
         # save collected info
-        self.all_networks = _all_nets
+        self.all_nets = _all_nets
 
 
     def collect_reclass_networks(self):
+        logger_cli.info("# Mapping reclass networks")
         # Get networks from reclass and mark them
         _reclass_nets = {}
         # Get required pillars
@@ -119,20 +120,46 @@ class NetworkChecker(SaltNodes):
 
         :return: none
         """
-        for network, nodes in self.all_networks.iteritems():
+        _all_nets = self.all_nets.keys()
+        logger_cli.info("# Reclass networks")
+        _reclass = [n for n in _all_nets if n in self.reclass_nets]
+        for network in _reclass:
+            # shortcuts
             logger_cli.info("-> {}".format(str(network)))
-            names = sorted(nodes.keys())
+            names = sorted(self.all_nets[network].keys())
 
             for hostname in names:
-                _text = "{0:30}: {1:19} {2:5} {3:4}".format(
-                    nodes[hostname]['name'],
-                    str(nodes[hostname]['if'].ip),
-                    nodes[hostname]['mtu'],
-                    nodes[hostname]['state']
+                _a = self.all_nets[network][hostname]
+                _r = self.reclass_nets[network][hostname]
+                _text = "{0:30}: {1:19} {2:5}{3:10} {4}{5}".format(
+                    _a['name'],
+                    str(_a['if'].ip),
+                    _a['mtu'],
+                    '('+str(_r['mtu'])+')' if 'mtu' in _r else '(unset!)',
+                    _a['state'],
+                    "(enabled)" if _r['enabled'] else "(disabled)"
                 )
                 logger_cli.info(
                     "\t{0:10} {1}".format(hostname.split('.')[0], _text)
                 )
+        
+        logger_cli.info("\n# Other networks")
+        _other = [n for n in _all_nets if n not in self.reclass_nets]
+        for network in _other:
+            logger_cli.info("-> {}".format(str(network)))
+            names = sorted(self.all_nets[network].keys())
+
+            for hostname in names:
+                _text = "{0:30}: {1:19} {2:5} {3:4}".format(
+                    self.all_nets[network][hostname]['name'],
+                    str(self.all_nets[network][hostname]['if'].ip),
+                    self.all_nets[network][hostname]['mtu'],
+                    self.all_nets[network][hostname]['state']
+                )
+                logger_cli.info(
+                    "\t{0:10} {1}".format(hostname.split('.')[0], _text)
+                )
+
     
     def create_html_report(self, filename):
         """

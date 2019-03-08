@@ -19,13 +19,13 @@ node_tmpl = {
 
 class SaltNodes(object):
     def __init__(self):
-        logger_cli.info("### Collecting nodes")
+        logger_cli.info("# Collecting nodes")
         # simple salt rest client
         self.salt = salt_utils.SaltRemote()
 
         # Keys for all nodes
         # this is not working in scope of 2016.8.3, will overide with list
-        logger_cli.info("# Collecting node names existing in the cloud")
+        logger_cli.debug("...collecting node names existing in the cloud")
         try:
             _keys = self.salt.list_keys()
             _str = []
@@ -86,7 +86,7 @@ class SaltNodes(object):
 
         :return: no return value, data pulished internally
         """
-        logger_cli.info("# Collecting node pillars for '{}'".format(pillar_path))
+        logger_cli.debug("...collecting node pillars for '{}'".format(pillar_path))
         _result = self.salt.pillar_get(self.active_nodes_compound, pillar_path)
         for node, data in self.nodes.iteritems():
             _pillar_keys = pillar_path.split(':')
@@ -108,7 +108,7 @@ class SaltNodes(object):
             config.salt_file_root, config.salt_scripts_folder
         )
         logger_cli.debug(
-            "# Uploading script {} to master's file cache folder: '{}'".format(
+            "...Uploading script {} to master's file cache folder: '{}'".format(
                 script_filename,
                 _storage_path
             )
@@ -127,11 +127,11 @@ class SaltNodes(object):
             script_filename
         )
 
-        logger_cli.debug("# Creating file in cache '{}'".format(_cache_path))
+        logger_cli.debug("...creating file in cache '{}'".format(_cache_path))
         _result = self.salt.f_touch_master(_cache_path)
         _result = self.salt.f_append_master(_cache_path, _script)
         # command salt to copy file to minions
-        logger_cli.debug("# Creating script target folder '{}'".format(_cache_path))
+        logger_cli.debug("...creating script target folder '{}'".format(_cache_path))
         _result = self.salt.mkdir(
             self.active_nodes_compound,
             os.path.join(

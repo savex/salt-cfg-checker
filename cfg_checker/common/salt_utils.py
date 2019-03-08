@@ -44,7 +44,7 @@ def get_remote_env_password():
     
     _ssh_cmd.append(_salt_cmd)
     _ssh_cmd = " ".join(_ssh_cmd)
-    logger_cli.debug("### Calling salt: '{}'".format(_ssh_cmd))
+    logger_cli.debug("...calling salt: '{}'".format(_ssh_cmd))
     _result = shell(_ssh_cmd)
     if len(_result) < 1:
         raise InvalidReturnException("# Empty value returned for '{}".format(

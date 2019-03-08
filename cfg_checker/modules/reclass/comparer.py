@@ -82,7 +82,7 @@ class ModelComparer(object):
         Arguments:
             root_folder_path {string} -- Path to Model's root folder. Optional
         """
-        logger_cli.info("Loading reclass tree from '{}'".format(root_path))
+        logger_cli.info("# Loading reclass tree from '{}'".format(root_path))
         # prepare the file tree to walk
         raw_tree = {}
         # Credits to Andrew Clark@MIT. Original code is here:
