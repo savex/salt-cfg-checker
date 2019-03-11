@@ -131,7 +131,7 @@ class NetworkChecker(SaltNodes):
             for hostname in names:
                 _a = self.all_nets[network][hostname]
                 _r = self.reclass_nets[network][hostname]
-                _text = "{0:30}: {1:19} {2:5}{3:10} {4}{5}".format(
+                _text = "{0:25}: {1:19} {2:5}{3:10} {4}{5}".format(
                     _a['name'],
                     str(_a['if'].ip),
                     _a['mtu'],
@@ -140,7 +140,7 @@ class NetworkChecker(SaltNodes):
                     "(enabled)" if _r['enabled'] else "(disabled)"
                 )
                 logger_cli.info(
-                    "\t{0:10} {1}".format(hostname.split('.')[0], _text)
+                    "    {0:17} {1}".format(hostname.split('.')[0], _text)
                 )
         
         logger_cli.info("\n# Other networks")
@@ -150,14 +150,14 @@ class NetworkChecker(SaltNodes):
             names = sorted(self.all_nets[network].keys())
 
             for hostname in names:
-                _text = "{0:30}: {1:19} {2:5} {3:4}".format(
+                _text = "{0:25}: {1:19} {2:5} {3:4}".format(
                     self.all_nets[network][hostname]['name'],
                     str(self.all_nets[network][hostname]['if'].ip),
                     self.all_nets[network][hostname]['mtu'],
                     self.all_nets[network][hostname]['state']
                 )
                 logger_cli.info(
-                    "\t{0:10} {1}".format(hostname.split('.')[0], _text)
+                    "    {0:17} {1}".format(hostname.split('.')[0], _text)
                 )
 
     
