@@ -13,8 +13,7 @@ def shell(command):
     return _ps
 
 
-def cut_option(_param, _options_list):
-    _option = "n/a"
+def cut_option(_param, _options_list, _option="n/a"):
     _result_list = []
     if _param in _options_list:
         _index = _options_list.index(_param)
@@ -66,14 +65,16 @@ def get_linked_devices(if_name):
 
 
 def get_ifs_data():
-    _ifs_raw = shell('ip a')
-
+    # Collect interface and IPs data
+    # Compile regexps for detecting IPs
     if_start = re.compile("^[0-9]+: .*: \<.*\> .*$")
     if_link = re.compile("^\s{4}link\/ether\ .*$")
     if_ipv4 = re.compile("^\s{4}inet\ .*$")
-
+    # variable prototypes
     _ifs = {}
     _if_name = None
+    # get the "ip a" output
+    _ifs_raw = shell('ip a')
     for line in _ifs_raw.splitlines():
         _if_data = {}
         if if_start.match(line):
@@ -115,7 +116,37 @@ def get_ifs_data():
                 _ifs[_if_name]['ipv4'][_ip] = {}
                 _ifs[_if_name]['ipv4'][_ip]['brd'] = _brd
                 _ifs[_if_name]['ipv4'][_ip]['other'] = _options
+    
+    # Collect routes data and try to match it with network
+    # Compile regexp for detecting default route
+    _routes = {
+        'raw': []
+    }
+    _ip_route_raw = shell("ip -4 r")
+    for line in _ip_route_raw.splitlines():
+        _o = line.strip().split(' ')
+        if line.startswith("default"):
+            # default gateway found, prepare options and cut word 'default'
+            _gate, _o = cut_option('via', _o, _option="0.0.0.0")
+            _dev, _o = cut_option('dev', _o)
+            _routes[_o[0]] = {
+                'gateway': _gate,
+                'device': _dev,
+                'args': " ".join(_o[1:])
+            }
+        else:
+            # network specific gateway found
+            _gate, _o = cut_option('via', _o, _option=None)
+            _dev, _o = cut_option('dev', _o)
+            _src, _o = cut_option('src', _o)
+            _routes[_o[0]] = {
+                'gateway': _gate,
+                'device': _dev,
+                'source': _src,
+                'args': " ".join(_o[1:])
+            }
 
+    _ifs["routes"] = _routes
     return _ifs
 
 
@@ -126,6 +157,7 @@ if len(sys.argv) > 1 and sys.argv[1] == 'json':
 else:
     _ifs = sorted(ifs_data.keys())
     _ifs.remove("lo")
+    _ifs.remove("routes")
     for _idx in range(len(_ifs)):
         _linked = ""
         if ifs_data[_ifs[_idx]]['lower']:
@@ -146,3 +178,32 @@ else:
             ifs_data[_ifs[_idx]]['state'],
             _linked
         ))
+
+    print("\n")
+    # default route
+    print("default via {} on {} ({})".format(
+        ifs_data["routes"]["default"]["gateway"],
+        ifs_data["routes"]["default"]["device"],
+        ifs_data["routes"]["default"]["args"]
+    ))
+    # detected routes
+    _routes = ifs_data["routes"].keys()
+    _routes.remove("raw")
+    _routes.remove("default")
+    _rt = ifs_data["routes"]
+    for idx in range(0, len(_routes)):
+        if _rt[_routes[idx]]["gateway"]:
+            print("{0:18} <- {1:16} -> {2:18} on {3:30} ({4})".format(
+                _routes[idx],
+                _rt[_routes[idx]]["gateway"],
+                _rt[_routes[idx]]["source"],
+                _rt[_routes[idx]]["device"],
+                _rt[_routes[idx]]["args"]
+            ))
+        else:
+            print("{0:18} <- -> {1:18} on {2:30} ({3})".format(
+                _routes[idx],
+                _rt[_routes[idx]]["source"],
+                _rt[_routes[idx]]["device"],
+                _rt[_routes[idx]]["args"]
+            ))

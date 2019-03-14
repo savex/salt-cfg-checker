@@ -44,22 +44,16 @@ class NetworkChecker(SaltNodes):
             if key in _result:
                 _text = _result[key]
                 _dict = json.loads(_text[_text.find('{'):])
+                self.nodes[key]['routes'] = _dict.pop("routes")
                 self.nodes[key]['networks'] = _dict
             else:
                 self.nodes[key]['networks'] = {}
+                self.nodes[key]['routes'] = {}
             logger_cli.debug("... {} has {} networks".format(
                 key,
                 len(self.nodes[key]['networks'].keys())
             ))
         logger_cli.info("-> done collecting networks data")
-
-        # dump collected data to speed up coding
-        # with open('dump.json', 'w+') as ff:
-        #     ff.write(json.dumps(self.nodes))
-
-        # load dump data
-        # with open('dump.json', 'r') as ff:
-        #     _nodes = json.loads(ff.read())
 
         logger_cli.info("### Building network tree")
         # match interfaces by IP subnets
@@ -67,7 +61,7 @@ class NetworkChecker(SaltNodes):
         for host, node_data in self.nodes.iteritems():
             for net_name, net_data in node_data['networks'].iteritems():
                 # get ips and calculate subnets
-                if net_name == 'lo':
+                if net_name in ['lo']:
                     # skip the localhost
                     continue
                 _ip4s = net_data['ipv4']
@@ -122,22 +116,59 @@ class NetworkChecker(SaltNodes):
         """
         _all_nets = self.all_nets.keys()
         logger_cli.info("# Reclass networks")
+        _text = "    {0:17} {1:25}: {2:19} {3:5}{4:10} {5}{6} {7}/{8}/{9}".format(
+            "Hostname",
+            "IF name",
+            "IP",
+            "Runtime MTU",
+            "Reclass MTU",
+            "Runtime State",
+            "Reclass State",
+            "Runtime gate",
+            "Runtime def. gate",
+            "Reclass gate"
+        )
+
         _reclass = [n for n in _all_nets if n in self.reclass_nets]
         for network in _reclass:
             # shortcuts
-            logger_cli.info("-> {}".format(str(network)))
+            _net = str(network)
+            logger_cli.info("-> {}".format(_net))
             names = sorted(self.all_nets[network].keys())
-
             for hostname in names:
+                # get the gateway for current net
+                _routes = self.nodes[hostname]['routes']
+                _route = _routes[_net] if _net in _routes else None
+                _gate = _route['gateway'] if _route['gateway'] else "empty"
+                
+                # get the default gateway
+                if 'default' in _routes:
+                    _d_gate = ipaddress.IPv4Address(
+                        _routes['default']['gateway']
+                    )
+                else:
+                    _d_gate = None
+                _d_gate_str = _d_gate if _d_gate else "No default gateway!"
+
                 _a = self.all_nets[network][hostname]
                 _r = self.reclass_nets[network][hostname]
-                _text = "{0:25}: {1:19} {2:5}{3:10} {4}{5}".format(
+                
+                # Take gateway parameter for this IF 
+                # from corresponding reclass record
+                _pillar = self.nodes[hostname]['pillars']
+                _rd = _pillar['linux']['network']['interface'][_a['name']]
+                _r_gate = _rd['gateway'] if 'gateway' in _rd else "empty"
+
+                _text = "{0:25}: {1:19} {2:5}{3:10} {4:4}{5:10} {6}/{7}/{8}".format(
                     _a['name'],
                     str(_a['if'].ip),
                     _a['mtu'],
                     '('+str(_r['mtu'])+')' if 'mtu' in _r else '(unset!)',
                     _a['state'],
-                    "(enabled)" if _r['enabled'] else "(disabled)"
+                    "(enabled)" if _r['enabled'] else "(disabled)",
+                    _gate,
+                    _d_gate_str,
+                    _r_gate
                 )
                 logger_cli.info(
                     "    {0:17} {1}".format(hostname.split('.')[0], _text)
