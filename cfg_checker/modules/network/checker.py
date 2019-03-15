@@ -15,18 +15,14 @@ from cfg_checker.nodes import SaltNodes, node_tmpl
 class NetworkChecker(SaltNodes):
     @staticmethod
     def _map_network_for_host(host, if_class, net_list, data):
-        if not any(if_class.ip in net for net in net_list.keys()):
-            # IP not fits into existing networks
-            if if_class.network not in net_list.keys():
-                # create subnet key
-                net_list[if_class.network] = {}
-            # add the host to the dict
+        if if_class.network in net_list.keys():
+            # There is a network
             net_list[if_class.network][host] = data
         else:
-            # There is a network that ip fits into
-            for _net in net_list.keys():
-                if if_class.ip in _net:
-                    net_list[_net][host] = data
+            # create subnet key
+            net_list[if_class.network] = {}
+            # add the host to the dict
+            net_list[if_class.network][host] = data
 
         return net_list
 
@@ -183,10 +179,10 @@ class NetworkChecker(SaltNodes):
                 _pillar = _pillar['linux']['network']['interface']
                 if not self.is_node_available(hostname):
                     _r_gate = "-"
-                elif _a['name'] not in _pillar:
+                elif _a['if'].network not in self.reclass_nets:
                     _r_gate = "no IF in reclass!"
                 else:
-                    _rd = _pillar[_a['name']]
+                    _rd = self.reclass_nets[_a['if'].network][hostname]
                     _r_gate = _rd['gateway'] if 'gateway' in _rd else "empty"
 
                 _text = "{0:25}: {1:19} {2:5}{3:10} {4:4}{5:10} {6} / {7} / {8}".format(
