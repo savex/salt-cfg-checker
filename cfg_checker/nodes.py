@@ -57,17 +57,22 @@ class SaltNodes(object):
         # just inventory for faster interaction
         # iterate through all accepted nodes and create a dict for it
         self.nodes = {}
+        self.skip_list = []
         for _name in _minions:
             _nc = utils.get_node_code(_name)
             _rmap = const.all_roles_map
             _role = _rmap[_nc] if _nc in _rmap else 'unknown'
             _status = const.NODE_UP if _name in _active else const.NODE_DOWN
-
+            if _status == const.NODE_DOWN:
+                self.skip_list.append(_name)
+                logger_cli.info("-> '{}' is down, marked to skip".format(
+                    _name
+                ))
             self.nodes[_name] = deepcopy(node_tmpl)
             self.nodes[_name]['node_group'] = _nc
             self.nodes[_name]['role'] = _role
             self.nodes[_name]['status'] = _status
-
+        logger_cli.info("-> {} nodes inactive".format(len(self.skip_list)))
         logger_cli.info("-> {} nodes collected".format(len(self.nodes)))
 
         # form an all nodes compound string to use in salt
@@ -88,7 +93,16 @@ class SaltNodes(object):
         """
         logger_cli.debug("...collecting node pillars for '{}'".format(pillar_path))
         _result = self.salt.pillar_get(self.active_nodes_compound, pillar_path)
+        self.not_responded = []
         for node, data in self.nodes.iteritems():
+            if node in self.skip_list:
+                logger_cli.debug(
+                    "... '{}' skipped while collecting '{}'".format(
+                        node,
+                        pillar_path
+                    )
+                )
+                continue
             _pillar_keys = pillar_path.split(':')
             _data = data['pillars']
             # pre-create nested dict
@@ -97,7 +111,19 @@ class SaltNodes(object):
                 if _key not in _data:
                     _data[_key] = {}
                 _data = _data[_key]
-            _data[_pillar_keys[-1]] = _result[node]
+            if data['status'] == const.NODE_DOWN:
+                _data[_pillar_keys[-1]] = None
+            elif not _result[node]:
+                logger_cli.debug(
+                    "... '{}' not responded after '{}'".format(
+                        node,
+                        config.salt_timeout
+                    )
+                )
+                _data[_pillar_keys[-1]] = None
+                self.not_responded.append(node)
+            else:
+                _data[_pillar_keys[-1]] = _result[node]
     
     def execute_script_on_active_nodes(self, script_filename, args=[]):
         # Prepare script
@@ -151,13 +177,27 @@ class SaltNodes(object):
         logger.debug("Running script to all nodes")
         # handle results for each node
         _script_arguments = " ".join(args) if args else ""
-        _result = self.salt.cmd(
+        self.not_responded = []
+        _r = self.salt.cmd(
             self.active_nodes_compound,
             'cmd.run',
             param='python {} {}'.format(_target_path, _script_arguments),
             expr_form="compound"
         )
 
-        # TODO: Handle error result
+        # all false returns means that there is no response
+        self.not_responded = [_n for _n  in _r.keys() if not _r[_n]]
+        return _r
 
-        return _result
+    def is_node_available(self, node, log=True):
+        if node in self.skip_list:
+            if log:
+                logger_cli.info("-> node '{}' not active".format(node))
+            return False
+        elif node in self.not_responded:
+            if log:
+                logger_cli.info("-> node '{}' not responded".format(node))
+            return False
+        else:
+            return True
+

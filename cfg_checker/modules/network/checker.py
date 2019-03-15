@@ -40,6 +40,9 @@ class NetworkChecker(SaltNodes):
         _result = self.execute_script_on_active_nodes("ifs_data.py", args=["json"])
 
         for key in self.nodes.keys():
+            # check if we are to work with this node
+            if not self.is_node_available(key):
+                continue
             # due to much data to be passed from salt, it is happening in order
             if key in _result:
                 _text = _result[key]
@@ -59,6 +62,9 @@ class NetworkChecker(SaltNodes):
         # match interfaces by IP subnets
         _all_nets = {}
         for host, node_data in self.nodes.iteritems():
+            if not self.is_node_available(host):
+                continue
+
             for net_name, net_data in node_data['networks'].iteritems():
                 # get ips and calculate subnets
                 if net_name in ['lo']:
@@ -89,7 +95,12 @@ class NetworkChecker(SaltNodes):
         # Get required pillars
         self.get_specific_pillar_for_nodes("linux:network")
         for node in self.nodes.keys():
-            _pillar = self.nodes[node]['pillars']['linux']['network']['interface']
+            # check if this node
+            if not self.is_node_available(node):
+                continue
+            # get the reclass value
+            _pillar = self.nodes[node]['pillars']['linux']['network']
+            _pillar = _pillar['interface']
             for _if_name, _if_data in _pillar.iteritems():
                 if 'address' in _if_data:
                     _if = ipaddress.IPv4Interface(
@@ -116,17 +127,19 @@ class NetworkChecker(SaltNodes):
         """
         _all_nets = self.all_nets.keys()
         logger_cli.info("# Reclass networks")
-        _text = "    {0:17} {1:25}: {2:19} {3:5}{4:10} {5}{6} {7}/{8}/{9}".format(
-            "Hostname",
-            "IF name",
-            "IP",
-            "Runtime MTU",
-            "Reclass MTU",
-            "Runtime State",
-            "Reclass State",
-            "Runtime gate",
-            "Runtime def. gate",
-            "Reclass gate"
+        logger_cli.info(
+            "    {0:17} {1:25}: {2:19} {3:5}{4:10} {5}{6} {7} / {8} / {9}".format(
+                "Hostname",
+                "IF",
+                "IP",
+                "rtMTU",
+                "rcMTU",
+                "rtState",
+                "rcState",
+                "rtGate",
+                "rtDef.Gate",
+                "rcGate"
+            )
         )
 
         _reclass = [n for n in _all_nets if n in self.reclass_nets]
@@ -136,10 +149,21 @@ class NetworkChecker(SaltNodes):
             logger_cli.info("-> {}".format(_net))
             names = sorted(self.all_nets[network].keys())
             for hostname in names:
+                if not self.is_node_available(hostname, log=False):
+                   logger_cli.info(
+                        "    {0:17} {1}".format(
+                            hostname.split('.')[0],
+                            "... no data for the node"
+                        )
+                    )
+
                 # get the gateway for current net
                 _routes = self.nodes[hostname]['routes']
                 _route = _routes[_net] if _net in _routes else None
-                _gate = _route['gateway'] if _route['gateway'] else "empty"
+                if not _route:
+                    _gate = "no route!"
+                else:
+                    _gate = _route['gateway'] if _route['gateway'] else "empty"
                 
                 # get the default gateway
                 if 'default' in _routes:
@@ -156,10 +180,16 @@ class NetworkChecker(SaltNodes):
                 # Take gateway parameter for this IF 
                 # from corresponding reclass record
                 _pillar = self.nodes[hostname]['pillars']
-                _rd = _pillar['linux']['network']['interface'][_a['name']]
-                _r_gate = _rd['gateway'] if 'gateway' in _rd else "empty"
+                _pillar = _pillar['linux']['network']['interface']
+                if not self.is_node_available(hostname):
+                    _r_gate = "-"
+                elif _a['name'] not in _pillar:
+                    _r_gate = "no IF in reclass!"
+                else:
+                    _rd = _pillar[_a['name']]
+                    _r_gate = _rd['gateway'] if 'gateway' in _rd else "empty"
 
-                _text = "{0:25}: {1:19} {2:5}{3:10} {4:4}{5:10} {6}/{7}/{8}".format(
+                _text = "{0:25}: {1:19} {2:5}{3:10} {4:4}{5:10} {6} / {7} / {8}".format(
                     _a['name'],
                     str(_a['if'].ip),
                     _a['mtu'],

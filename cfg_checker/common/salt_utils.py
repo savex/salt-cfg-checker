@@ -86,7 +86,7 @@ class SaltRest(object):
         self._token = self._login()
         self.last_response = None
 
-    def get(self, path='', headers=default_headers, cookies=None):
+    def get(self, path='', headers=default_headers, cookies=None, timeout=None):
         _path = os.path.join(self.uri, path)
         logger.debug("# GET '{}'\nHeaders: '{}'\nCookies: {}".format(
             _path,
@@ -96,7 +96,8 @@ class SaltRest(object):
         return requests.get(
             _path,
             headers=headers,
-            cookies=cookies
+            cookies=cookies,
+            timeout=timeout
         )
 
     def post(self, data, path='', headers=default_headers, cookies=None):
@@ -286,7 +287,12 @@ class SaltRemote(SaltRest):
             Works starting from 2017.7.7
             api returns dict of minions with grains
         """
-        return self.salt_request('get', 'minions')[0]
+        try:
+            _r = self.salt_request('get', 'minions', timeout=10)
+        except requests.exceptions.ReadTimeout as e:
+            logger_cli.debug("... timeout waiting list minions from Salt API")
+            _r = None
+        return _r[0] if _r else None
 
     def list_keys(self):
         """
@@ -321,7 +327,7 @@ class SaltRemote(SaltRest):
         """
         if config.skip_nodes:
             logger.info("# Nodes to be skipped: {0}".format(config.skip_nodes))
-            return self.cmd(
+            _r = self.cmd(
                 '* and not ' + list_to_target_string(
                     config.skip_nodes,
                     'and not'
@@ -329,7 +335,9 @@ class SaltRemote(SaltRest):
                 'test.ping',
                 expr_form='compound')
         else:
-            return self.cmd('*', 'test.ping')
+            _r = self.cmd('*', 'test.ping')
+        # Return all nodes that responded            
+        return [node for node in _r.keys() if _r[node]]
 
     def get_monitoring_ip(self, param_name):
         salt_output = self.cmd(
