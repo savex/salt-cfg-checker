@@ -83,6 +83,18 @@ class SaltNodes(object):
             )
         )
 
+    def skip_node(self, node):
+        # Add node to skip list
+        # Fro example if it is fails to comply with the rules
+
+        # check if we know such node
+        if node in self.nodes.keys() and node not in self.skip_list:
+            # yes, add it
+            self.skip_list.append(node)
+            return True
+        else:
+            return False
+
     def get_nodes(self):
         return self.nodes
 

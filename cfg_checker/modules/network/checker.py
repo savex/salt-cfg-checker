@@ -96,7 +96,15 @@ class NetworkChecker(SaltNodes):
                 continue
             # get the reclass value
             _pillar = self.nodes[node]['pillars']['linux']['network']
-            _pillar = _pillar['interface']
+            # we should be ready if there is no interface in reclass for a node
+            # for example on APT node
+            if 'interface' in _pillar:
+                _pillar = _pillar['interface']
+            else:
+                logger_cli.info("...skipped '{}', no IF in reclass".format(
+                    node
+                ))
+                continue
             for _if_name, _if_data in _pillar.iteritems():
                 if 'address' in _if_data:
                     _if = ipaddress.IPv4Interface(
