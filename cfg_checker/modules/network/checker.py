@@ -188,10 +188,13 @@ class NetworkChecker(SaltNodes):
                 
                 # Take gateway parameter for this IF 
                 # from corresponding reclass record
+                # TODO: Update gateway search mechanism
                 if not self.is_node_available(hostname):
                     _r_gate = "-"
                 elif _a['if'].network not in self.reclass_nets:
                     _r_gate = "no IF in reclass!"
+                elif not hostname in self.reclass_nets[_a['if'].network]:
+                    _r_gate = "no IF on node in reclass!"
                 else:
                     _rd = self.reclass_nets[_a['if'].network][hostname]
                     _r_gate = _rd['gateway'] if 'gateway' in _rd else "empty"
