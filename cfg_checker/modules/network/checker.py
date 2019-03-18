@@ -101,7 +101,7 @@ class NetworkChecker(SaltNodes):
             if 'interface' in _pillar:
                 _pillar = _pillar['interface']
             else:
-                logger_cli.info("...skipped '{}', no IF in reclass".format(
+                logger_cli.info("...skipping node '{}', no IF section in reclass".format(
                     node
                 ))
                 continue
@@ -179,12 +179,15 @@ class NetworkChecker(SaltNodes):
                 _d_gate_str = _d_gate if _d_gate else "No default gateway!"
 
                 _a = self.all_nets[network][hostname]
-                _r = self.reclass_nets[network][hostname]
+                # Check if reclass has such network
+                if hostname in self.reclass_nets[network]:
+                    _r = self.reclass_nets[network][hostname]
+                else:
+                    # Supply empty dict if there is no reclass gathered
+                    _r = {}
                 
                 # Take gateway parameter for this IF 
                 # from corresponding reclass record
-                _pillar = self.nodes[hostname]['pillars']
-                _pillar = _pillar['linux']['network']['interface']
                 if not self.is_node_available(hostname):
                     _r_gate = "-"
                 elif _a['if'].network not in self.reclass_nets:
@@ -193,13 +196,17 @@ class NetworkChecker(SaltNodes):
                     _rd = self.reclass_nets[_a['if'].network][hostname]
                     _r_gate = _rd['gateway'] if 'gateway' in _rd else "empty"
 
+                if not 'enabled' in _r:
+                    _enabled = "no record!"
+                else:
+                    _enabled = "(enabled)" if _r['enabled'] else "(disabled)"
                 _text = "{0:25}: {1:19} {2:5}{3:10} {4:4}{5:10} {6} / {7} / {8}".format(
                     _a['name'],
                     str(_a['if'].ip),
                     _a['mtu'],
                     '('+str(_r['mtu'])+')' if 'mtu' in _r else '(unset!)',
                     _a['state'],
-                    "(enabled)" if _r['enabled'] else "(disabled)",
+                    _enabled,
                     _gate,
                     _d_gate_str,
                     _r_gate
