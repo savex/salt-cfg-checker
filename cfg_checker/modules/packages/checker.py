@@ -26,7 +26,15 @@ class CloudPackageChecker(SaltNodes):
             # due to much data to be passed from salt, it is happening in order
             if key in _result:
                 _text = _result[key]
-                _dict = json.loads(_text[_text.find('{'):])
+                try:
+                    _dict = json.loads(_text[_text.find('{'):])
+                except ValueError as e:
+                    logger_cli.info("... no JSON for '{}'".format(
+                        key
+                    ))
+                    logger_cli.debug("... {}".format(_text))
+                    _dict = {}
+                
                 self.nodes[key]['packages'] = _dict
             else:
                 self.nodes[key]['packages'] = {}
