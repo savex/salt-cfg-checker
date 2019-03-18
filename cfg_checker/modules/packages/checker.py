@@ -32,7 +32,7 @@ class CloudPackageChecker(SaltNodes):
                     logger_cli.info("... no JSON for '{}'".format(
                         key
                     ))
-                    logger_cli.debug("... {}".format(_text))
+                    logger_cli.debug("... {}".format(_text[:_text.find('{')]))
                     _dict = {}
                 
                 self.nodes[key]['packages'] = _dict
