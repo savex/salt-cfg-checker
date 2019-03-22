@@ -135,7 +135,7 @@ class ModelComparer(object):
             )
         
         # save it as a single data object
-        self.models[name]["all_diffs"] = raw_tree[root_key]
+        self.models[name]["rc_diffs"] = raw_tree[root_key]
         return True
 
     def find_changes(self, dict1, dict2, path=""):
@@ -356,7 +356,7 @@ class ModelComparer(object):
         # report will have tabs for each of the comparable entities in diffs
         report({
             "nodes": {},
-            "all_diffs": diffs,
+            "rc_diffs": diffs,
         })
         # with open("./gen_tree.json", "w+") as _out:
         #     _out.write(json.dumps(mComparer.generate_model_report_tree))

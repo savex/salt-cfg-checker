@@ -63,7 +63,8 @@ class _TMPLBase(_Base):
         # system, nodes, clusters, and the rest in other
         data.update({
             "nodes": payload['nodes'],
-            "all_diffs": payload['diffs'],
+            "rc_diffs": payload['rc_diffs'],
+            "pkg_diffs": payload['pkg_diffs'],
             "tabs": {}
         })
 
@@ -121,18 +122,20 @@ class HTMLPackageCandidates(_TMPLBase):
         return _fail_uniq
 
     def _extend_data(self, data):
-        _all_pkg = 0
+        # Count values on per-node basis
         for key, value in data['nodes'].iteritems():
-            # add count of packages for this node to total
-            _all_pkg += len(value.keys())
-
             # count differences
             data['counters'][key] = {}
             data['counters'][key]['packages'] = len(value['packages'].keys())
             data['counters'][key]['package_diff'] = 0
+            data['counters'][key]['package_eq'] = 0
+
+            # Lookup if this fail is uniq for this node
             for pkg_name, pkg_value in value['packages'].iteritems():
-                if pkg_value['installed'] != pkg_value['candidate']:
-                    pkg_value['is_equal'] = False
+                if pkg_value['is_equal']:
+                    pkg_value['fail_uniq'] = False
+                    data['counters'][key]['package_eq'] += 1
+                else:
                     pkg_value['fail_uniq'] = self.is_fail_uniq(
                         pkg_value,
                         pkg_name,
@@ -140,11 +143,15 @@ class HTMLPackageCandidates(_TMPLBase):
                         key
                     )
                     data['counters'][key]['package_diff'] += 1
-                else:
-                    pkg_value['is_equal'] = True
-                    pkg_value['fail_uniq'] = False
+       
+        # Count values on all-diffs basis
+        for key, value in data['pkg_diffs'].iteritems():
+            data['counters'][key] = {}
+            data['counters'][key]['df_nodes'] = len(value['df_nodes'].keys())
+            data['counters'][key]['eq_nodes'] = len(value['eq_nodes'])
 
-        data['counters']['total_packages'] = _all_pkg
+        # Save all packages counter
+        data['counters']['total_packages'] = data['pkg_diffs'].keys()
 
 
 # Package versions report
@@ -153,8 +160,8 @@ class HTMLModelCompare(_TMPLBase):
 
     def _extend_data(self, data):
         # move names into separate place
-        data["names"] = data["all_diffs"].pop("diff_names")
-        data["tabs"] = data.pop("all_diffs")
+        data["names"] = data["rc_diffs"].pop("diff_names")
+        data["tabs"] = data.pop("rc_diffs")
         
         # counters - mdl_diff
         for _tab in data["tabs"].keys():

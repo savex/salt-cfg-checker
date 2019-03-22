@@ -16,6 +16,6 @@ def do_report(args):
     # collect data on installed packages
     pChecker.collect_installed_packages()
     # diff installed and candidates
-    # pChecker.collect_packages()
+    pChecker.collect_packages()
     # report it
     pChecker.create_html_report(_filename)

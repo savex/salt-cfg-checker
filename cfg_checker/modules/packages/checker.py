@@ -32,7 +32,7 @@ class CloudPackageChecker(SaltNodes):
                     logger_cli.info("... no JSON for '{}'".format(
                         key
                     ))
-                    logger_cli.debug("... {}".format(_text[:_text.find('{')]))
+                    logger_cli.debug("ERROR:\n{}\n".format(_text[:_text.find('{')]))
                     _dict = {}
                 
                 self.nodes[key]['packages'] = _dict
@@ -50,16 +50,31 @@ class CloudPackageChecker(SaltNodes):
 
         :return: no return values, all date put to dict in place
         """
-        _all_packages = {}
+        # Collect packages from all of the nodes in flat dict
+        _diff_packages = {}
         for node_name, node_value in self.nodes.iteritems():
-            for package_name in node_value['packages']:
-                if package_name not in _all_packages:
-                    _all_packages[package_name] = {}
-                _all_packages[package_name][node_name] = node_value
+            for _name, _value in node_value['packages'].iteritems():
+                if _name not in _diff_packages:
+                    _diff_packages[_name] = {}
+                    _diff_packages[_name]['df_nodes'] = {}
+                    _diff_packages[_name]['eq_nodes'] = []
+                
+                # compare packages, mark if equal
+                if _value['installed'] != _value['candidate']:
+                    # Saving compare value so we not do str compare again
+                    _value['is_equal'] = False
+                    # add node name to list
+                    _diff_packages[_name]['df_nodes'][node_name] = {
+                        'i': _value['installed'],
+                        'c': _value['candidate'],
+                        'raw': _value['raw']
+                    }
+                else:
+                    # Saving compare value so we not do str compare again
+                    _value['is_equal'] = True
+                    _diff_packages[_name]['eq_nodes'].append(node_name)
 
-        # TODO: process data for per-package basis
-
-        self.all_packages = _all_packages
+        self.diff_packages = _diff_packages
 
     def create_html_report(self, filename):
         """
@@ -74,6 +89,7 @@ class CloudPackageChecker(SaltNodes):
         )
         _report({
             "nodes": self.nodes,
-            "diffs": {}
+            "rc_diffs": {},
+            "pkg_diffs": self.diff_packages
         })
         logger_cli.info("-> Done")

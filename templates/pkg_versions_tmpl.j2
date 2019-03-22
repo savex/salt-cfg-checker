@@ -45,7 +45,7 @@
             text-align: left;
             cursor: pointer;
             transition: 0.3s;
-            font-size: 1.3em;
+            font-size: 1.1em;
             width: 100%;
             padding: 1px;
             margin: 1px;
@@ -53,12 +53,12 @@
 
         button > div.node_name {
             float: left;
-            font-size: 1.3em;
+            font-size: 0.8em;
         }
 
         .smallgreytext {
             float: right;
-            font-size: 0.7em;
+            font-size: 0.5em;
             color: gray;
         }
 
@@ -85,6 +85,15 @@
             width: calc(100% - 170px);
             overflow-x: scroll;
             overflow-wrap: break-word;
+        }
+        .collapsable {
+            visibility: collapse;
+            display: none;
+        }
+
+        .collapsable.in {
+            visibility: visible;
+            display: table-row;
         }
 
         table {
@@ -144,6 +153,26 @@
 
     </style>
     <script language="JavaScript">
+        function toggleClassByID(pkg, number) {
+            var elements = document.querySelectorAll("#"+pkg+"_"+number);
+            var ii = elements.length;
+            var button = document.querySelector("#"+pkg+"_button"+number);
+
+            while (ii--) {
+                if( elements[ii].className && elements[ii].className.indexOf("in") > -1 ) {
+                    elements[ii].classList.remove("in");
+                    button.innerHTML = "&uarr;"
+                }
+                else {
+                    elements[ii].classList.add("in");
+                    button.innerHTML = "&darr;"
+                }
+            }
+
+
+        }
+    </script>
+    <script language="JavaScript">
         function init() {
             // Declare all variables
             var i, tabcontent, tablinks;
@@ -187,8 +216,11 @@
 </head>
 <body onload="init()">
 <div class="tab">
+  <button class="tablinks" onclick="openTab(event, 'All Diffs')")>
+      <div class="node_name">All Diffs</div>
+  </button>
 {% for node_name in nodes.keys() | sort %}
-    {% if nodes[node_name] | is_active %}
+    {% if counters[node_name]['package_diff'] %}
   <button class="tablinks" onclick="openTab(event, '{{ node_name | shortname }}')">
     <div class="dot_green">&#9679;</div>
     <div class="node_name">{{ node_name | shortname }}</div>
@@ -197,14 +229,53 @@
     {% endif %}    
 {% endfor %}
 {% for node_name in nodes.keys() | sort %}
-    {% if not nodes[node_name] | is_active %}
+    {% if not counters[node_name]['package_diff'] %}
   <button class="tablinks" onclick="openTab(event, '{{ node_name | shortname }}')">
     <div class="dot_empty">&#9675;</div>
     <div class="node_name">{{ node_name | shortname }}</div>
     <div class="smallgreytext">({{ counters[node_name]['package_diff'] }} / {{ counters[node_name]['packages'] }})</div>
   </button>
-    {% endif %}    
+    {% endif %}
 {% endfor %}
+</div>
+<div id="All Diffs" class="tabcontent">
+    <table class="pkgversions">
+        <tbody>
+        <tr>
+            <td class="Header">Node name</td>
+            <td class="Header">Installed</td>
+            <td class="Header">Candidate</td>
+        </tr>
+        {% for pkg_name in pkg_diffs.keys() | sort %}
+        {% if counters[pkg_name]['df_nodes'] %}
+        {% set pkg_counter = 1 + loop.index0 %}
+        <tr>
+            <td>
+            <a href="#" onclick="toggleClassByID('{{ pkg_name }}', '{{ pkg_counter }}')" id="{{ pkg_name }}_button{{ pkg_counter }}">&uarr;</a>
+            {{ pkg_name }}
+            </td>
+            <td>{{ counters[pkg_name]['df_nodes'] }}</td>
+            <td></td>
+        </tr>
+        <tr><td colspan=3>
+        <table class="nodes"><tbody>
+            {% for node in pkg_diffs[pkg_name]['df_nodes'].keys() | sort %}
+            <tr class="collapsable" id="{{ pkg_name }}_{{ pkg_counter }}">
+                <td class="pkgName">{{ node }}</td>
+                <td class="version differ">
+                    <div class="tooltip">{{ pkg_diffs[pkg_name]['df_nodes'][node]['i'] }}
+                        <pre class="tooltiptext">{{ pkg_diffs[pkg_name]['df_nodes'][node]['raw'] | linebreaks }}</pre>
+                    </div>
+                </td>
+                <td class="version">{{ pkg_diffs[pkg_name]['df_nodes'][node]['c'] }}</td>
+            </tr>
+            {% endfor %}
+        </tbody></table>
+        </td></tr>
+        {% endif%}
+        {% endfor %}
+        </tbody>
+    </table>
 </div>
 {% for node_name in nodes.keys() | sort %}
 <div id="{{ node_name | shortname }}" class="tabcontent">
@@ -247,20 +318,7 @@
             {% endif %}
             {% endif %}
         {% endfor %}
-        <tr><td colspan=3>Packages with same versions: installed vs candidate</td></tr>
-        {% for package_name in nodes[node_name]['packages'] | sort %}
-            {% if nodes[node_name]['packages'][package_name] | is_equal %}
-        <tr>
-            <td class="pkgName">{{ package_name }}</td>
-            <td class="version">
-                <div class="tooltip">{{ nodes[node_name]['packages'][package_name]['installed'] }}
-                    <pre class="tooltiptext">{{ nodes[node_name]['packages'][package_name]['raw'] | linebreaks }}</pre>
-                </div>
-            </td>
-            <td class="version">{{ nodes[node_name]['packages'][package_name]['candidate'] }}</td>
-        </tr>
-            {% endif %}
-        {% endfor %}
+        <tr><td colspan=3>Packages with same versions (installed vs candidate): {{ counters[node_name]['package_eq'] }}</td></tr>
         </tbody>
     </table>
 </div>
