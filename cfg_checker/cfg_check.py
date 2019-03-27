@@ -64,11 +64,6 @@ def config_check_entrypoint():
         help="Set CLI logging level to DEBUG"
     )
     parser.add_argument(
-        '-f',
-        '--file',
-        help="HTML filename to save report"
-    )
-    parser.add_argument(
         '-s',
         '--sudo',
         action='store_true', default=True,
@@ -85,6 +80,14 @@ def config_check_entrypoint():
     pkg_report_parser = pkg_subparsers.add_parser(
         'report',
         help="Report package versions to HTML file"
+    )
+    pkg_report_parser.add_argument(
+        '--html',
+        help="HTML filename to save report"
+    )
+    pkg_report_parser.add_argument(
+        '--csv',
+        help="CSV filename to save report"
     )
 
     # networking

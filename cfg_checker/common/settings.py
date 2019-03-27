@@ -31,6 +31,8 @@ class CheckerConfiguration(object):
         self.date_format = "%Y-%m-%d %H:%M:%S.%f%z"
         self.default_tz = "UTC"
 
+        self.pkg_versions_map = 'versions_map.csv'
+
         self.ssh_uses_sudo = False
         self.ssh_key = os.environ.get('SSH_KEY', None)
         self.ssh_user = os.environ.get('SSH_USER', None)

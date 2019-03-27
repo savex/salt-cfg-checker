@@ -1,0 +1,8 @@
+package_name,result,installed,candidate,node
+{% for pkg_name in all_pkg.keys() | sort %}
+    {% for comb in all_pkg[pkg_name].keys() | sort %}
+        {% for result in all_pkg[pkg_name][comb]["results"].keys() %}
+{{ pkg_name }},{{ cmp[result] }},{{ all_pkg[pkg_name][comb]['i'].version }},{{ all_pkg[pkg_name][comb]['c'].version }},{{ all_pkg[pkg_name][comb]['results'][result][0] }}
+        {% endfor %}
+    {% endfor %}
+{% endfor %}

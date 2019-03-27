@@ -22,7 +22,9 @@ class SaltNodes(object):
         logger_cli.info("# Collecting nodes")
         # simple salt rest client
         self.salt = salt_utils.SaltRemote()
-
+        self.mcp_release = self.salt.pillar_get("cfg01\*", "_param:apt_mk_version")[0]
+        self.openstack_release = self.salt.pillar_get("cfg01\*", "_param:openstack_version")[0]
+        
         # Keys for all nodes
         # this is not working in scope of 2016.8.3, will overide with list
         logger_cli.debug("...collecting node names existing in the cloud")

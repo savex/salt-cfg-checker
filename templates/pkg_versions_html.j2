@@ -8,30 +8,66 @@
             font-family: Verdana, Geneva, Tahoma, sans-serif;
             font-size: 90% !important;
         }
-        .dot_green {
-            float: left;
-            color: green;
-            margin-right: 0.5em;
-            margin-top: 0.2em;
+		/* Common */
+		.header {
+			display:block;
+		}
+		.main_content {
+			content: "";
+			display: table;
+			clear: both;
+		}
+		
+		.label {float: left; font-size: 0.7em; color: Black; line-height: 17px; padding-left: 10px;}
+		.text {float: left; font-size: 0.8em; color: Navy; padding-left: 2px;}
+		
+		
+        /* Report specific styles */
+        .dot_green {float: left; color: green; margin-right: 0.5em; margin-top: 0.2em;}
+        .dot_red {float: left; color: red; margin-right: 0.5em; margin-top: 0.2em;}
+        .dot_empty {float: left; color: darkgray; margin-right: 0.5em; margin-top: 0.2em;}
+
+        .smallgreytext {float: right; font-size: 0.5em; color: gray;}
+
+        .pkgName {font-size: 1em; padding-left: 10px;}
+        .version {font-size: 1.1em; text-align: left;}
+        .differ {background-color: #eaa;}
+
+
+		/* Bar */
+		.bar{
+			background: linear-gradient(to bottom, #126666 0%, #284753 77%);
+			width:100%;
+			overflow:hidden;
+			display: inline-block;
+		}
+		.bar .bar-item{
+			padding:8px 16px;
+			float:left;
+			width:auto;
+			border:none;
+			display:block;
+			outline:0;
+            color: White;
+            background-color: transparent;
         }
-        .dot_red {
-            float: left;
-            color: red;
-            margin-right: 0.5em;
-            margin-top: 0.2em;
+        
+        .bar .bar-item:hover {
+            background-color: #328686;
         }
-        .dot_empty {
-            float: left;
-            color: darkgray;
-            margin-right: 0.5em;
-            margin-top: 0.2em;
+        
+        .bar .bar-item.active {
+            background-color: #328686;
+            color: white;
         }
-        /* Style the tab */
+
+
+        /* Tab styles */
         .tab {
             float: left;
             width: 130px;
             border: 1px solid #fff;
-            background-color: #efe;
+            background-color: #e0f0e9;
         }
 
         /* Style the buttons that are used to open the tab content */
@@ -56,20 +92,15 @@
             font-size: 0.8em;
         }
 
-        .smallgreytext {
-            float: right;
-            font-size: 0.5em;
-            color: gray;
-        }
 
         /* Change background color of buttons on hover */
         .tab button:hover {
-            background-color: #7b7;
+            background-color: #72c6c6;
         }
 
         /* Create an active/current "tab button" class */
         .tab button.active {
-            background-color: #8c8;
+            background-color: #328686;
             color: white;
         }
 
@@ -80,7 +111,7 @@
             font-size: 1em;
             padding: 0.5em;
             right: -10%;
-            top: 0%;
+            top: 55px;
             transform: translateX(-12%);
             width: calc(100% - 170px);
             overflow-x: scroll;
@@ -105,26 +136,15 @@
         }
         tr:nth-child(odd) {
             background-color: #ddd;
+            
         }
-        .Header {
+        .table_header {
             background-color: #bbb;
             color: Black;
             width: 30%;
             text-align: center;
         }
-        .pkgName {
-            font-size: 1em;
-            padding-left: 10px;
-        }
 
-        .version {
-            font-size: 1.1em;
-            text-align: left;
-        }
-
-        .differ {
-            background-color: #eaa;
-        }
         /* Tooltip container */
         .tooltip {
             position: relative;
@@ -212,33 +232,46 @@
             document.getElementById(tabName).style.display = "block";
             evt.currentTarget.className += " active";
         }
+        function openBar(evt, barName) {
+            // Declare all variables
+            var i, barcontent, baritems;
+
+            // Get all elements with class="tabcontent" and hide them
+            barcontent = document.getElementsByClassName("barcontent");
+            for (i = 0; i < barcontent.length; i++) {
+                barcontent[i].style.display = "none";
+            }
+
+            // Get all elements with class="tablinks" and remove the class "active"
+            baritems = document.getElementsByClassName("bar-item");
+            for (i = 0; i < baritems.length; i++) {
+                baritems[i].className = baritems[i].className.replace(" active", "");
+            }
+
+            // Show the current tab, and add an "active" class to the link that opened the tab
+            document.getElementById(barName).style.display = "block";
+            evt.currentTarget.className += " active";
+        }
+
     </script>
 </head>
 <body onload="init()">
-<div class="tab">
-  <button class="tablinks" onclick="openTab(event, 'All Diffs')")>
-      <div class="node_name">All Diffs</div>
-  </button>
-{% for node_name in nodes.keys() | sort %}
-    {% if counters[node_name]['package_diff'] %}
-  <button class="tablinks" onclick="openTab(event, '{{ node_name | shortname }}')">
-    <div class="dot_green">&#9679;</div>
-    <div class="node_name">{{ node_name | shortname }}</div>
-    <div class="smallgreytext">({{ counters[node_name]['package_diff'] }} / {{ counters[node_name]['packages'] }})</div>
-  </button>
-    {% endif %}    
-{% endfor %}
-{% for node_name in nodes.keys() | sort %}
-    {% if not counters[node_name]['package_diff'] %}
-  <button class="tablinks" onclick="openTab(event, '{{ node_name | shortname }}')">
-    <div class="dot_empty">&#9675;</div>
-    <div class="node_name">{{ node_name | shortname }}</div>
-    <div class="smallgreytext">({{ counters[node_name]['package_diff'] }} / {{ counters[node_name]['packages'] }})</div>
-  </button>
-    {% endif %}
-{% endfor %}
+
+<div class="header">
+	<div class="label">OpenStack release:</div>
+	<div class="text">Queens</div>
+	<div class="label">MCP Version:</div>
+	<div class="text">2018.11.0</div>
 </div>
-<div id="All Diffs" class="tabcontent">
+
+<div class="bar">
+	<button class="bar-item" onclick="openBar(event, 'critical')">Critical</button>
+	<button class="bar-item" onclick="openBar(event, 'system')">System</button>
+	<button class="bar-item" onclick="openBar(event, 'nodes')">Per Node</button>
+</div>
+
+<!-- Critical -->
+<div id="critical" class="barcontent">
     <table class="pkgversions">
         <tbody>
         <tr>
@@ -277,51 +310,79 @@
         </tbody>
     </table>
 </div>
-{% for node_name in nodes.keys() | sort %}
-<div id="{{ node_name | shortname }}" class="tabcontent">
-    <table class="pkgversions">
-        <tbody>
-        <tr>
-            <td class="Header">Package name</td>
-            <td class="Header">Installed</td>
-            <td class="Header">Candidate</td>
-        </tr>
-        <tr><td colspan=3>Package with different versions uniq for this node</td></tr>
-        {% for package_name in nodes[node_name]['packages'] | sort %}
-            {% if not nodes[node_name]['packages'][package_name]['is_equal'] %}
-            {% if nodes[node_name]['packages'][package_name]['fail_uniq'] %}
-        <tr>
-            <td class="pkgName">{{ package_name }}</td>
-            <td class="version differ">
-                <div class="tooltip">{{ nodes[node_name]['packages'][package_name]['installed'] }}
-                    <pre class="tooltiptext">{{ nodes[node_name]['packages'][package_name]['raw'] | linebreaks }}</pre>
-                </div>
-            </td>
-            <td class="version">{{ nodes[node_name]['packages'][package_name]['candidate'] }}</td>
-        </tr>
-            {% endif %}
-            {% endif %}
-        {% endfor %}
-        <tr><td colspan=3>Packages with different versions on nodes with similar role</td></tr>
-        {% for package_name in nodes[node_name]['packages'] | sort %}
-            {% if not nodes[node_name]['packages'][package_name]['is_equal'] %}
-            {% if not nodes[node_name]['packages'][package_name]['fail_uniq'] %}
-        <tr>
-            <td class="pkgName">{{ package_name }}</td>
-            <td class="version differ">
-                <div class="tooltip">{{ nodes[node_name]['packages'][package_name]['installed'] }}
-                    <pre class="tooltiptext">{{ nodes[node_name]['packages'][package_name]['raw'] | linebreaks }}</pre>
-                </div>
-            </td>
-            <td class="version">{{ nodes[node_name]['packages'][package_name]['candidate'] }}</td>
-        </tr>
-            {% endif %}
-            {% endif %}
-        {% endfor %}
-        <tr><td colspan=3>Packages with same versions (installed vs candidate): {{ counters[node_name]['package_eq'] }}</td></tr>
-        </tbody>
-    </table>
+
+<div id="system" class="barcontent">
+    System packages
 </div>
-{% endfor %}
+
+<div id="nodes" class="barcontent">
+    <!-- Per node -->
+    <div class="tab">
+    {% for node_name in nodes.keys() | sort %}
+        {% if counters[node_name]['package_diff'] %}
+    <button class="tablinks" onclick="openTab(event, '{{ node_name | shortname }}')">
+        <div class="dot_green">&#9679;</div>
+        <div class="node_name">{{ node_name | shortname }}</div>
+        <div class="smallgreytext">({{ counters[node_name]['package_diff'] }} / {{ counters[node_name]['packages'] }})</div>
+    </button>
+        {% endif %}    
+    {% endfor %}
+    {% for node_name in nodes.keys() | sort %}
+        {% if not counters[node_name]['package_diff'] %}
+    <button class="tablinks" onclick="openTab(event, '{{ node_name | shortname }}')">
+        <div class="dot_empty">&#9675;</div>
+        <div class="node_name">{{ node_name | shortname }}</div>
+        <div class="smallgreytext">({{ counters[node_name]['package_diff'] }} / {{ counters[node_name]['packages'] }})</div>
+    </button>
+        {% endif %}
+    {% endfor %}
+    </div>
+    {% for node_name in nodes.keys() | sort %}
+    <div id="{{ node_name | shortname }}" class="tabcontent">
+        <table class="pkgversions">
+            <tbody>
+            <tr>
+                <td class="Header">Package name</td>
+                <td class="Header">Installed</td>
+                <td class="Header">Candidate</td>
+            </tr>
+            <tr><td colspan=3>Package with different versions uniq for this node</td></tr>
+            {% for package_name in nodes[node_name]['packages'] | sort %}
+                {% if not nodes[node_name]['packages'][package_name]['is_equal'] %}
+                {% if nodes[node_name]['packages'][package_name]['fail_uniq'] %}
+            <tr>
+                <td class="pkgName">{{ package_name }}</td>
+                <td class="version differ">
+                    <div class="tooltip">{{ nodes[node_name]['packages'][package_name]['installed'] }}
+                        <pre class="tooltiptext">{{ nodes[node_name]['packages'][package_name]['raw'] | linebreaks }}</pre>
+                    </div>
+                </td>
+                <td class="version">{{ nodes[node_name]['packages'][package_name]['candidate'] }}</td>
+            </tr>
+                {% endif %}
+                {% endif %}
+            {% endfor %}
+            <tr><td colspan=3>Packages with different versions on nodes with similar role</td></tr>
+            {% for package_name in nodes[node_name]['packages'] | sort %}
+                {% if not nodes[node_name]['packages'][package_name]['is_equal'] %}
+                {% if not nodes[node_name]['packages'][package_name]['fail_uniq'] %}
+            <tr>
+                <td class="pkgName">{{ package_name }}</td>
+                <td class="version differ">
+                    <div class="tooltip">{{ nodes[node_name]['packages'][package_name]['installed'] }}
+                        <pre class="tooltiptext">{{ nodes[node_name]['packages'][package_name]['raw'] | linebreaks }}</pre>
+                    </div>
+                </td>
+                <td class="version">{{ nodes[node_name]['packages'][package_name]['candidate'] }}</td>
+            </tr>
+                {% endif %}
+                {% endif %}
+            {% endfor %}
+            <tr><td colspan=3>Packages with same versions (installed vs candidate): {{ counters[node_name]['package_eq'] }}</td></tr>
+            </tbody>
+        </table>
+    </div>
+    {% endfor %}
+</div>
 </body>
 </html>

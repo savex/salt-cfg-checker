@@ -65,6 +65,7 @@ class _TMPLBase(_Base):
             "nodes": payload['nodes'],
             "rc_diffs": payload['rc_diffs'],
             "pkg_diffs": payload['pkg_diffs'],
+            "all_pkg": payload['all_pkg'],
             "tabs": {}
         })
 
@@ -94,9 +95,26 @@ class _TMPLBase(_Base):
         pass
 
 
-# Package versions report
+# HTML Package versions report
+class CSVAllPackages(_TMPLBase):
+    tmpl = "pkg_versions_csv.j2"
+
+    def _extend_data(self, data):
+        data['cmp'] = {
+            const.VERSION_EQUAL: "equal",
+            const.VERSION_DIFF_EPOCH: "epoch",
+            const.VERSION_DIFF_EPOCH_UPGRADE: "epoch>",
+            const.VERSION_DIFF_EPOCH_DOWNGRADE: "<epoch",
+            const.VERSION_DIFF_MAJOR: "major",
+            const.VERSION_DIFF_MAJOR_UPGRADE: "major>",
+            const.VERSION_DIFF_MAJOR_DOWNGRADE: "<major",
+            const.VERSION_DIFF_DEBIAN: "debian"
+        }
+
+
+# HTML Package versions report
 class HTMLPackageCandidates(_TMPLBase):
-    tmpl = "pkg_versions_tmpl.j2"
+    tmpl = "pkg_versions_html.j2"
 
     @staticmethod
     def is_fail_uniq(p_dict, p_name, nodes, node_name):
@@ -170,10 +188,6 @@ class HTMLModelCompare(_TMPLBase):
 
 class HTMLNetworkReport(_TMPLBase):
     tmpl = "network_check_tmpl.j2"
-
-    def _extend_data(self, data):
-
-        return
 
 
 class ReportToFile(object):

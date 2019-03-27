@@ -4,12 +4,12 @@ from cfg_checker.helpers import args_utils
 
 
 def do_report(args):
-    """Create package versions report
+    """Create package versions report, HTML
 
     :args: - parser arguments
     :return: - no return value
     """
-    _filename = args_utils.get_file_arg(args)
+    _type, _filename = args_utils.get_report_type_and_filename(args)
 
     # init connection to salt and collect minion data
     pChecker = checker.CloudPackageChecker()
@@ -18,4 +18,4 @@ def do_report(args):
     # diff installed and candidates
     pChecker.collect_packages()
     # report it
-    pChecker.create_html_report(_filename)
+    pChecker.create_report(_filename, rtype=_type)
