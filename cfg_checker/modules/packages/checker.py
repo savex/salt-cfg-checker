@@ -21,10 +21,15 @@ class DebianVersion(object):
     version = ""
     def __init__(self, version_string):
         # save
-        self.version = version_string
-        # TODO: Do proper parsing
+        if len(version_string) < 1:
+            self.version = 'n/a'
+            return
+        else:
+            # do parse
+            self.version = version_string
+            # TODO: Do proper parsing
 
-        return
+            return
 
 
 class CloudPackageChecker(SaltNodes):
@@ -75,17 +80,42 @@ class CloudPackageChecker(SaltNodes):
         :return: no return values, all date put to dict in place
         """
         # Preload OpenStack release versions
-        _descriptions = PkgVersions()
+        _desc = PkgVersions()
         
         # Collect packages from all of the nodes in flat dict
         _diff_packages = {}
         _all_packages = {}
         for node_name, node_value in self.nodes.iteritems():
             for _name, _value in node_value['packages'].iteritems():
+                # Parse versions
+                _ver_ins = DebianVersion(_value['installed'])
+                _ver_can = DebianVersion(_value['candidate'])
+
                 # All packages list with version and node list
                 if _name not in _all_packages:
+                    # shortcuts for this cloud values
+                    _os = self.openstack_release
+                    _mcp = self.mcp_release
+                    if _desc[_name]:
+                        # shortcut to version library
+                        _vers = _desc[_name]['versions']
+                    else:
+                        # no description - no library :)
+                        _vers = {}
+                    # get specific set for this OS release if present
+                    if _os in _vers:
+                        _v = _vers[_os] 
+                    elif 'any' in _vers:
+                        _v = _vers['any']
+                    else:
+                        _v = {}
+                    # Finally, get specific version
+                    _release = DebianVersion(_v[_mcp] if _mcp in _v else '')
+                    # Populate package info
                     _all_packages[_name] = {
-                        "desc": _descriptions[_name]
+                        "desc": _desc[_name],
+                        "v": {},
+                        "r": _release,
                     }
                 
                 # list with differences
@@ -93,38 +123,39 @@ class CloudPackageChecker(SaltNodes):
                     _diff_packages[_name] = {}
                     _diff_packages[_name]['df_nodes'] = {}
                     _diff_packages[_name]['eq_nodes'] = []
-                
-                _ver_ins = DebianVersion(_value['installed'])
-                _ver_can = DebianVersion(_value['candidate'])
 
-                _compare_result = self._deep_version_compare(_ver_ins, _ver_can)
+                _cmp = self._deep_version_compare(_ver_ins, _ver_can)
                 _key = "{} <vs> {}".format(
                     _ver_ins.version,
                     _ver_can.version
                 )
-                if _key not in _all_packages[_name]:
+                if _key not in _all_packages[_name]['v']:
                     # first result, just save
-                    _all_packages[_name][_key] = {
+                    _all_packages[_name]['v'][_key] = {
                         'i': _ver_ins,
                         'c': _ver_can,
                         'results': {
-                            _compare_result: [node_name, _value['raw']]
+                            _cmp: []
                         }
                     }
+                    _all_packages[_name]['v'][_key]['results'][_cmp].append(
+                        [node_name, _value['raw']]
+                    )
                 # There is such combination, check if such result happened
-                elif _compare_result in _all_packages[_name][_key]['results']:
+                elif _cmp in _all_packages[_name]['v'][_key]['results']:
                     # it is, just add node
-                    _all_packages[_name][_key]['results'][_compare_result].append(
+                    _all_packages[_name]['v'][_key]['results'][_cmp].append(
                         [node_name, _value['raw']]
                     )
                 else:
                     # this is the first such result, create it
-                    _all_packages[_name][_key]['results'][_compare_result] = \
+                    _all_packages[_name]['v'][_key]['results'][_cmp].append(
                         [node_name, _value['raw']]
+                    )
 
                 # TODO: Update to simple saving of comparison result
                 # compare packages, mark if equal
-                if _compare_result != const.VERSION_EQUAL:
+                if _cmp != const.VERSION_EQUAL:
                     # Saving compare value so we not do str compare again
                     _value['is_equal'] = False
                     # add node name to list

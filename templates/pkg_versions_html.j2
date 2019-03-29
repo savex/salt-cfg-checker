@@ -8,6 +8,7 @@
             font-family: Verdana, Geneva, Tahoma, sans-serif;
             font-size: 90% !important;
         }
+        h5 {padding-left: 1em; margin: 0.6em}
 		/* Common */
 		.header {
 			display:block;
@@ -135,7 +136,7 @@
             background-color: #fff;
         }
         tr:nth-child(odd) {
-            background-color: #ddd;
+            background-color: #d4dad9;
             
         }
         .table_header {
@@ -176,16 +177,16 @@
         function toggleClassByID(pkg, number) {
             var elements = document.querySelectorAll("#"+pkg+"_"+number);
             var ii = elements.length;
-            var button = document.querySelector("#"+pkg+"_button"+number);
+            //var button = document.querySelector("#"+pkg+"_button"+number);
 
             while (ii--) {
                 if( elements[ii].className && elements[ii].className.indexOf("in") > -1 ) {
                     elements[ii].classList.remove("in");
-                    button.innerHTML = "&uarr;"
+                    //button.innerHTML = "&uarr;"
                 }
                 else {
                     elements[ii].classList.add("in");
-                    button.innerHTML = "&darr;"
+                    //button.innerHTML = "&darr;"
                 }
             }
 
@@ -195,26 +196,39 @@
     <script language="JavaScript">
         function init() {
             // Declare all variables
-            var i, tabcontent, tablinks;
+            var i, content, items;
 
             // Get all elements with class="tabcontent" and hide them
-            tabcontent = document.getElementsByClassName("tabcontent");
-            for (i = 1; i < tabcontent.length; i++) {
-                tabcontent[i].style.display = "none";
+            content = document.getElementsByClassName("barcontent");
+            for (i = 1; i < content.length; i++) {
+                content[i].style.display = "none";
             }
-            tabcontent[0].style.display = "block";
+            content[0].style.display = "block";
 
-            // Get all elements with class="tablinks" and remove the class "active"
-            tablinks = document.getElementsByClassName("tablinks");
-            for (i = 1; i < tablinks.length; i++) {
-                tablinks[i].className = tablinks[i].className.replace(" active", "");
+            content = document.getElementsByClassName("tabcontent");
+            for (i = 1; i < content.length; i++) {
+                content[i].style.display = "none";
             }
-            tablinks[0].className += " active";
+            content[0].style.display = "block";
+
+            // Get all elements with class="tab-item" and remove the class "active"
+            items = document.getElementsByClassName("bar-item");
+            for (i = 1; i < items.length; i++) {
+                items[i].className = items[i].className.replace(" active", "");
+            }
+            items[0].className += " active";
+
+            // Get all elements with class="tab-item" and remove the class "active"
+            items = document.getElementsByClassName("tab-item");
+            for (i = 1; i < items.length; i++) {
+                items[i].className = items[i].className.replace(" active", "");
+            }
+            //items[0].className += " active";
 
         }
         function openTab(evt, tabName) {
             // Declare all variables
-            var i, tabcontent, tablinks;
+            var i, tabcontent, tabitems;
 
             // Get all elements with class="tabcontent" and hide them
             tabcontent = document.getElementsByClassName("tabcontent");
@@ -222,10 +236,10 @@
                 tabcontent[i].style.display = "none";
             }
 
-            // Get all elements with class="tablinks" and remove the class "active"
-            tablinks = document.getElementsByClassName("tablinks");
-            for (i = 0; i < tablinks.length; i++) {
-                tablinks[i].className = tablinks[i].className.replace(" active", "");
+            // Get all elements with class="tab-item" and remove the class "active"
+            tabitems = document.getElementsByClassName("tab-item");
+            for (i = 0; i < tabitems.length; i++) {
+                tabitems[i].className = tabitems[i].className.replace(" active", "");
             }
 
             // Show the current tab, and add an "active" class to the link that opened the tab
@@ -236,13 +250,13 @@
             // Declare all variables
             var i, barcontent, baritems;
 
-            // Get all elements with class="tabcontent" and hide them
+            // Get all elements with class="barcontent" and hide them
             barcontent = document.getElementsByClassName("barcontent");
             for (i = 0; i < barcontent.length; i++) {
                 barcontent[i].style.display = "none";
             }
 
-            // Get all elements with class="tablinks" and remove the class "active"
+            // Get all elements with class="bar-item" and remove the class "active"
             baritems = document.getElementsByClassName("bar-item");
             for (i = 0; i < baritems.length; i++) {
                 baritems[i].className = baritems[i].className.replace(" active", "");
@@ -259,68 +273,88 @@
 
 <div class="header">
 	<div class="label">OpenStack release:</div>
-	<div class="text">Queens</div>
+	<div class="text">{{ openstack_release }}</div>
 	<div class="label">MCP Version:</div>
-	<div class="text">2018.11.0</div>
+	<div class="text">{{ mcp_release }}</div>
 </div>
 
 <div class="bar">
-	<button class="bar-item" onclick="openBar(event, 'critical')">Critical</button>
+	<button class="bar-item" onclick="openBar(event, 'mirantis')">Mirantis</button>
 	<button class="bar-item" onclick="openBar(event, 'system')">System</button>
+    <button class="bar-item" onclick="openBar(event, 'other')">Other</button>
+    <button class="bar-item" onclick="openBar(event, 'unlisted')">Unlisted</button>
 	<button class="bar-item" onclick="openBar(event, 'nodes')">Per Node</button>
 </div>
 
 <!-- Critical -->
-<div id="critical" class="barcontent">
+<div id="mirantis" class="barcontent">
+    <h5>Packages maintained and updated by Mirantis</h5>
     <table class="pkgversions">
         <tbody>
         <tr>
-            <td class="Header">Node name</td>
+            <td class="Header">repo</td>
+            <td class="Header">Component</td>
+            <td class="Header">App</td>
+            <td class="Header">Package name</td>
             <td class="Header">Installed</td>
             <td class="Header">Candidate</td>
+            <td class="Header">Release</td>
         </tr>
-        {% for pkg_name in pkg_diffs.keys() | sort %}
-        {% if counters[pkg_name]['df_nodes'] %}
+        {% for pkg_name in critical.keys() | sort %}
         {% set pkg_counter = 1 + loop.index0 %}
-        <tr>
-            <td>
-            <a href="#" onclick="toggleClassByID('{{ pkg_name }}', '{{ pkg_counter }}')" id="{{ pkg_name }}_button{{ pkg_counter }}">&uarr;</a>
-            {{ pkg_name }}
-            </td>
-            <td>{{ counters[pkg_name]['df_nodes'] }}</td>
-            <td></td>
+            {% for key in critical[pkg_name]['v'].keys() | sort %}
+        <tr onclick="toggleClassByID('critical_{{ pkg_name }}', '{{ pkg_counter }}')" id="critical_{{ pkg_name }}_button{{ pkg_counter }}">
+            <td>{{ critical[pkg_name]['desc']['repo'] }}</td>
+            <td>{{ critical[pkg_name]['desc']['component'] }}</td>
+            <td>{{ critical[pkg_name]['desc']['app'] }}</td>
+            <td>{{ pkg_name }}</td>
+            <td>{{ critical[pkg_name]['v'][key]['i'].version }}</td>
+            <td>{{ critical[pkg_name]['v'][key]['c'].version }}</td>
+            <td>{{ critical[pkg_name]['r'].version }}</td>
         </tr>
-        <tr><td colspan=3>
+        <tr><td colspan=7>
         <table class="nodes"><tbody>
-            {% for node in pkg_diffs[pkg_name]['df_nodes'].keys() | sort %}
-            <tr class="collapsable" id="{{ pkg_name }}_{{ pkg_counter }}">
-                <td class="pkgName">{{ node }}</td>
-                <td class="version differ">
-                    <div class="tooltip">{{ pkg_diffs[pkg_name]['df_nodes'][node]['i'] }}
-                        <pre class="tooltiptext">{{ pkg_diffs[pkg_name]['df_nodes'][node]['raw'] | linebreaks }}</pre>
+            {% for result in critical[pkg_name]['v'][key]['results'].keys() | sort %}
+            {% for node in critical[pkg_name]['v'][key]['results'][result] %}
+            <tr class="collapsable" id="critical_{{ pkg_name }}_{{ pkg_counter }}">
+                <td></td>
+                <td class="pkgName" colspan="3">{{ node[0] }}</td>
+                <td>{{ result | make_cmp_label }}</td>
+                <td class="version">
+                    <div class="tooltip">source_ver
+                        <pre class="tooltiptext">{{ node[1] | linebreaks }}</pre>
                     </div>
                 </td>
-                <td class="version">{{ pkg_diffs[pkg_name]['df_nodes'][node]['c'] }}</td>
+                <td class="version">target_ver</td>
             </tr>
+            {% endfor %}
             {% endfor %}
         </tbody></table>
         </td></tr>
-        {% endif%}
+            {% endfor %}
         {% endfor %}
         </tbody>
     </table>
 </div>
 
 <div id="system" class="barcontent">
-    System packages
+    <h5>System packages which versions are critical to proper cloud function</h5>
 </div>
 
+<div id="other" class="barcontent">
+    <h5>Packages with no description or not critical</h5>
+</div>
+
+<div id="unlisted" class="barcontent">
+    <h5>Packages that are not listed in version map. I.e. unexpected on the environment.</h5>
+</div>
+        
 <div id="nodes" class="barcontent">
     <!-- Per node -->
     <div class="tab">
     {% for node_name in nodes.keys() | sort %}
         {% if counters[node_name]['package_diff'] %}
-    <button class="tablinks" onclick="openTab(event, '{{ node_name | shortname }}')">
+    <button class="tab-item" onclick="openTab(event, '{{ node_name | shortname }}')">
         <div class="dot_green">&#9679;</div>
         <div class="node_name">{{ node_name | shortname }}</div>
         <div class="smallgreytext">({{ counters[node_name]['package_diff'] }} / {{ counters[node_name]['packages'] }})</div>
@@ -329,7 +363,7 @@
     {% endfor %}
     {% for node_name in nodes.keys() | sort %}
         {% if not counters[node_name]['package_diff'] %}
-    <button class="tablinks" onclick="openTab(event, '{{ node_name | shortname }}')">
+    <button class="tab-item" onclick="openTab(event, '{{ node_name | shortname }}')">
         <div class="dot_empty">&#9675;</div>
         <div class="node_name">{{ node_name | shortname }}</div>
         <div class="smallgreytext">({{ counters[node_name]['package_diff'] }} / {{ counters[node_name]['packages'] }})</div>

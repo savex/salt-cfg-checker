@@ -22,8 +22,6 @@ class SaltNodes(object):
         logger_cli.info("# Collecting nodes")
         # simple salt rest client
         self.salt = salt_utils.SaltRemote()
-        self.mcp_release = self.salt.pillar_get("cfg01\*", "_param:apt_mk_version")[0]
-        self.openstack_release = self.salt.pillar_get("cfg01\*", "_param:openstack_version")[0]
         
         # Keys for all nodes
         # this is not working in scope of 2016.8.3, will overide with list
@@ -84,6 +82,22 @@ class SaltNodes(object):
                 self.nodes
             )
         )
+        # get master node fqdn
+        self.master_node = filter(
+            lambda nd: self.nodes[nd]['role'] == const.all_roles_map['cfg'],
+            self.nodes
+        )[0]
+        
+        # OpenStack versions
+        self.mcp_release = self.salt.pillar_get(
+            self.master_node,
+            "_param:apt_mk_version"
+        )[self.master_node]
+        self.openstack_release = self.salt.pillar_get(
+            self.master_node,
+            "_param:openstack_version"
+        )[self.master_node]
+
 
     def skip_node(self, node):
         # Add node to skip list

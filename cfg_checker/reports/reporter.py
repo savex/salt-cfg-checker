@@ -30,6 +30,23 @@ def line_breaks(text):
     return text.replace("\n", "<br />")
 
 
+def make_cmp_label(text):
+    _d = {
+        const.VERSION_EQUAL: "equal",
+        const.VERSION_DIFF_EPOCH: "epoch",
+        const.VERSION_DIFF_EPOCH_UPGRADE: "epoch>",
+        const.VERSION_DIFF_EPOCH_DOWNGRADE: "<epoch",
+        const.VERSION_DIFF_MAJOR: "major",
+        const.VERSION_DIFF_MAJOR_UPGRADE: "major>",
+        const.VERSION_DIFF_MAJOR_DOWNGRADE: "<major",
+        const.VERSION_DIFF_DEBIAN: "debian"
+    }
+    if text in _d:
+        return _d[text]
+    else:
+        return text + '(!)'
+
+
 @six.add_metaclass(abc.ABCMeta)
 class _Base(object):
     def __init__(self):
@@ -65,7 +82,9 @@ class _TMPLBase(_Base):
             "nodes": payload['nodes'],
             "rc_diffs": payload['rc_diffs'],
             "pkg_diffs": payload['pkg_diffs'],
-            "all_pkg": payload['all_pkg'],
+            "all": payload['all_pkg'],
+            "mcp_release": payload['mcp_release'],
+            "openstack_release": payload['openstack_release'],
             "tabs": {}
         })
 
@@ -80,6 +99,7 @@ class _TMPLBase(_Base):
         self.jinja2_env.filters['is_equal'] = is_equal
         self.jinja2_env.filters['is_active'] = is_active
         self.jinja2_env.filters['linebreaks'] = line_breaks
+        self.jinja2_env.filters['make_cmp_label'] = make_cmp_label
 
         # render!
         tmpl = self.jinja2_env.get_template(self.tmpl)
@@ -98,18 +118,6 @@ class _TMPLBase(_Base):
 # HTML Package versions report
 class CSVAllPackages(_TMPLBase):
     tmpl = "pkg_versions_csv.j2"
-
-    def _extend_data(self, data):
-        data['cmp'] = {
-            const.VERSION_EQUAL: "equal",
-            const.VERSION_DIFF_EPOCH: "epoch",
-            const.VERSION_DIFF_EPOCH_UPGRADE: "epoch>",
-            const.VERSION_DIFF_EPOCH_DOWNGRADE: "<epoch",
-            const.VERSION_DIFF_MAJOR: "major",
-            const.VERSION_DIFF_MAJOR_UPGRADE: "major>",
-            const.VERSION_DIFF_MAJOR_DOWNGRADE: "<major",
-            const.VERSION_DIFF_DEBIAN: "debian"
-        }
 
 
 # HTML Package versions report
@@ -140,6 +148,48 @@ class HTMLPackageCandidates(_TMPLBase):
         return _fail_uniq
 
     def _extend_data(self, data):
+        # labels
+        data['cmp'] = {
+            const.VERSION_EQUAL: "equal",
+            const.VERSION_DIFF_EPOCH: "epoch",
+            const.VERSION_DIFF_EPOCH_UPGRADE: "epoch>",
+            const.VERSION_DIFF_EPOCH_DOWNGRADE: "<epoch",
+            const.VERSION_DIFF_MAJOR: "major",
+            const.VERSION_DIFF_MAJOR_UPGRADE: "major>",
+            const.VERSION_DIFF_MAJOR_DOWNGRADE: "<major",
+            const.VERSION_DIFF_DEBIAN: "debian"
+        }
+
+        # Presort packages
+        data['critical'] = {}
+        data['system'] = {}
+        data['other'] = {}
+        data['unlisted'] = {}
+        while len(data['all']) > 0:
+            _pn, _val = data['all'].popitem()
+            if not _val['desc']:
+                # not listed package in version lib
+                data['unlisted'].update({
+                    _pn: _val
+                })
+            else:
+                _c = _val['desc']['component']
+                # critical: not blank and not system
+                if len(_c) > 0 and _c != 'System':
+                    data['critical'].update({
+                        _pn: _val
+                    })
+                # system
+                elif _c == 'System':
+                    data['system'].update({
+                        _pn: _val
+                    })
+                # rest
+                else:
+                    data['other'].update({
+                        _pn: _val
+                    })
+
         # Count values on per-node basis
         for key, value in data['nodes'].iteritems():
             # count differences
