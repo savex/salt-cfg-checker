@@ -163,7 +163,7 @@ class VersionCmpResult(object):
             if i == c and i < r:
                 self.status = self._e
                 self.target = r
-        if 
+        # if 
         # installed version epoch:major should be < to candidate
         
         # i -> c
