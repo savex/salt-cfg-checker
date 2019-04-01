@@ -11,25 +11,7 @@ from cfg_checker.common import salt_utils
 from cfg_checker.nodes import SaltNodes, node_tmpl
 from cfg_checker.reports import reporter
 
-from versions import PkgVersions
-
-
-class DebianVersion(object):
-    epoch = ""
-    major = ""
-    debian = ""
-    version = ""
-    def __init__(self, version_string):
-        # save
-        if len(version_string) < 1:
-            self.version = 'n/a'
-            return
-        else:
-            # do parse
-            self.version = version_string
-            # TODO: Do proper parsing
-
-            return
+from versions import PkgVersions, DebianVersion, VersionStatus
 
 
 class CloudPackageChecker(SaltNodes):

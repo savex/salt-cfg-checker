@@ -5,7 +5,7 @@
     <title>Cloud Package versions check</title>
     <style>
         body {
-            font-family: Verdana, Geneva, Tahoma, sans-serif;
+            font-family: "Open Sans", Arial, Helvetica, sans-serif;
             font-size: 90% !important;
         }
         h5 {padding-left: 1em; margin: 0.6em}
@@ -20,7 +20,33 @@
 		}
 		
 		.label {float: left; font-size: 0.7em; color: Black; line-height: 17px; padding-left: 10px;}
-		.text {float: left; font-size: 0.8em; color: Navy; padding-left: 2px;}
+        .text {float: left; font-size: 0.8em; color: Navy; padding-left: 2px;}
+        
+        .repo {width: 3em; text-align: center; font-size: 0.7em; color: #113b11; font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif}
+        .component, .app, .package_name {
+            font-size: 0.75em;
+            text-align: center;
+            color: #113b11;
+            font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+        }
+        
+        .package_name {
+            padding-left: 10px;
+            text-align: left;
+        }
+
+        .version {font-size: 0.8em; text-align: left; padding: 2px}
+        .v_epoch, .v_major, .v_debian, .colon, .dash {
+            font-size: 0.7em;
+            color: darkslategray;
+            font-family: monospace;
+            float: left;
+            display: block;
+        }
+
+        .error {color: white; background-color: darkred}
+        .upgrade {color: green;}
+        .downghrade {color: red;}
 		
 		
         /* Report specific styles */
@@ -29,11 +55,6 @@
         .dot_empty {float: left; color: darkgray; margin-right: 0.5em; margin-top: 0.2em;}
 
         .smallgreytext {float: right; font-size: 0.5em; color: gray;}
-
-        .pkgName {font-size: 1em; padding-left: 10px;}
-        .version {font-size: 1.1em; text-align: left;}
-        .differ {background-color: #eaa;}
-
 
 		/* Bar */
 		.bar{
@@ -140,10 +161,10 @@
             
         }
         .table_header {
-            background-color: #bbb;
-            color: Black;
-            width: 30%;
+            background-color: #284753;
+            color: wheat;
             text-align: center;
+            font-family: "Open Sans", Arial, Helvetica, sans-serif;
         }
 
         /* Tooltip container */
@@ -286,64 +307,85 @@
 	<button class="bar-item" onclick="openBar(event, 'nodes')">Per Node</button>
 </div>
 
-<!-- Critical -->
-<div id="mirantis" class="barcontent">
-    <h5>Packages maintained and updated by Mirantis</h5>
+{% macro _version(v, r) %}
+    <td class="version">
+        <div class="v_epoch {{ r.epoch }}">{{ v.epoch }}</div>
+        <div class="colon">:</div>
+        <div class="v_major {{ r.major }}">{{ v.major }}</div>
+        <div class="dash">-</div>
+        <div class="v_debian {{ r.debian }}">{{ v.debian }}</div>
+    </td>
+{% endmacro %}
+
+{% macro package_table(pkg_dict, id_label) %}
+<div id="{{ id_label }}" class="barcontent">
+    <h5>{{ caller() }}</h5>
     <table class="pkgversions">
-        <tbody>
-        <tr>
-            <td class="Header">repo</td>
-            <td class="Header">Component</td>
-            <td class="Header">App</td>
-            <td class="Header">Package name</td>
-            <td class="Header">Installed</td>
-            <td class="Header">Candidate</td>
-            <td class="Header">Release</td>
-        </tr>
-        {% for pkg_name in critical.keys() | sort %}
-        {% set pkg_counter = 1 + loop.index0 %}
-            {% for key in critical[pkg_name]['v'].keys() | sort %}
-        <tr onclick="toggleClassByID('critical_{{ pkg_name }}', '{{ pkg_counter }}')" id="critical_{{ pkg_name }}_button{{ pkg_counter }}">
-            <td>{{ critical[pkg_name]['desc']['repo'] }}</td>
-            <td>{{ critical[pkg_name]['desc']['component'] }}</td>
-            <td>{{ critical[pkg_name]['desc']['app'] }}</td>
-            <td>{{ pkg_name }}</td>
-            <td>{{ critical[pkg_name]['v'][key]['i'].version }}</td>
-            <td>{{ critical[pkg_name]['v'][key]['c'].version }}</td>
-            <td>{{ critical[pkg_name]['r'].version }}</td>
-        </tr>
-        <tr><td colspan=7>
-        <table class="nodes"><tbody>
-            {% for result in critical[pkg_name]['v'][key]['results'].keys() | sort %}
-            {% for node in critical[pkg_name]['v'][key]['results'][result] %}
-            <tr class="collapsable" id="critical_{{ pkg_name }}_{{ pkg_counter }}">
-                <td></td>
-                <td class="pkgName" colspan="3">{{ node[0] }}</td>
-                <td>{{ result | make_cmp_label }}</td>
-                <td class="version">
-                    <div class="tooltip">source_ver
-                        <pre class="tooltiptext">{{ node[1] | linebreaks }}</pre>
-                    </div>
-                </td>
-                <td class="version">target_ver</td>
+            <tbody>
+            <tr>
+                <td class="table_header" width="50px">repo</td>
+                <td class="table_header" width="130px">Component</td>
+                <td class="table_header" width="80px">App</td>
+                <td class="table_header" width="200px">Package name</td>
+                <td class="table_header">Installed</td>
+                <td class="table_header">Candidate</td>
+                <td class="table_header">Release</td>
             </tr>
+            {% for pkg_name in pkg_dict | get_sorted_keys %}
+            {% set dat = pkg_dict[pkg_name] %}
+                {% for key in dat['v'].keys() | sort %}
+                {% set pkg_counter = 1 + loop.index0 %}
+            <tr onclick="toggleClassByID('{{ id_label }}_{{ pkg_name }}', '{{ pkg_counter }}')" id="{{ id_label }}_{{ pkg_name }}_button{{ pkg_counter }}">
+                <td class="repo">{{ dat['desc']['repo'] }}</td>
+                <td class="component">{{ dat['desc']['component'] }}</td>
+                <td class="app">{{ dat['desc']['app'] }}</td>
+                <td class="package_name">{{ pkg_name }}</td>
+                <td class="version">
+                    {{ dat['v'][key]['i'].version }}
+                </td>
+                <td class="version">{{ dat['v'][key]['c'].version }}</td>
+                <td class="version">{{ dat['r'].version }}</td>
+            </tr>
+            <tr class="collapsable" id="{{ id_label }}_{{ pkg_name }}_{{ pkg_counter }}"><td colspan=7>
+            <table class="nodes"><tbody>
+                {% for result in dat['v'][key]['results'].keys() | sort %}
+                {% for node in dat['v'][key]['results'][result] %}
+                <tr>
+                    <td class="repo">-</td>
+                    <td class="package_name" colspan="3">{{ node[0] }}</td>
+                    <td class="result">{{ result | make_cmp_label }}</td>
+                    <td class="version">
+                        <div class="tooltip">source_ver
+                            <pre class="tooltiptext">{{ node[1] | linebreaks }}</pre>
+                        </div>
+                    </td>
+                    <td class="version">target_ver</td>
+                </tr>
+                {% endfor %}
+                {% endfor %}
+            </tbody></table>
+            </td></tr>
+                {% endfor %}
             {% endfor %}
-            {% endfor %}
-        </tbody></table>
-        </td></tr>
-            {% endfor %}
-        {% endfor %}
-        </tbody>
-    </table>
+            </tbody>
+        </table>
 </div>
+{%- endmacro %}
 
-<div id="system" class="barcontent">
-    <h5>System packages which versions are critical to proper cloud function</h5>
-</div>
+<!-- Mirantis packages which version is critical for functionality -->
+{% call package_table(critical, "mirantis") %}
+    Packages maintained and updated by Mirantis
+{% endcall %}
 
-<div id="other" class="barcontent">
-    <h5>Packages with no description or not critical</h5>
-</div>
+<!-- System labeled packages-->
+{% call package_table(system, "system") %}
+    System packages which versions are critical to proper cloud function
+{%- endcall %}
+
+<!-- Other packages -->
+{% call package_table(other, "other") %}
+    Packages with no description or not critical
+{%- endcall %}
 
 <div id="unlisted" class="barcontent">
     <h5>Packages that are not listed in version map. I.e. unexpected on the environment.</h5>

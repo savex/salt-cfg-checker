@@ -30,6 +30,16 @@ def line_breaks(text):
     return text.replace("\n", "<br />")
 
 
+def get_sorted_keys(td):
+    return sorted(
+        td.keys(),
+        key=lambda k: (
+            td[k]['desc']['component'],
+            td[k]['desc']['app']
+        )
+    )
+
+
 def make_cmp_label(text):
     _d = {
         const.VERSION_EQUAL: "equal",
@@ -100,6 +110,7 @@ class _TMPLBase(_Base):
         self.jinja2_env.filters['is_active'] = is_active
         self.jinja2_env.filters['linebreaks'] = line_breaks
         self.jinja2_env.filters['make_cmp_label'] = make_cmp_label
+        self.jinja2_env.filters['get_sorted_keys'] = get_sorted_keys
 
         # render!
         tmpl = self.jinja2_env.get_template(self.tmpl)
@@ -147,6 +158,7 @@ class HTMLPackageCandidates(_TMPLBase):
                 _fail_uniq = True
         return _fail_uniq
 
+ 
     def _extend_data(self, data):
         # labels
         data['cmp'] = {
@@ -189,7 +201,7 @@ class HTMLPackageCandidates(_TMPLBase):
                     data['other'].update({
                         _pn: _val
                     })
-
+        
         # Count values on per-node basis
         for key, value in data['nodes'].iteritems():
             # count differences
