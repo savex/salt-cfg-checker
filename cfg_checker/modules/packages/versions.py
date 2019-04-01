@@ -128,7 +128,7 @@ class DebianVersion(object):
             return False
 
 
-class VersionStatus(object):
+class VersionCmpResult(object):
     _u = "upgrade"
     _d = "downgrade"
     _e = "error"
@@ -137,32 +137,40 @@ class VersionStatus(object):
     source = None
     target = None
 
+
+    def __init__(self, i, c, r):
+        # compare three versions and write a result
+        self.source = i
+
+        if r and len(r) > 0 and r != 'n/a':
+            # I < C && I = R --> upgrade (ok)
+            # I.e. linked repo contains newer versions, 
+            # but installed version is inline with the release version
+            if i < c and i == r:
+                self.status = self._u
+                self.target = c
+
+            # I > C && C = R --> downgrade (fail)
+            # I.e. linked repo and release versions are the same,
+            # but installed version is newer
+            if i > c and c == r:
+                self.status = self._d
+                self.target = c
+
+            # I = C && I < R --> error
+            # I.e. installed and linked repo is inline,
+            # but they are lower than release
+            if i == c and i < r:
+                self.status = self._e
+                self.target = r
+        if 
+        # installed version epoch:major should be < to candidate
+        
+        # i -> c
+
+    @staticmethod
     def deb_lower(_s, _t):
         if _t.debian and _t.debian > _s.debian:
             return True
         else:
             return false
-    
-    def __init__(self, i, c, r):
-        # compare three versions and write a result
-        self.source = i
-
-        # I < C && I = R --> upgrade (ok)
-        # I.e. linked repo contains newer versions, 
-        # but installed version is inline with the release version
-        if i < c and i == r:
-            self.status = u
-            self.target = c
-
-        # I > C && C = R --> downgrade (fail)
-        # I.e. linked repo and release versions are the same,
-        # but installed version is newer
-
-        # I = C && I < R --> error
-        # I.e. installed and linked repo is inline,
-        # but they are lower than release
-
-        
-        # installed version epoch:major should be < to candidate
-        
-        # i -> c
