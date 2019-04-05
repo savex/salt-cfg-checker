@@ -10,13 +10,8 @@ NODE_DOWN = next(_cnt)
 NODE_UP = next(_cnt)
 
 VERSION_EQUAL = next(_cnt)
-VERSION_DIFF_EPOCH = next(_cnt)
-VERSION_DIFF_EPOCH_UPGRADE = next(_cnt)
-VERSION_DIFF_EPOCH_DOWNGRADE = next(_cnt)
-VERSION_DIFF_MAJOR = next(_cnt)
-VERSION_DIFF_MAJOR_UPGRADE = next(_cnt)
-VERSION_DIFF_MAJOR_DOWNGRADE = next(_cnt)
-VERSION_DIFF_DEBIAN = next(_cnt)
+VERSION_DIFF = next(_cnt)
+VERSION_NA = next(_cnt)
 
 del _cnt
 

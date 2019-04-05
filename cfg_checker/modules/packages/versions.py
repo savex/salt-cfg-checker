@@ -1,7 +1,7 @@
 import csv
 import os
 
-from cfg_checker.common import config, logger, logger_cli, pkg_dir
+from cfg_checker.common import config, logger, logger_cli, pkg_dir,  const
 
 class PkgVersions(object):
     _labels = []
@@ -73,67 +73,188 @@ class PkgVersions(object):
 
 
 class DebianVersion(object):
-    epoch = ""
-    major = ""
-    debian = ""
+    epoch = None
+    epoch_status = const.VERSION_NA
+    upstream = None
+    upstream_rev = None
+    upstream_status = const.VERSION_NA
+    debian = None
+    debian_rev = None
+    debian_status = const.VERSION_NA
+
     status = ""
     version = ""
+
+    @staticmethod
+    def split_revision(version_fragment):
+        # The symbols are -, +, ~
+        _symbols = ['-', '+', '~']
+        # nums, coz it is faster then regex
+        _chars = [46, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57]
+        _ord_map = [ord(ch) not in _chars for ch in version_fragment]
+        # if there is nothing to extract, return at once
+        if not any([_s in version_fragment for _s in _symbols]) \
+            and not any(_ord_map):
+            # no revisions
+            return version_fragment, ""
+        else:
+            _main = _rev = ""
+            # get indices
+            _indices = []
+            for _s in _symbols:
+                if _s in version_fragment:
+                    _indices.append(version_fragment.index(_s))
+            for _s in version_fragment:
+                if ord(_s) not in _chars:
+                    _indices.append(version_fragment.index(_s))
+            # sort indices
+            _indices.sort()
+            # extract starting from the lowest one
+            _main = version_fragment[:_indices[0]]
+            _rev = version_fragment[_indices[0]:]
+            return _main, _rev
+    
     def __init__(self, version_string):
         # save
         if len(version_string) < 1:
             self.epoch = None
-            self.major = None
+            self.upstream = None
             self.debian = None
             self.version = 'n/a'
             return
         else:
-            # do parse
+            # do parse the main versions
             _v = version_string
             # colon presence, means epoch present
             _e = _v.split(':', 1)[0] if ':' in _v else ''
-            # if epoch was there, major should be cut
+            # if epoch was there, upstream should be cut
             _m = _v if ':' not in _v else _v.split(':', 1)[1]
             # dash presence, means debian present
             _d = _m.rsplit('-', 1)[1] if '-' in _m else ''
-            # if debian was there, major version should be cut
+            # if debian was there, upstream version should be cut
             _m = _m if '-' not in _m else _m.rsplit('-', 1)[0]
 
             self.epoch = _e
-            self.major = _m
-            self.debian = _d
+            self.upstream, self.upstream_rev = self.split_revision(_m)
+            self.debian, self.debian_rev = self.split_revision(_d)
             self.version = version_string
     
-    def __lt__(v):
-        if v.epoch and v.epoch > self.epoch:
+    # Following functions is a freestyle python mimic of apt's upstream, enjoy
+    # https://github.com/chaos/apt/blob/master/apt/apt-pkg/deb/debversion.cc#L42
+    # mimic produced in order not to pull any packages or call external code
+    @staticmethod
+    def _cmp_fragment(lhf, rhf):
+        # search for difference
+        # indices
+        _li = _ri = 0
+        # pre-calc len
+        _lL = len(lhf)
+        _rL = len(rhf)
+        # bool for compare found
+        _diff = False
+        while _li < _lL and _ri < _rL:
+            # iterate lists
+            _num = lhf[_li] - rhf[_ri]
+            if _num:
+                return _num
+            _li += 1
+            _ri += 1
+        
+        # diff found? lens equal?
+        if not _diff and _lL != _rL:
+            # lens not equal? Longer - later
+            return _lL - _rL
+        else:
+            # equal
+            return 0
+    
+    def _cmp_num(self, lf, rf):
+        # split fragments into lists
+        _lhf = lf.split('.') if '.' in lf else list(lf)
+        _rhf = rf.split('.') if '.' in rf else list(rf)
+        # cast them to ints, delete empty strs
+        _lhf = [int(n) for n in _lhf if len(n)]
+        _rhf = [int(n) for n in _rhf if len(n)]
+
+        return self._cmp_fragment(_lhf, _rhf)
+    
+    def _cmp_lex(self, lf, rf):
+        # cast each item into its ORD value
+        _lhf = [ord(n) for n in lf]
+        _rhf = [ord(n) for n in rf]
+
+        return self._cmp_fragment(_lhf, _rhf)        
+   # end of cmps
+
+    # main part compared using splitted numbers
+    # if equal, revision is compared using lexical comparizon
+    def __lt__(self, v):
+        if self._cmp_num(self.epoch, v.epoch) < 0:
             return True
-        elif v.major and v.major > self.major:
+        elif self._cmp_num(self.upstream, v.upstream) < 0:
+            return True
+        elif self._cmp_lex(self.upstream_rev, v.upstream_rev) < 0:
             return True
         else:
             return False
 
-    def __eq__(v):
-        if v.epoch and v.epoch == self.epoch:
-            return True
-        elif v.major and v.major == self.major:
-            return True
-        else:
-            return False
+    def __eq__(self, v):
+        # compare all portions
+        _result = []
+        _result.append(self._cmp_num(self.epoch, v.epoch))
+        _result.append(self._cmp_num(self.upstream, v.upstream))
+        _result.append(self._cmp_lex(self.upstream_rev, v.upstream_rev))
+        # if there is any non-zero, its not equal
+        return not any(_result)
 
-    def __gt__(v):
-        if v.epoch and v.epoch < self.epoch:
+    def __gt__(self, v):
+        if self._cmp_num(self.epoch, v.epoch) > 0:
             return True
-        elif v.major and v.major < self.major:
+        elif self._cmp_num(self.upstream, v.upstream) > 0:
+            return True
+        elif self._cmp_lex(self.upstream_rev, v.upstream_rev) > 0:
             return True
         else:
             return False
+    
+    def update_parts(self, target):
+        # updating parts of version statuses
+        if self._cmp_num(self.epoch, target.epoch) != 0:
+            self.epoch_status = const.VERSION_DIFF
+        else:
+            self.epoch_status = const.VERSION_EQUAL
+
+        if self._cmp_num(self.upstream, target.upstream) != 0 \
+            and self._cmp_lex(self.upstream_rev, target.upstream_rev) != 0:
+            self.upstream_status = const.VERSION_DIFF
+        else:
+            self.upstream_status = const.VERSION_EQUAL
+
+        if self._cmp_lex(self.debian, target.debian) != 0 \
+            and self._cmp_lex(self.debian_rev, target.debian_rev) != 0:
+            self.debian_status = const.VERSION_DIFF
+        else:
+            self.debian_status = const.VERSION_EQUAL
 
 
 class VersionCmpResult(object):
-    _u = "upgrade"
-    _d = "downgrade"
-    _e = "error"
+    # current version status
+    _u = "upgraded"
+    _d = "downgraded"
+    _e = "incorrect"
+    _ok = "ok"
+    _z = "no status"
+
+    # possible actions
+    _act_p = "upgrade possible"
+    _act_u = "needs upgrade"
+    _act_d = "needs downgrade"
+    _act_r = "needs repo update"
+    _act_z = "n/a"
 
     status = ""
+    action = ""
+
     source = None
     target = None
 
@@ -141,32 +262,94 @@ class VersionCmpResult(object):
     def __init__(self, i, c, r):
         # compare three versions and write a result
         self.source = i
-
-        if r and len(r) > 0 and r != 'n/a':
-            # I < C && I = R --> upgrade (ok)
-            # I.e. linked repo contains newer versions, 
-            # but installed version is inline with the release version
-            if i < c and i == r:
-                self.status = self._u
-                self.target = c
-
-            # I > C && C = R --> downgrade (fail)
-            # I.e. linked repo and release versions are the same,
-            # but installed version is newer
-            if i > c and c == r:
-                self.status = self._d
-                self.target = c
-
-            # I = C && I < R --> error
-            # I.e. installed and linked repo is inline,
-            # but they are lower than release
-            if i == c and i < r:
-                self.status = self._e
-                self.target = r
-        # if 
-        # installed version epoch:major should be < to candidate
+        self.status = self._z
+        self.action = self._act_z
         
-        # i -> c
+        if r.version == "4.15.0.36.59":
+            a = 1
+
+        # Check if there is a release version present
+        if r and len(r.version) > 0 and r.version != 'n/a':
+            # I < C, installed version is older
+            if i < c:
+                self.target = c
+                if i == r:
+                    # installed version is equal vs release version
+                    self.status = self._ok
+                    self.action = self._act_p
+                elif i > r:
+                    # installed version is newer vs release version
+                    self.status = self._u
+                    self.action = self._act_p
+                elif i < r and r < c:
+                    # installed version is older vs release version
+                    self.status = self._e
+                    self.action = self._act_u
+                    self.target = r
+                elif i < r and c == r:
+                    # installed version is older vs release version
+                    self.status = self._e
+                    self.action = self._act_u
+                    self.target = c
+                elif c < r:
+                    # installed and repo versions older vs release version
+                    self.status = self._e
+                    self.action = self._act_r
+            # I > C
+            # installed version is newer
+            elif i > c:
+                self.target = c
+                if c == r:
+                    # some unknown version installed
+                    self.status = self._e
+                    self.action = self._act_d
+                elif c > r:
+                    # installed and repo versions newer that release
+                    self.status = self._u
+                    self.action = self._act_d
+                elif c < r and r < i:
+                    # repo is older vs release and both older vs installed
+                    self.status = self._u
+                    self.action = self._act_r
+                elif c < r and r == i:
+                    # repo is older vs release, but release version installed
+                    self.status = self._ok
+                    self.action = self._act_r
+                elif i < r:
+                    # both repo and installed older vs release
+                    self.status = self._d
+                    self.action = self._act_r
+            # I = C
+            # installed and linked repo is inline,
+            elif i == c:
+                self.target = c
+                if i < r:
+                    # both are old
+                    self.status = self._e
+                    self.action = self._act_r
+                elif i > r:
+                    # both are newer
+                    self.status = self._u
+                    self.action = self._act_z
+                elif i == r:
+                    # all is ok
+                    self.status = self._ok
+                    self.action = self._act_z
+        else:
+            # no release version present
+            self.target = c
+            if i < c:
+                self.status = self._ok
+                self.action = self._act_p
+            elif i > c:
+                self.status = self._u
+                self.action = self._act_d
+            elif i == c:
+                self.status = self._ok
+                self.action = self._act_z
+        
+        # and we need to update per-part status
+        self.source.update_parts(self.target)
 
     @staticmethod
     def deb_lower(_s, _t):

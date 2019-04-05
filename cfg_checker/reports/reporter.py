@@ -43,13 +43,8 @@ def get_sorted_keys(td):
 def make_cmp_label(text):
     _d = {
         const.VERSION_EQUAL: "equal",
-        const.VERSION_DIFF_EPOCH: "epoch",
-        const.VERSION_DIFF_EPOCH_UPGRADE: "epoch>",
-        const.VERSION_DIFF_EPOCH_DOWNGRADE: "<epoch",
-        const.VERSION_DIFF_MAJOR: "major",
-        const.VERSION_DIFF_MAJOR_UPGRADE: "major>",
-        const.VERSION_DIFF_MAJOR_DOWNGRADE: "<major",
-        const.VERSION_DIFF_DEBIAN: "debian"
+        const.VERSION_DIFF: "different",
+        const.VERSION_NA: "no status"
     }
     if text in _d:
         return _d[text]
@@ -163,13 +158,8 @@ class HTMLPackageCandidates(_TMPLBase):
         # labels
         data['cmp'] = {
             const.VERSION_EQUAL: "equal",
-            const.VERSION_DIFF_EPOCH: "epoch",
-            const.VERSION_DIFF_EPOCH_UPGRADE: "epoch>",
-            const.VERSION_DIFF_EPOCH_DOWNGRADE: "<epoch",
-            const.VERSION_DIFF_MAJOR: "major",
-            const.VERSION_DIFF_MAJOR_UPGRADE: "major>",
-            const.VERSION_DIFF_MAJOR_DOWNGRADE: "<major",
-            const.VERSION_DIFF_DEBIAN: "debian"
+            const.VERSION_DIFF: "different",
+            const.VERSION_NA: "n/a"
         }
 
         # Presort packages

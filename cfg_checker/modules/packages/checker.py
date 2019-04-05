@@ -11,18 +11,10 @@ from cfg_checker.common import salt_utils
 from cfg_checker.nodes import SaltNodes, node_tmpl
 from cfg_checker.reports import reporter
 
-from versions import PkgVersions, DebianVersion, VersionStatus
+from versions import PkgVersions, DebianVersion, VersionCmpResult
 
 
 class CloudPackageChecker(SaltNodes):
-    @staticmethod
-    def _deep_version_compare(_deb_ver1, _deb_ver2):
-        # TODO: do deep compare
-        if _deb_ver1.version != _deb_ver2.version:
-            return const.VERSION_DIFF_MAJOR
-        else:
-            return const.VERSION_EQUAL
-    
     def collect_installed_packages(self):
         """
         Collect installed packages on each node
@@ -64,6 +56,7 @@ class CloudPackageChecker(SaltNodes):
         # Preload OpenStack release versions
         _desc = PkgVersions()
         
+        logger_cli.info("# Cross-comparing: Installed vs Candidates vs Release")
         # Collect packages from all of the nodes in flat dict
         _diff_packages = {}
         _all_packages = {}
@@ -106,7 +99,7 @@ class CloudPackageChecker(SaltNodes):
                     _diff_packages[_name]['df_nodes'] = {}
                     _diff_packages[_name]['eq_nodes'] = []
 
-                _cmp = self._deep_version_compare(_ver_ins, _ver_can)
+                _cmp = VersionCmpResult(_ver_ins, _ver_can, _release)
                 _key = "{} <vs> {}".format(
                     _ver_ins.version,
                     _ver_can.version
@@ -117,27 +110,23 @@ class CloudPackageChecker(SaltNodes):
                         'i': _ver_ins,
                         'c': _ver_can,
                         'results': {
-                            _cmp: []
+                            node_name: {
+                                'raw': _value['raw'],
+                                'result': _cmp
+                            }
                         }
                     }
-                    _all_packages[_name]['v'][_key]['results'][_cmp].append(
-                        [node_name, _value['raw']]
-                    )
                 # There is such combination, check if such result happened
-                elif _cmp in _all_packages[_name]['v'][_key]['results']:
-                    # it is, just add node
-                    _all_packages[_name]['v'][_key]['results'][_cmp].append(
-                        [node_name, _value['raw']]
-                    )
                 else:
-                    # this is the first such result, create it
-                    _all_packages[_name]['v'][_key]['results'][_cmp].append(
-                        [node_name, _value['raw']]
-                    )
+                    _all_packages[_name]['v'][_key]['results'][node_name] = {
+                        'raw': _value['raw'],
+                        'result': _cmp
+                    }
 
                 # TODO: Update to simple saving of comparison result
                 # compare packages, mark if equal
-                if _cmp != const.VERSION_EQUAL:
+
+                if _cmp.status != "ok":
                     # Saving compare value so we not do str compare again
                     _value['is_equal'] = False
                     # add node name to list

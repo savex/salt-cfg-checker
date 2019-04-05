@@ -348,20 +348,19 @@
             </tr>
             <tr class="collapsable" id="{{ id_label }}_{{ pkg_name }}_{{ pkg_counter }}"><td colspan=7>
             <table class="nodes"><tbody>
-                {% for result in dat['v'][key]['results'].keys() | sort %}
-                {% for node in dat['v'][key]['results'][result] %}
+                {% for node in dat['v'][key]['results'].keys() | sort %}
+                {% set nd = dat['v'][key]['results'][node] %}
                 <tr>
                     <td class="repo">-</td>
-                    <td class="package_name" colspan="3">{{ node[0] }}</td>
-                    <td class="result">{{ result | make_cmp_label }}</td>
+                    <td class="package_name" colspan="3">{{ node }}</td>
+                    <td class="result">{{ nd['result'].status }} ({{ nd['result'].action }})</td>
                     <td class="version">
-                        <div class="tooltip">source_ver
-                            <pre class="tooltiptext">{{ node[1] | linebreaks }}</pre>
+                        <div class="tooltip">{{ nd['result'].source.version }}
+                            <pre class="tooltiptext">{{ nd['raw'] | linebreaks }}</pre>
                         </div>
                     </td>
-                    <td class="version">target_ver</td>
+                    <td class="version">{{ nd['result'].target.version }}</td>
                 </tr>
-                {% endfor %}
                 {% endfor %}
             </tbody></table>
             </td></tr>
