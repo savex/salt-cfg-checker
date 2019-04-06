@@ -9,11 +9,38 @@ _cnt = itertools.count()
 NODE_DOWN = next(_cnt)
 NODE_UP = next(_cnt)
 
-VERSION_EQUAL = next(_cnt)
-VERSION_DIFF = next(_cnt)
+VERSION_OK = next(_cnt)
+VERSION_UP = next(_cnt)
+VERSION_DOWN = next(_cnt)
+VERSION_ERR = next(_cnt)
 VERSION_NA = next(_cnt)
 
+VERSION_DIFF = next(_cnt)
+VERSION_EQUAL = next(_cnt)
+
+ACT_UPGRADE = next(_cnt)
+ACT_NEED_UP = next(_cnt)
+ACT_NEED_DOWN = next(_cnt)
+ACT_REPO = next(_cnt)
+ACT_NA = next(_cnt)
+
 del _cnt
+
+all_actions = {
+    ACT_UPGRADE: "upgrade possible",
+    ACT_NEED_UP: "needs upgrade",
+    ACT_NEED_DOWN: "needs downgrade",
+    ACT_REPO: "needs repo update",
+    ACT_NA: "n/a"
+}
+
+all_statuses = {
+    VERSION_OK: "ok",
+    VERSION_UP: "upgraded",
+    VERSION_DOWN: "downgraded",
+    VERSION_ERR: "incorrect",
+    VERSION_NA: "no status"
+}
 
 all_roles_map = {
     "apt": "repository",

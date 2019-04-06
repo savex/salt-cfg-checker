@@ -1,7 +1,8 @@
 import csv
 import os
 
-from cfg_checker.common import config, logger, logger_cli, pkg_dir,  const
+from cfg_checker.common import config, logger, logger_cli, pkg_dir, const
+
 
 class PkgVersions(object):
     _labels = []
@@ -238,20 +239,6 @@ class DebianVersion(object):
 
 
 class VersionCmpResult(object):
-    # current version status
-    _u = "upgraded"
-    _d = "downgraded"
-    _e = "incorrect"
-    _ok = "ok"
-    _z = "no status"
-
-    # possible actions
-    _act_p = "upgrade possible"
-    _act_u = "needs upgrade"
-    _act_d = "needs downgrade"
-    _act_r = "needs repo update"
-    _act_z = "n/a"
-
     status = ""
     action = ""
 
@@ -262,12 +249,9 @@ class VersionCmpResult(object):
     def __init__(self, i, c, r):
         # compare three versions and write a result
         self.source = i
-        self.status = self._z
-        self.action = self._act_z
+        self.status = const.VERSION_NA
+        self.action = const.ACT_NA
         
-        if r.version == "4.15.0.36.59":
-            a = 1
-
         # Check if there is a release version present
         if r and len(r.version) > 0 and r.version != 'n/a':
             # I < C, installed version is older
@@ -275,78 +259,78 @@ class VersionCmpResult(object):
                 self.target = c
                 if i == r:
                     # installed version is equal vs release version
-                    self.status = self._ok
-                    self.action = self._act_p
+                    self.status = const.VERSION_OK
+                    self.action = const.ACT_UPGRADE
                 elif i > r:
                     # installed version is newer vs release version
-                    self.status = self._u
-                    self.action = self._act_p
+                    self.status = const.VERSION_UP
+                    self.action = const.ACT_UPGRADE
                 elif i < r and r < c:
                     # installed version is older vs release version
-                    self.status = self._e
-                    self.action = self._act_u
+                    self.status = const.VERSION_ERR
+                    self.action = const.ACT_NEED_UP
                     self.target = r
                 elif i < r and c == r:
                     # installed version is older vs release version
-                    self.status = self._e
-                    self.action = self._act_u
+                    self.status = const.VERSION_ERR
+                    self.action = const.ACT_NEED_UP
                     self.target = c
                 elif c < r:
                     # installed and repo versions older vs release version
-                    self.status = self._e
-                    self.action = self._act_r
+                    self.status = const.VERSION_ERR
+                    self.action = const.ACT_REPO
             # I > C
             # installed version is newer
             elif i > c:
                 self.target = c
                 if c == r:
                     # some unknown version installed
-                    self.status = self._e
-                    self.action = self._act_d
+                    self.status = const.VERSION_ERR
+                    self.action = const.ACT_NEED_DOWN
                 elif c > r:
                     # installed and repo versions newer that release
-                    self.status = self._u
-                    self.action = self._act_d
+                    self.status = const.VERSION_UP
+                    self.action = const.ACT_NEED_DOWN
                 elif c < r and r < i:
                     # repo is older vs release and both older vs installed
-                    self.status = self._u
-                    self.action = self._act_r
+                    self.status = const.VERSION_UP
+                    self.action = const.ACT_REPO
                 elif c < r and r == i:
                     # repo is older vs release, but release version installed
-                    self.status = self._ok
-                    self.action = self._act_r
+                    self.status = const.VERSION_OK
+                    self.action = const.ACT_REPO
                 elif i < r:
                     # both repo and installed older vs release
-                    self.status = self._d
-                    self.action = self._act_r
+                    self.status = const.VERSION_DOWN
+                    self.action = const.ACT_REPO
             # I = C
             # installed and linked repo is inline,
             elif i == c:
                 self.target = c
                 if i < r:
                     # both are old
-                    self.status = self._e
-                    self.action = self._act_r
+                    self.status = const.VERSION_ERR
+                    self.action = const.ACT_REPO
                 elif i > r:
                     # both are newer
-                    self.status = self._u
-                    self.action = self._act_z
+                    self.status = const.VERSION_UP
+                    self.action = const.ACT_NA
                 elif i == r:
                     # all is ok
-                    self.status = self._ok
-                    self.action = self._act_z
+                    self.status = const.VERSION_OK
+                    self.action = const.ACT_NA
         else:
             # no release version present
             self.target = c
             if i < c:
-                self.status = self._ok
-                self.action = self._act_p
+                self.status = const.VERSION_OK
+                self.action = const.ACT_UPGRADE
             elif i > c:
-                self.status = self._u
-                self.action = self._act_d
+                self.status = const.VERSION_UP
+                self.action = const.ACT_NEED_DOWN
             elif i == c:
-                self.status = self._ok
-                self.action = self._act_z
+                self.status = const.VERSION_OK
+                self.action = const.ACT_NA
         
         # and we need to update per-part status
         self.source.update_parts(self.target)

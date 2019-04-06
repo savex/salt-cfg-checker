@@ -40,6 +40,14 @@ def get_sorted_keys(td):
     )
 
 
+def make_action_label(act):
+    return const.all_actions[act]
+
+
+def make_status_label(sts):
+    return const.all_statuses[sts]
+
+
 def make_cmp_label(text):
     _d = {
         const.VERSION_EQUAL: "equal",
@@ -105,6 +113,8 @@ class _TMPLBase(_Base):
         self.jinja2_env.filters['is_active'] = is_active
         self.jinja2_env.filters['linebreaks'] = line_breaks
         self.jinja2_env.filters['make_cmp_label'] = make_cmp_label
+        self.jinja2_env.filters['make_status_label'] = make_status_label
+        self.jinja2_env.filters['make_action_label'] = make_action_label
         self.jinja2_env.filters['get_sorted_keys'] = get_sorted_keys
 
         # render!

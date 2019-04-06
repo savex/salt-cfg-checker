@@ -62,6 +62,8 @@ class CloudPackageChecker(SaltNodes):
         _all_packages = {}
         for node_name, node_value in self.nodes.iteritems():
             for _name, _value in node_value['packages'].iteritems():
+                # if _name == "librados2" and node_name == "cmp024.us.intcloud.mirantis.net":
+                #     a = 1
                 # Parse versions
                 _ver_ins = DebianVersion(_value['installed'])
                 _ver_can = DebianVersion(_value['candidate'])
@@ -77,6 +79,7 @@ class CloudPackageChecker(SaltNodes):
                     else:
                         # no description - no library :)
                         _vers = {}
+                    
                     # get specific set for this OS release if present
                     if _os in _vers:
                         _v = _vers[_os] 
@@ -87,9 +90,22 @@ class CloudPackageChecker(SaltNodes):
                     # Finally, get specific version
                     _release = DebianVersion(_v[_mcp] if _mcp in _v else '')
                     # Populate package info
+                    _acts = {
+                        const.ACT_UPGRADE: {},
+                        const.ACT_NEED_UP: {},
+                        const.ACT_NEED_DOWN: {},
+                        const.ACT_REPO: {},
+                        const.ACT_NA: {}
+                    }
                     _all_packages[_name] = {
                         "desc": _desc[_name],
-                        "v": {},
+                        "results": {
+                            const.VERSION_OK: _acts,
+                            const.VERSION_UP: _acts,
+                            const.VERSION_DOWN: _acts,
+                            const.VERSION_ERR: _acts,
+                            const.VERSION_NA: _acts
+                        },
                         "r": _release,
                     }
                 
@@ -99,34 +115,23 @@ class CloudPackageChecker(SaltNodes):
                     _diff_packages[_name]['df_nodes'] = {}
                     _diff_packages[_name]['eq_nodes'] = []
 
-                _cmp = VersionCmpResult(_ver_ins, _ver_can, _release)
-                _key = "{} <vs> {}".format(
-                    _ver_ins.version,
-                    _ver_can.version
+                _cmp = VersionCmpResult(
+                    _ver_ins,
+                    _ver_can,
+                    _all_packages[_name]['r']
                 )
-                if _key not in _all_packages[_name]['v']:
-                    # first result, just save
-                    _all_packages[_name]['v'][_key] = {
-                        'i': _ver_ins,
-                        'c': _ver_can,
-                        'results': {
-                            node_name: {
-                                'raw': _value['raw'],
-                                'result': _cmp
-                            }
+                
+                _all_packages[_name]['results'] \
+                    [_cmp.status][_cmp.action].update({
+                        node_name: {
+                            'i': _ver_ins,
+                            'c': _ver_can,
+                            'res': _cmp,
+                            'raw': _value['raw']
                         }
-                    }
-                # There is such combination, check if such result happened
-                else:
-                    _all_packages[_name]['v'][_key]['results'][node_name] = {
-                        'raw': _value['raw'],
-                        'result': _cmp
-                    }
+                    })
 
-                # TODO: Update to simple saving of comparison result
-                # compare packages, mark if equal
-
-                if _cmp.status != "ok":
+                if _cmp.status != const.VERSION_OK:
                     # Saving compare value so we not do str compare again
                     _value['is_equal'] = False
                     # add node name to list

@@ -333,37 +333,38 @@
             </tr>
             {% for pkg_name in pkg_dict | get_sorted_keys %}
             {% set dat = pkg_dict[pkg_name] %}
-                {% for key in dat['v'].keys() | sort %}
+                {% for sts in dat['results'].keys() %}
+                {% for acts in dat['results'][sts].keys() %}
                 {% set pkg_counter = 1 + loop.index0 %}
             <tr onclick="toggleClassByID('{{ id_label }}_{{ pkg_name }}', '{{ pkg_counter }}')" id="{{ id_label }}_{{ pkg_name }}_button{{ pkg_counter }}">
                 <td class="repo">{{ dat['desc']['repo'] }}</td>
                 <td class="component">{{ dat['desc']['component'] }}</td>
                 <td class="app">{{ dat['desc']['app'] }}</td>
                 <td class="package_name">{{ pkg_name }}</td>
-                <td class="version">
-                    {{ dat['v'][key]['i'].version }}
-                </td>
-                <td class="version">{{ dat['v'][key]['c'].version }}</td>
-                <td class="version">{{ dat['r'].version }}</td>
+                <td class="version">{{ sts | make_status_label }}</td>
+                <td class="version">{{ act | make_action_label }}</td>
+                <td class="version"></td>
             </tr>
             <tr class="collapsable" id="{{ id_label }}_{{ pkg_name }}_{{ pkg_counter }}"><td colspan=7>
             <table class="nodes"><tbody>
-                {% for node in dat['v'][key]['results'].keys() | sort %}
-                {% set nd = dat['v'][key]['results'][node] %}
+                {% for node in dat['results'][sts][acts].keys() | sort %}
+                {% set nd = dat['results'][sts][acts][node] %}
                 <tr>
                     <td class="repo">-</td>
-                    <td class="package_name" colspan="3">{{ node }}</td>
-                    <td class="result">{{ nd['result'].status }} ({{ nd['result'].action }})</td>
+                    <td class="package_name" colspan="2">{{ node }}</td>
+                    <td class="result">{{ nd['res'].status | make_status_label }} ({{ nd['res'].action | make_action_label }})</td>
                     <td class="version">
-                        <div class="tooltip">{{ nd['result'].source.version }}
+                        <div class="tooltip">{{ nd['i'].version }}
                             <pre class="tooltiptext">{{ nd['raw'] | linebreaks }}</pre>
                         </div>
                     </td>
-                    <td class="version">{{ nd['result'].target.version }}</td>
+                    <td class="version">{{ nd['c'].version }}</td>
+                    <td class="version">{{ dat['r'].version }}</td>
                 </tr>
                 {% endfor %}
             </tbody></table>
             </td></tr>
+                {% endfor %}
                 {% endfor %}
             {% endfor %}
             </tbody>
