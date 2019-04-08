@@ -8,10 +8,10 @@ class PkgVersions(object):
     _labels = []
     _list = {}
 
-    _dummy_desc = {
-        "component": "",
-        "app": "",
-        "repo": "other",
+    dummy_desc = {
+        "component": "unlisted",
+        "app": "-",
+        "repo": "-",
         "versions": {}
     }
 
@@ -218,24 +218,24 @@ class DebianVersion(object):
         else:
             return False
     
-    def update_parts(self, target):
+    def update_parts(self, target, status):
         # updating parts of version statuses
         if self._cmp_num(self.epoch, target.epoch) != 0:
-            self.epoch_status = const.VERSION_DIFF
+            self.epoch_status = status
         else:
-            self.epoch_status = const.VERSION_EQUAL
+            self.epoch_status = const.VERSION_OK
 
         if self._cmp_num(self.upstream, target.upstream) != 0 \
-            and self._cmp_lex(self.upstream_rev, target.upstream_rev) != 0:
-            self.upstream_status = const.VERSION_DIFF
+            or self._cmp_lex(self.upstream_rev, target.upstream_rev) != 0:
+            self.upstream_status = status
         else:
-            self.upstream_status = const.VERSION_EQUAL
+            self.upstream_status = const.VERSION_OK
 
         if self._cmp_lex(self.debian, target.debian) != 0 \
-            and self._cmp_lex(self.debian_rev, target.debian_rev) != 0:
-            self.debian_status = const.VERSION_DIFF
+            or self._cmp_lex(self.debian_rev, target.debian_rev) != 0:
+            self.debian_status = status
         else:
-            self.debian_status = const.VERSION_EQUAL
+            self.debian_status = const.VERSION_OK
 
 
 class VersionCmpResult(object):
@@ -300,19 +300,21 @@ class VersionCmpResult(object):
                     self.status = const.VERSION_OK
                     self.action = const.ACT_REPO
                 elif i < r:
-                    # both repo and installed older vs release
+                    # both repo and installed older vs release, new target
                     self.status = const.VERSION_DOWN
                     self.action = const.ACT_REPO
+                    self.target = r
             # I = C
             # installed and linked repo is inline,
             elif i == c:
                 self.target = c
                 if i < r:
-                    # both are old
+                    # both are old, new target
                     self.status = const.VERSION_ERR
                     self.action = const.ACT_REPO
+                    self.target = r
                 elif i > r:
-                    # both are newer
+                    # both are newer, same target
                     self.status = const.VERSION_UP
                     self.action = const.ACT_NA
                 elif i == r:
@@ -333,7 +335,7 @@ class VersionCmpResult(object):
                 self.action = const.ACT_NA
         
         # and we need to update per-part status
-        self.source.update_parts(self.target)
+        self.source.update_parts(self.target, self.status)
 
     @staticmethod
     def deb_lower(_s, _t):

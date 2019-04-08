@@ -8,6 +8,7 @@ from cfg_checker.common.exception import ConfigException
 from cfg_checker.common import utils, const
 from cfg_checker.common import config, logger, logger_cli, pkg_dir
 from cfg_checker.common import salt_utils
+from cfg_checker.helpers.console_utils import Progress
 from cfg_checker.nodes import SaltNodes, node_tmpl
 from cfg_checker.reports import reporter
 
@@ -57,13 +58,21 @@ class CloudPackageChecker(SaltNodes):
         _desc = PkgVersions()
         
         logger_cli.info("# Cross-comparing: Installed vs Candidates vs Release")
+        _progress = Progress(len(self.nodes.keys()))
+        _progress_index = 0
         # Collect packages from all of the nodes in flat dict
         _diff_packages = {}
         _all_packages = {}
         for node_name, node_value in self.nodes.iteritems():
+            _uniq_len = len(_all_packages.keys())
+            _progress_index += 1
+            _progress.write_progress(
+                _progress_index,
+                note="/ {} uniq packages found".format(_uniq_len)
+            )
             for _name, _value in node_value['packages'].iteritems():
-                # if _name == "librados2" and node_name == "cmp024.us.intcloud.mirantis.net":
-                #     a = 1
+                if _name == 'librbd1' and node_name == 'gtw01.us.intcloud.mirantis.net':
+                    a = 1
                 # Parse versions
                 _ver_ins = DebianVersion(_value['installed'])
                 _ver_can = DebianVersion(_value['candidate'])
@@ -73,12 +82,15 @@ class CloudPackageChecker(SaltNodes):
                     # shortcuts for this cloud values
                     _os = self.openstack_release
                     _mcp = self.mcp_release
+                    _pkg_desc = {}
                     if _desc[_name]:
                         # shortcut to version library
                         _vers = _desc[_name]['versions']
+                        _pkg_desc = _desc[_name]
                     else:
                         # no description - no library :)
                         _vers = {}
+                        _pkg_desc = _desc.dummy_desc
                     
                     # get specific set for this OS release if present
                     if _os in _vers:
@@ -90,22 +102,9 @@ class CloudPackageChecker(SaltNodes):
                     # Finally, get specific version
                     _release = DebianVersion(_v[_mcp] if _mcp in _v else '')
                     # Populate package info
-                    _acts = {
-                        const.ACT_UPGRADE: {},
-                        const.ACT_NEED_UP: {},
-                        const.ACT_NEED_DOWN: {},
-                        const.ACT_REPO: {},
-                        const.ACT_NA: {}
-                    }
                     _all_packages[_name] = {
-                        "desc": _desc[_name],
-                        "results": {
-                            const.VERSION_OK: _acts,
-                            const.VERSION_UP: _acts,
-                            const.VERSION_DOWN: _acts,
-                            const.VERSION_ERR: _acts,
-                            const.VERSION_NA: _acts
-                        },
+                        "desc": _pkg_desc,
+                        "results": {},
                         "r": _release,
                     }
                 
@@ -121,15 +120,18 @@ class CloudPackageChecker(SaltNodes):
                     _all_packages[_name]['r']
                 )
                 
-                _all_packages[_name]['results'] \
-                    [_cmp.status][_cmp.action].update({
-                        node_name: {
-                            'i': _ver_ins,
-                            'c': _ver_can,
-                            'res': _cmp,
-                            'raw': _value['raw']
+                _all_packages[_name]['results'].update({
+                    _cmp.status: {
+                        _cmp.action: {
+                            node_name: {
+                                'i': _ver_ins,
+                                'c': _ver_can,
+                                'res': _cmp,
+                                'raw': _value['raw']
+                            }
                         }
-                    })
+                    }
+                })
 
                 if _cmp.status != const.VERSION_OK:
                     # Saving compare value so we not do str compare again
@@ -147,6 +149,7 @@ class CloudPackageChecker(SaltNodes):
 
         self.diff_packages = _diff_packages
         self.all_packages = _all_packages
+        _progress.newline()
 
     def create_report(self, filename, rtype):
         """

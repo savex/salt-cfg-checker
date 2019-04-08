@@ -31,14 +31,14 @@ all_actions = {
     ACT_NEED_UP: "needs upgrade",
     ACT_NEED_DOWN: "needs downgrade",
     ACT_REPO: "needs repo update",
-    ACT_NA: "n/a"
+    ACT_NA: ""
 }
 
 all_statuses = {
     VERSION_OK: "ok",
     VERSION_UP: "upgraded",
     VERSION_DOWN: "downgraded",
-    VERSION_ERR: "incorrect",
+    VERSION_ERR: "error",
     VERSION_NA: "no status"
 }
 

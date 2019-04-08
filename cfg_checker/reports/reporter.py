@@ -4,6 +4,8 @@ import abc
 import os
 
 from cfg_checker.common import const
+from cfg_checker.common import logger, logger_cli
+from cfg_checker.helpers.console_utils import Progress
 
 pkg_dir = os.path.dirname(__file__)
 pkg_dir = os.path.join(pkg_dir, os.pardir, os.pardir)
@@ -31,13 +33,21 @@ def line_breaks(text):
 
 
 def get_sorted_keys(td):
-    return sorted(
-        td.keys(),
-        key=lambda k: (
-            td[k]['desc']['component'],
-            td[k]['desc']['app']
+    # detect if we can sort by desc
+    # Yes, this is slow, but bullet-proof from empty desc
+    _desc = all([bool(td[k]['desc']) for k in td.keys()])
+    # Get sorted list
+    if not _desc:
+        return sorted(td.keys())
+    else:
+        return sorted(
+            td.keys(),
+            key=lambda k: (
+                td[k]['desc']['component'],
+                td[k]['desc']['app'],
+                k
+            )
         )
-    )
 
 
 def make_action_label(act):
@@ -118,7 +128,9 @@ class _TMPLBase(_Base):
         self.jinja2_env.filters['get_sorted_keys'] = get_sorted_keys
 
         # render!
+        logger_cli.info("-> Using template: {}".format(self.tmpl))
         tmpl = self.jinja2_env.get_template(self.tmpl)
+        logger_cli.info("-> Rendering")
         return tmpl.render(data)
 
     def common_data(self):
@@ -165,6 +177,7 @@ class HTMLPackageCandidates(_TMPLBase):
 
  
     def _extend_data(self, data):
+        logger_cli.info("-> Sorting packages")
         # labels
         data['cmp'] = {
             const.VERSION_EQUAL: "equal",
@@ -177,7 +190,15 @@ class HTMLPackageCandidates(_TMPLBase):
         data['system'] = {}
         data['other'] = {}
         data['unlisted'] = {}
-        while len(data['all']) > 0:
+
+        _l = len(data['all'])
+        _progress = Progress(_l)
+        _progress_index = 0
+        while _progress_index < _l:
+            # progress bar
+            _progress_index += 1
+            _progress.write_progress(_progress_index)
+            # sort packages
             _pn, _val = data['all'].popitem()
             if not _val['desc']:
                 # not listed package in version lib
@@ -201,6 +222,8 @@ class HTMLPackageCandidates(_TMPLBase):
                     data['other'].update({
                         _pn: _val
                     })
+        
+        _progress.newline()
         
         # Count values on per-node basis
         for key, value in data['nodes'].iteritems():

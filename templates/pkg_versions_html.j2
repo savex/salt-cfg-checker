@@ -22,8 +22,8 @@
 		.label {float: left; font-size: 0.7em; color: Black; line-height: 17px; padding-left: 10px;}
         .text {float: left; font-size: 0.8em; color: Navy; padding-left: 2px;}
         
-        .repo {width: 3em; text-align: center; font-size: 0.7em; color: #113b11; font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif}
-        .component, .app, .package_name {
+        .repo {width: 3em; text-align: center; font-size: 0.7em; color: #113b11; font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;}
+        .component, td.app, td.package_name {
             font-size: 0.75em;
             text-align: center;
             color: #113b11;
@@ -34,19 +34,68 @@
             padding-left: 10px;
             text-align: left;
         }
+        td.repo {column-width: 50px;}
+        td.component {column-width: 130px;}
+        td.app {column-width: 80px;}
+        td.package_name {column-width: 200px;}
+        td.installed {column-width: 16%;}
+        td.candidate {column-width: 16%;}
+        td.release {column-width: 13%;}
+
+        .status_container {
+            display: inline-block;
+        }
+
+        .status {
+            display: block;
+            float: left;
+            padding: 1px;
+            padding-left: 5px;
+            padding-right: 5px;
+            color: white;
+            background-color: #113b11;
+            text-align: center;
+        }
+        .action {
+            display: block;
+            float: left;
+            padding: 1px;
+            padding-left: 5px;
+            padding-right: 5px;
+            color: gray;
+            background-color: #d4dad9;
+            text-align: center;
+        }
+
+        .status_container .ok {
+            color: white;
+            background-color: #113b11;
+        }
+        .status_container .error {
+            color: white;
+            background-color: darkred;
+        }
+        .status_container .upgraded {
+            color: darkgreen;
+            background-color: lightgreen;
+        }
+        .status_container .downgraded {
+            color: white;
+            background-color: darkolivegreen;
+        }
 
         .version {font-size: 0.8em; text-align: left; padding: 2px}
-        .v_epoch, .v_major, .v_debian, .colon, .dash {
-            font-size: 0.7em;
+        .v_epoch, .v_upstream, .v_debian, .colon, .dash {
             color: darkslategray;
             font-family: monospace;
             float: left;
             display: block;
         }
 
-        .error {color: white; background-color: darkred}
-        .upgrade {color: green;}
-        .downghrade {color: red;}
+        .ok {color: darkslategray;}
+        .error {color: white; background-color: darkred;}
+        .upgraded {color: green; font-weight: bold;}
+        .downgraded {color: red;}
 		
 		
         /* Report specific styles */
@@ -196,22 +245,18 @@
     </style>
     <script language="JavaScript">
         function toggleClassByID(pkg, number) {
-            var elements = document.querySelectorAll("#"+pkg+"_"+number);
-            var ii = elements.length;
+            var element = document.getElementById(pkg+"_"+number);
+            //var ii = elements.length;
             //var button = document.querySelector("#"+pkg+"_button"+number);
 
-            while (ii--) {
-                if( elements[ii].className && elements[ii].className.indexOf("in") > -1 ) {
-                    elements[ii].classList.remove("in");
-                    //button.innerHTML = "&uarr;"
-                }
-                else {
-                    elements[ii].classList.add("in");
-                    //button.innerHTML = "&darr;"
-                }
+            if( element.className && element.className.indexOf("in") > -1 ) {
+                element.classList.remove("in");
+                //button.innerHTML = "&uarr;"
             }
-
-
+            else {
+                element.classList.add("in");
+                //button.innerHTML = "&darr;"
+            }
         }
     </script>
     <script language="JavaScript">
@@ -307,14 +352,22 @@
 	<button class="bar-item" onclick="openBar(event, 'nodes')">Per Node</button>
 </div>
 
-{% macro _version(v, r) %}
-    <td class="version">
-        <div class="v_epoch {{ r.epoch }}">{{ v.epoch }}</div>
+{% macro prettify_version(v) %}
+    <div class="version">
+        {% if v.epoch %}
+        <div class="v_epoch {{ v.epoch_status | make_status_label }}">{{ v.epoch }}</div>
         <div class="colon">:</div>
-        <div class="v_major {{ r.major }}">{{ v.major }}</div>
+        {% endif %}
+        
+        <div class="v_upstream {{ v.upstream_status | make_status_label }}">{{ v.upstream }}{{ v.upstream_rev }}</div>
+
+        {% if v.debian %}
         <div class="dash">-</div>
-        <div class="v_debian {{ r.debian }}">{{ v.debian }}</div>
-    </td>
+        <div class="v_debian {{ v.debian_status | make_status_label }}">{{ v.debian }}{{ v.debian_rev }}</div>
+        {% endif %}
+
+        {{ caller() }}
+    <div>
 {% endmacro %}
 
 {% macro package_table(pkg_dict, id_label) %}
@@ -323,43 +376,47 @@
     <table class="pkgversions">
             <tbody>
             <tr>
-                <td class="table_header" width="50px">repo</td>
-                <td class="table_header" width="130px">Component</td>
-                <td class="table_header" width="80px">App</td>
-                <td class="table_header" width="200px">Package name</td>
-                <td class="table_header">Installed</td>
-                <td class="table_header">Candidate</td>
-                <td class="table_header">Release</td>
+                <td class="table_header repo" width="50px">repo</td>
+                <td class="table_header component" width="130px">Component</td>
+                <td class="table_header app" width="80px">App</td>
+                <td class="table_header package_name" width="200px">Package name</td>
+                <td class="table_header installed">Installed</td>
+                <td class="table_header candidate">Candidate</td>
+                <td class="table_header release">Release</td>
             </tr>
             {% for pkg_name in pkg_dict | get_sorted_keys %}
             {% set dat = pkg_dict[pkg_name] %}
-                {% for sts in dat['results'].keys() %}
-                {% for acts in dat['results'][sts].keys() %}
+                {% for status in dat['results'].keys() %}
                 {% set pkg_counter = 1 + loop.index0 %}
+                {% for action in dat['results'][status].keys() %}
             <tr onclick="toggleClassByID('{{ id_label }}_{{ pkg_name }}', '{{ pkg_counter }}')" id="{{ id_label }}_{{ pkg_name }}_button{{ pkg_counter }}">
                 <td class="repo">{{ dat['desc']['repo'] }}</td>
                 <td class="component">{{ dat['desc']['component'] }}</td>
                 <td class="app">{{ dat['desc']['app'] }}</td>
                 <td class="package_name">{{ pkg_name }}</td>
-                <td class="version">{{ sts | make_status_label }}</td>
-                <td class="version">{{ act | make_action_label }}</td>
-                <td class="version"></td>
+                <td class="status_container" colspan="3">
+                    <div class="status {{ status | make_status_label }}">{{ status | make_status_label }}</div>
+                    {% if action | make_action_label %}
+                        <div class="action">{{ action | make_action_label }}</div>
+                    {% endif %}
+                </td>
             </tr>
             <tr class="collapsable" id="{{ id_label }}_{{ pkg_name }}_{{ pkg_counter }}"><td colspan=7>
             <table class="nodes"><tbody>
-                {% for node in dat['results'][sts][acts].keys() | sort %}
-                {% set nd = dat['results'][sts][acts][node] %}
+                {% for node in dat['results'][status][action].keys() | sort %}
+                {% set nd = dat['results'][status][action][node] %}
                 <tr>
                     <td class="repo">-</td>
-                    <td class="package_name" colspan="2">{{ node }}</td>
-                    <td class="result">{{ nd['res'].status | make_status_label }} ({{ nd['res'].action | make_action_label }})</td>
-                    <td class="version">
-                        <div class="tooltip">{{ nd['i'].version }}
+                    <td class="package_name" colspan="3">{{ node }}</td>
+                    <td class="installed">
+                        <div class="tooltip">
+                            {% call prettify_version(nd['i']) %}
                             <pre class="tooltiptext">{{ nd['raw'] | linebreaks }}</pre>
+                            {% endcall %}
                         </div>
                     </td>
-                    <td class="version">{{ nd['c'].version }}</td>
-                    <td class="version">{{ dat['r'].version }}</td>
+                    <td class="candidate">{{ nd['c'].version }}</td>
+                    <td class="release">{{ dat['r'].version }}</td>
                 </tr>
                 {% endfor %}
             </tbody></table>
@@ -387,10 +444,10 @@
     Packages with no description or not critical
 {%- endcall %}
 
-<div id="unlisted" class="barcontent">
-    <h5>Packages that are not listed in version map. I.e. unexpected on the environment.</h5>
-</div>
-        
+{% call package_table(unlisted, "unlisted") %}
+    Packages that are not listed in version map. I.e. unexpected on the environment
+{%- endcall %}
+       
 <div id="nodes" class="barcontent">
     <!-- Per node -->
     <div class="tab">
