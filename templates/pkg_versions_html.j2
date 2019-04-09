@@ -9,6 +9,7 @@
             font-size: 90% !important;
         }
         h5 {padding-left: 1em; margin: 0.6em}
+        .note {font-style: italic; font-weight: normal; padding-left: 1em; margin: 0.2em; font-size: 0.7em; color: gray;}
 		/* Common */
 		.header {
 			display:block;
@@ -202,10 +203,10 @@
             border: 0 hidden;
             width: 100%;
         }
-        tr:nth-child(even) {
+        .nodes tr:nth-child(even) {
             background-color: #fff;
         }
-        tr:nth-child(odd) {
+        .nodes tr:nth-child(odd) {
             background-color: #d4dad9;
             
         }
@@ -244,10 +245,9 @@
 
     </style>
     <script language="JavaScript">
-        function toggleClassByID(pkg, number) {
-            var element = document.getElementById(pkg+"_"+number);
-            //var ii = elements.length;
-            //var button = document.querySelector("#"+pkg+"_button"+number);
+        function toggleClassByID(pkg) {
+            var element = document.getElementById(pkg);
+            //var button = document.getElementById(pkg+"_button");
 
             if( element.className && element.className.indexOf("in") > -1 ) {
                 element.classList.remove("in");
@@ -358,50 +358,59 @@
         <div class="v_epoch {{ v.epoch_status | make_status_label }}">{{ v.epoch }}</div>
         <div class="colon">:</div>
         {% endif %}
-        
         <div class="v_upstream {{ v.upstream_status | make_status_label }}">{{ v.upstream }}{{ v.upstream_rev }}</div>
-
         {% if v.debian %}
         <div class="dash">-</div>
         <div class="v_debian {{ v.debian_status | make_status_label }}">{{ v.debian }}{{ v.debian_rev }}</div>
         {% endif %}
-
         {{ caller() }}
-    <div>
+    </div>
 {% endmacro %}
 
-{% macro render_package(pkg_name, dat, status, action, id_label, counter) %}
-        <tr onclick="toggleClassByID('{{ id_label }}_{{ pkg_name }}_{{ status }}', '{{ counter }}')" id="{{ id_label }}_{{ pkg_name }}_{{ status }}_button{{ counter }}">
+{% macro render_package(pkg_name, dat, status_shown, action_shown, id_label) %}
+        <tr onclick="toggleClassByID('{{ id_label }}_{{ pkg_name }}_{{ status_shown }}_{{ action_shown }}')" id="{{ id_label }}_{{ pkg_name }}_{{ status_shown }}_{{ action_shown }}_button">
             <td class="repo">{{ dat['desc']['repo'] }}</td>
             <td class="component">{{ dat['desc']['component'] }}</td>
             <td class="app">{{ dat['desc']['app'] }}</td>
             <td class="package_name">{{ pkg_name }}</td>
             <td class="status_container" colspan="3">
-                <div class="status {{ status | make_status_label }}">{{ status | make_status_label }}</div>
-                {% if action | make_action_label %}
-                    <div class="action">{{ action | make_action_label }}</div>
+                <div class="status {{ status_shown | make_status_label }}">{{ status_shown | make_status_label }}</div>
+                {% if action_shown | make_action_label %}
+                    <div class="action">{{ action_shown | make_action_label }}</div>
                 {% endif %}
             </td>
         </tr>
-        <tr class="collapsable" id="{{ id_label }}_{{ pkg_name }}_{{ status }}_{{ counter }}"><td colspan=7>
-        <table class="nodes"><tbody>
-            {% for node in dat['results'][status][action].keys() | sort %}
-            {% set nd = dat['results'][status][action][node] %}
-            <tr>
-                <td class="repo">-</td>
-                <td class="package_name" colspan="3">{{ node }}</td>
-                <td class="installed">
-                    <div class="tooltip">
-                        {% call prettify_version(nd['i']) %}
-                        <pre class="tooltiptext">{{ nd['raw'] | linebreaks }}</pre>
-                        {% endcall %}
-                    </div>
-                </td>
-                <td class="candidate">{{ nd['c'].version }}</td>
-                <td class="release">{{ dat['r'].version }}</td>
-            </tr>
-            {% endfor %}
-        </tbody></table>
+        <tr class="collapsable" id="{{ id_label }}_{{ pkg_name }}_{{ status_shown }}_{{ action_shown }}"><td colspan=7>
+            <table class="nodes"><tbody>
+                {% for status in dat['results'].keys() | sort(reverse=true) %}
+                {% for action in dat['results'][status].keys() | sort(reverse=true) %}
+                {% set counter = 1 + loop.index0 %}
+                {% for node in dat['results'][status][action].keys() | sort %}
+                {% set n_counter = 1 + loop.index0 %}
+                {% set nd = dat['results'][status][action][node] %}
+                <tr>
+                    <td class="repo">{{ n_counter }}</td>
+                    <td class="package_name" colspan="2">{{ node }}</td>
+                    <td class="status_container">
+                        <div class="status {{ status | make_status_label }}">{{ status | make_status_label }}</div>
+                        {% if action | make_action_label %}
+                            <div class="action">{{ action | make_action_label }}</div>
+                        {% endif %}
+                    </td>
+                    <td class="installed">
+                        <div class="tooltip">
+                            {% call prettify_version(nd['i']) %}
+                            <pre class="tooltiptext">{{ nd['raw'] | linebreaks }}</pre>
+                            {% endcall %}
+                        </div>
+                    </td>
+                    <td class="candidate">{{ nd['c'].version }}</td>
+                    <td class="release">{{ dat['r'].version }}</td>
+                </tr>
+                {% endfor %}
+                {% endfor %}
+                {% endfor %}
+            </tbody></table>
         </td></tr>
     {{ caller() }}
 {% endmacro %}
@@ -409,7 +418,6 @@
 {% macro package_table(pkg_dict, id_label) %}
 <div id="{{ id_label }}" class="barcontent">
     <h5>{{ caller() }}</h5>
-    {% set pkg = namespace(counter=1) %}
     <table class="pkgversions">
             <tbody>
             <tr>
@@ -421,44 +429,44 @@
                 <td class="table_header candidate">Candidate</td>
                 <td class="table_header release">Release</td>
             </tr>
-            <tr><td colspan="7">Errors</td></tr>
+            <!-- Print errors -->
+            <tr><td colspan="7">Errors ({{ errors[id_label] }})</td></tr>
             {% for pkg_name in pkg_dict | get_sorted_keys %}
             {% set dat = pkg_dict[pkg_name] %}
-                {% set counter = 1 + loop.index0%}
                 {% if status_err in dat['results'] %}
-                    <!-- Print errors -->
-                    {% for action in dat['results'][status_err].keys() %}
-                        {% set counter = 1 + loop.index0 %}
-                        {% call render_package(pkg_name, dat, status_err, action, id_label, counter) %}
-                        {% endcall %}
-                    {% endfor %}           
+                    {% set action_to_show = dat['results'][status_err].keys() | get_max %}
+                    {% call render_package(pkg_name, dat, status_err, action_to_show, id_label) %}
+                    {% endcall %}
                 {% endif%}
             {% endfor %}
-            <tr><td colspan="7">Downgrades</td></tr>
+            {% if not errors[id_label] %}
+            <tr><td class="note" colspan="7">no errors found </td></tr>
+            {% endif %}
+
+            <!-- Print downgrades -->
+            <tr><td colspan="7">Downgrades ({{ downgrades[id_label] }})</td></tr>
             {% for pkg_name in pkg_dict | get_sorted_keys %}
             {% set dat = pkg_dict[pkg_name] %}
                 {% if status_down in dat['results'] %}
-                <!-- Print downgrades -->
-                    {% for action in dat['results'][status_down].keys() %}
-                        {% set counter = 1 + loop.index0 %}    
-                        {% call render_package(pkg_name, dat, status_down, action, id_label, counter) %}
-                        {% endcall %}
-                    {% endfor %}
+                    {% set action_to_show = dat['results'][status_down].keys() | get_max %}
+                    {% call render_package(pkg_name, dat, status_down, action_to_show, id_label) %}
+                    {% endcall %}
                 {% endif %}
             {% endfor %}
+            {% if not downgrades[id_label] %}
+            <tr><td class="note" colspan="7">no downgrades found</td></tr>
+            {% endif %}
+
+            <!-- Print all other -->
             <tr><td colspan="7">All others</td></tr>
             {% for pkg_name in pkg_dict | get_sorted_keys %}
             {% set dat = pkg_dict[pkg_name] %}
-                <!-- Print all other -->
-                {% for status in dat['results'].keys() %}
-                {% set counter = 1 + loop.index0 %}
-                {% for action in dat['results'][status].keys() %}
-                    {% if status != status_err and status != status_down %}
-                        {% call render_package(pkg_name, dat, status, action, id_label, counter) %}
-                        {% endcall %}
-                    {% endif %}
-                {% endfor %}
-                {% endfor %}
+                {% set status_to_show = dat['results'].keys() | get_max %}
+                {% set action_to_show = dat['results'][status_to_show].keys() | get_max %}
+                {% if status_err != status_to_show and status_down !=  status_to_show %}
+                    {% call render_package(pkg_name, dat, status_to_show, action_to_show, id_label) %}
+                    {% endcall %}
+                {% endif %}
             {% endfor %}
             </tbody>
         </table>

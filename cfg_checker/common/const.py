@@ -9,20 +9,24 @@ _cnt = itertools.count()
 NODE_DOWN = next(_cnt)
 NODE_UP = next(_cnt)
 
+# version const order is important!
+# biggest get shown in report top row
+VERSION_NA = next(_cnt)
 VERSION_OK = next(_cnt)
 VERSION_UP = next(_cnt)
 VERSION_DOWN = next(_cnt)
 VERSION_ERR = next(_cnt)
-VERSION_NA = next(_cnt)
 
 VERSION_DIFF = next(_cnt)
 VERSION_EQUAL = next(_cnt)
 
+# action const order is important!
+# biggest get shown in report top row
+ACT_NA = next(_cnt)
 ACT_UPGRADE = next(_cnt)
 ACT_NEED_UP = next(_cnt)
 ACT_NEED_DOWN = next(_cnt)
 ACT_REPO = next(_cnt)
-ACT_NA = next(_cnt)
 
 del _cnt
 

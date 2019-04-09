@@ -120,18 +120,24 @@ class CloudPackageChecker(SaltNodes):
                     _all_packages[_name]['r']
                 )
                 
-                _all_packages[_name]['results'].update({
-                    _cmp.status: {
-                        _cmp.action: {
-                            node_name: {
-                                'i': _ver_ins,
-                                'c': _ver_can,
-                                'res': _cmp,
-                                'raw': _value['raw']
-                            }
-                        }
-                    }
-                })
+                # shortcut to results
+                _res = _all_packages[_name]['results']
+                # update status
+                if _cmp.status not in _res:
+                    _res[_cmp.status] = {}
+                # update action
+                if _cmp.action not in _res[_cmp.status]:
+                    _res[_cmp.status][_cmp.action] = {}
+                # update node
+                if node_name not in _res[_cmp.status][_cmp.action]:
+                    _res[_cmp.status][_cmp.action][node_name] = {}
+                # put result
+                _res[_cmp.status][_cmp.action][node_name] = {
+                    'i': _ver_ins,
+                    'c': _ver_can,
+                    'res': _cmp,
+                    'raw': _value['raw']
+                }
 
                 if _cmp.status != const.VERSION_OK:
                     # Saving compare value so we not do str compare again

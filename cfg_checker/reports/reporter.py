@@ -49,6 +49,8 @@ def get_sorted_keys(td):
             )
         )
 
+def get_max(_list):
+    return sorted(_list)[-1]
 
 def make_action_label(act):
     return const.all_actions[act]
@@ -112,6 +114,7 @@ class _TMPLBase(_Base):
         self.jinja2_env.filters['linebreaks'] = line_breaks
         self.jinja2_env.filters['make_status_label'] = make_status_label
         self.jinja2_env.filters['make_action_label'] = make_action_label
+        self.jinja2_env.filters['get_max'] = get_max
         self.jinja2_env.filters['get_sorted_keys'] = get_sorted_keys
 
         # render!
@@ -162,7 +165,6 @@ class HTMLPackageCandidates(_TMPLBase):
                 _fail_uniq = True
         return _fail_uniq
 
- 
     def _extend_data(self, data):
         logger_cli.info("-> Sorting packages")
         # labels
@@ -183,6 +185,9 @@ class HTMLPackageCandidates(_TMPLBase):
         _l = len(data['all'])
         _progress = Progress(_l)
         _progress_index = 0
+        # counters
+        _ec = _es = _eo = _eu = 0
+        _dc = _ds = _do = _du = 0
         while _progress_index < _l:
             # progress bar
             _progress_index += 1
@@ -194,6 +199,8 @@ class HTMLPackageCandidates(_TMPLBase):
                 data['unlisted'].update({
                     _pn: _val
                 })
+                _eu += _val['results'].keys().count(const.VERSION_ERR)
+                _du += _val['results'].keys().count(const.VERSION_DOWN)
             else:
                 _c = _val['desc']['component']
                 # critical: not blank and not system
@@ -201,18 +208,39 @@ class HTMLPackageCandidates(_TMPLBase):
                     data['critical'].update({
                         _pn: _val
                     })
+                    _ec += _val['results'].keys().count(const.VERSION_ERR)
+                    _dc += _val['results'].keys().count(const.VERSION_DOWN)
                 # system
                 elif _c == 'System':
                     data['system'].update({
                         _pn: _val
                     })
+                    _es += _val['results'].keys().count(const.VERSION_ERR)
+                    _ds += _val['results'].keys().count(const.VERSION_DOWN)
                 # rest
                 else:
                     data['other'].update({
                         _pn: _val
                     })
+                    _eo += _val['results'].keys().count(const.VERSION_ERR)
+                    _do += _val['results'].keys().count(const.VERSION_DOWN)
+
         
         _progress.newline()
+
+        data['errors'] = {
+            'mirantis': _ec,
+            'system': _es,
+            'other': _eo,
+            'unlisted': _eu
+        }
+        data['downgrades'] = {
+            'mirantis': _dc,
+            'system': _ds,
+            'other': _do,
+            'unlisted': _du
+        }
+
         
         # Count values on per-node basis
         for key, value in data['nodes'].iteritems():
