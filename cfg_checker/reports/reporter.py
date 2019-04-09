@@ -58,18 +58,6 @@ def make_status_label(sts):
     return const.all_statuses[sts]
 
 
-def make_cmp_label(text):
-    _d = {
-        const.VERSION_EQUAL: "equal",
-        const.VERSION_DIFF: "different",
-        const.VERSION_NA: "no status"
-    }
-    if text in _d:
-        return _d[text]
-    else:
-        return text + '(!)'
-
-
 @six.add_metaclass(abc.ABCMeta)
 class _Base(object):
     def __init__(self):
@@ -122,7 +110,6 @@ class _TMPLBase(_Base):
         self.jinja2_env.filters['is_equal'] = is_equal
         self.jinja2_env.filters['is_active'] = is_active
         self.jinja2_env.filters['linebreaks'] = line_breaks
-        self.jinja2_env.filters['make_cmp_label'] = make_cmp_label
         self.jinja2_env.filters['make_status_label'] = make_status_label
         self.jinja2_env.filters['make_action_label'] = make_action_label
         self.jinja2_env.filters['get_sorted_keys'] = get_sorted_keys
@@ -184,6 +171,8 @@ class HTMLPackageCandidates(_TMPLBase):
             const.VERSION_DIFF: "different",
             const.VERSION_NA: "n/a"
         }
+        data['status_err'] = const.VERSION_ERR
+        data['status_down'] = const.VERSION_DOWN
 
         # Presort packages
         data['critical'] = {}

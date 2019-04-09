@@ -370,9 +370,46 @@
     <div>
 {% endmacro %}
 
+{% macro render_package(pkg_name, dat, status, action, id_label, counter) %}
+        <tr onclick="toggleClassByID('{{ id_label }}_{{ pkg_name }}_{{ status }}', '{{ counter }}')" id="{{ id_label }}_{{ pkg_name }}_{{ status }}_button{{ counter }}">
+            <td class="repo">{{ dat['desc']['repo'] }}</td>
+            <td class="component">{{ dat['desc']['component'] }}</td>
+            <td class="app">{{ dat['desc']['app'] }}</td>
+            <td class="package_name">{{ pkg_name }}</td>
+            <td class="status_container" colspan="3">
+                <div class="status {{ status | make_status_label }}">{{ status | make_status_label }}</div>
+                {% if action | make_action_label %}
+                    <div class="action">{{ action | make_action_label }}</div>
+                {% endif %}
+            </td>
+        </tr>
+        <tr class="collapsable" id="{{ id_label }}_{{ pkg_name }}_{{ status }}_{{ counter }}"><td colspan=7>
+        <table class="nodes"><tbody>
+            {% for node in dat['results'][status][action].keys() | sort %}
+            {% set nd = dat['results'][status][action][node] %}
+            <tr>
+                <td class="repo">-</td>
+                <td class="package_name" colspan="3">{{ node }}</td>
+                <td class="installed">
+                    <div class="tooltip">
+                        {% call prettify_version(nd['i']) %}
+                        <pre class="tooltiptext">{{ nd['raw'] | linebreaks }}</pre>
+                        {% endcall %}
+                    </div>
+                </td>
+                <td class="candidate">{{ nd['c'].version }}</td>
+                <td class="release">{{ dat['r'].version }}</td>
+            </tr>
+            {% endfor %}
+        </tbody></table>
+        </td></tr>
+    {{ caller() }}
+{% endmacro %}
+
 {% macro package_table(pkg_dict, id_label) %}
 <div id="{{ id_label }}" class="barcontent">
     <h5>{{ caller() }}</h5>
+    {% set pkg = namespace(counter=1) %}
     <table class="pkgversions">
             <tbody>
             <tr>
@@ -384,43 +421,42 @@
                 <td class="table_header candidate">Candidate</td>
                 <td class="table_header release">Release</td>
             </tr>
+            <tr><td colspan="7">Errors</td></tr>
             {% for pkg_name in pkg_dict | get_sorted_keys %}
             {% set dat = pkg_dict[pkg_name] %}
+                {% set counter = 1 + loop.index0%}
+                {% if status_err in dat['results'] %}
+                    <!-- Print errors -->
+                    {% for action in dat['results'][status_err].keys() %}
+                        {% set counter = 1 + loop.index0 %}
+                        {% call render_package(pkg_name, dat, status_err, action, id_label, counter) %}
+                        {% endcall %}
+                    {% endfor %}           
+                {% endif%}
+            {% endfor %}
+            <tr><td colspan="7">Downgrades</td></tr>
+            {% for pkg_name in pkg_dict | get_sorted_keys %}
+            {% set dat = pkg_dict[pkg_name] %}
+                {% if status_down in dat['results'] %}
+                <!-- Print downgrades -->
+                    {% for action in dat['results'][status_down].keys() %}
+                        {% set counter = 1 + loop.index0 %}    
+                        {% call render_package(pkg_name, dat, status_down, action, id_label, counter) %}
+                        {% endcall %}
+                    {% endfor %}
+                {% endif %}
+            {% endfor %}
+            <tr><td colspan="7">All others</td></tr>
+            {% for pkg_name in pkg_dict | get_sorted_keys %}
+            {% set dat = pkg_dict[pkg_name] %}
+                <!-- Print all other -->
                 {% for status in dat['results'].keys() %}
-                {% set pkg_counter = 1 + loop.index0 %}
+                {% set counter = 1 + loop.index0 %}
                 {% for action in dat['results'][status].keys() %}
-            <tr onclick="toggleClassByID('{{ id_label }}_{{ pkg_name }}', '{{ pkg_counter }}')" id="{{ id_label }}_{{ pkg_name }}_button{{ pkg_counter }}">
-                <td class="repo">{{ dat['desc']['repo'] }}</td>
-                <td class="component">{{ dat['desc']['component'] }}</td>
-                <td class="app">{{ dat['desc']['app'] }}</td>
-                <td class="package_name">{{ pkg_name }}</td>
-                <td class="status_container" colspan="3">
-                    <div class="status {{ status | make_status_label }}">{{ status | make_status_label }}</div>
-                    {% if action | make_action_label %}
-                        <div class="action">{{ action | make_action_label }}</div>
+                    {% if status != status_err and status != status_down %}
+                        {% call render_package(pkg_name, dat, status, action, id_label, counter) %}
+                        {% endcall %}
                     {% endif %}
-                </td>
-            </tr>
-            <tr class="collapsable" id="{{ id_label }}_{{ pkg_name }}_{{ pkg_counter }}"><td colspan=7>
-            <table class="nodes"><tbody>
-                {% for node in dat['results'][status][action].keys() | sort %}
-                {% set nd = dat['results'][status][action][node] %}
-                <tr>
-                    <td class="repo">-</td>
-                    <td class="package_name" colspan="3">{{ node }}</td>
-                    <td class="installed">
-                        <div class="tooltip">
-                            {% call prettify_version(nd['i']) %}
-                            <pre class="tooltiptext">{{ nd['raw'] | linebreaks }}</pre>
-                            {% endcall %}
-                        </div>
-                    </td>
-                    <td class="candidate">{{ nd['c'].version }}</td>
-                    <td class="release">{{ dat['r'].version }}</td>
-                </tr>
-                {% endfor %}
-            </tbody></table>
-            </td></tr>
                 {% endfor %}
                 {% endfor %}
             {% endfor %}
