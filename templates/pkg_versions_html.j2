@@ -133,62 +133,12 @@
             color: white;
         }
 
-
-        /* Tab styles */
-        .tab {
-            float: left;
-            width: 130px;
-            border: 1px solid #fff;
-            background-color: #e0f0e9;
-        }
-
-        /* Style the buttons that are used to open the tab content */
-        .tab button {
-            display: block;
-            background-color: inherit;
-            color: Black;
-            border: none;
-            outline: none;
-            font-family: "Lucida Console", Monaco, monospace;
-            text-align: left;
-            cursor: pointer;
-            transition: 0.3s;
-            font-size: 1.1em;
-            width: 100%;
-            padding: 1px;
-            margin: 1px;
-        }
-
         button > div.node_name {
             float: left;
             font-size: 0.8em;
         }
 
 
-        /* Change background color of buttons on hover */
-        .tab button:hover {
-            background-color: #72c6c6;
-        }
-
-        /* Create an active/current "tab button" class */
-        .tab button.active {
-            background-color: #328686;
-            color: white;
-        }
-
-        /* Style the tab content */
-        .tabcontent {
-            display: none;
-            position: absolute;
-            font-size: 1em;
-            padding: 0.5em;
-            right: -10%;
-            top: 55px;
-            transform: translateX(-12%);
-            width: calc(100% - 170px);
-            overflow-x: scroll;
-            overflow-wrap: break-word;
-        }
         .collapsable {
             visibility: collapse;
             display: none;
@@ -264,53 +214,20 @@
             // Declare all variables
             var i, content, items;
 
-            // Get all elements with class="tabcontent" and hide them
+            // Get all elements with class="barcontent" and hide them
             content = document.getElementsByClassName("barcontent");
             for (i = 1; i < content.length; i++) {
                 content[i].style.display = "none";
             }
             content[0].style.display = "block";
 
-            content = document.getElementsByClassName("tabcontent");
-            for (i = 1; i < content.length; i++) {
-                content[i].style.display = "none";
-            }
-            content[0].style.display = "block";
-
-            // Get all elements with class="tab-item" and remove the class "active"
+            // Get all elements with class="bar-item" and remove the class "active"
             items = document.getElementsByClassName("bar-item");
             for (i = 1; i < items.length; i++) {
                 items[i].className = items[i].className.replace(" active", "");
             }
             items[0].className += " active";
 
-            // Get all elements with class="tab-item" and remove the class "active"
-            items = document.getElementsByClassName("tab-item");
-            for (i = 1; i < items.length; i++) {
-                items[i].className = items[i].className.replace(" active", "");
-            }
-            //items[0].className += " active";
-
-        }
-        function openTab(evt, tabName) {
-            // Declare all variables
-            var i, tabcontent, tabitems;
-
-            // Get all elements with class="tabcontent" and hide them
-            tabcontent = document.getElementsByClassName("tabcontent");
-            for (i = 0; i < tabcontent.length; i++) {
-                tabcontent[i].style.display = "none";
-            }
-
-            // Get all elements with class="tab-item" and remove the class "active"
-            tabitems = document.getElementsByClassName("tab-item");
-            for (i = 0; i < tabitems.length; i++) {
-                tabitems[i].className = tabitems[i].className.replace(" active", "");
-            }
-
-            // Show the current tab, and add an "active" class to the link that opened the tab
-            document.getElementById(tabName).style.display = "block";
-            evt.currentTarget.className += " active";
         }
         function openBar(evt, barName) {
             // Declare all variables
@@ -349,7 +266,6 @@
 	<button class="bar-item" onclick="openBar(event, 'system')">System</button>
     <button class="bar-item" onclick="openBar(event, 'other')">Other</button>
     <button class="bar-item" onclick="openBar(event, 'unlisted')">Unlisted</button>
-	<button class="bar-item" onclick="openBar(event, 'nodes')">Per Node</button>
 </div>
 
 {% macro prettify_version(v) %}
@@ -492,74 +408,5 @@
     Packages that are not listed in version map. I.e. unexpected on the environment
 {%- endcall %}
        
-<div id="nodes" class="barcontent">
-    <!-- Per node -->
-    <div class="tab">
-    {% for node_name in nodes.keys() | sort %}
-        {% if counters[node_name]['package_diff'] %}
-    <button class="tab-item" onclick="openTab(event, '{{ node_name | shortname }}')">
-        <div class="dot_green">&#9679;</div>
-        <div class="node_name">{{ node_name | shortname }}</div>
-        <div class="smallgreytext">({{ counters[node_name]['package_diff'] }} / {{ counters[node_name]['packages'] }})</div>
-    </button>
-        {% endif %}    
-    {% endfor %}
-    {% for node_name in nodes.keys() | sort %}
-        {% if not counters[node_name]['package_diff'] %}
-    <button class="tab-item" onclick="openTab(event, '{{ node_name | shortname }}')">
-        <div class="dot_empty">&#9675;</div>
-        <div class="node_name">{{ node_name | shortname }}</div>
-        <div class="smallgreytext">({{ counters[node_name]['package_diff'] }} / {{ counters[node_name]['packages'] }})</div>
-    </button>
-        {% endif %}
-    {% endfor %}
-    </div>
-    {% for node_name in nodes.keys() | sort %}
-    <div id="{{ node_name | shortname }}" class="tabcontent">
-        <table class="pkgversions">
-            <tbody>
-            <tr>
-                <td class="Header">Package name</td>
-                <td class="Header">Installed</td>
-                <td class="Header">Candidate</td>
-            </tr>
-            <tr><td colspan=3>Package with different versions uniq for this node</td></tr>
-            {% for package_name in nodes[node_name]['packages'] | sort %}
-                {% if not nodes[node_name]['packages'][package_name]['is_equal'] %}
-                {% if nodes[node_name]['packages'][package_name]['fail_uniq'] %}
-            <tr>
-                <td class="pkgName">{{ package_name }}</td>
-                <td class="version differ">
-                    <div class="tooltip">{{ nodes[node_name]['packages'][package_name]['installed'] }}
-                        <pre class="tooltiptext">{{ nodes[node_name]['packages'][package_name]['raw'] | linebreaks }}</pre>
-                    </div>
-                </td>
-                <td class="version">{{ nodes[node_name]['packages'][package_name]['candidate'] }}</td>
-            </tr>
-                {% endif %}
-                {% endif %}
-            {% endfor %}
-            <tr><td colspan=3>Packages with different versions on nodes with similar role</td></tr>
-            {% for package_name in nodes[node_name]['packages'] | sort %}
-                {% if not nodes[node_name]['packages'][package_name]['is_equal'] %}
-                {% if not nodes[node_name]['packages'][package_name]['fail_uniq'] %}
-            <tr>
-                <td class="pkgName">{{ package_name }}</td>
-                <td class="version differ">
-                    <div class="tooltip">{{ nodes[node_name]['packages'][package_name]['installed'] }}
-                        <pre class="tooltiptext">{{ nodes[node_name]['packages'][package_name]['raw'] | linebreaks }}</pre>
-                    </div>
-                </td>
-                <td class="version">{{ nodes[node_name]['packages'][package_name]['candidate'] }}</td>
-            </tr>
-                {% endif %}
-                {% endif %}
-            {% endfor %}
-            <tr><td colspan=3>Packages with same versions (installed vs candidate): {{ counters[node_name]['package_eq'] }}</td></tr>
-            </tbody>
-        </table>
-    </div>
-    {% endfor %}
-</div>
 </body>
 </html>

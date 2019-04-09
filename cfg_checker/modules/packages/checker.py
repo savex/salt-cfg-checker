@@ -61,7 +61,7 @@ class CloudPackageChecker(SaltNodes):
         _progress = Progress(len(self.nodes.keys()))
         _progress_index = 0
         # Collect packages from all of the nodes in flat dict
-        _diff_packages = {}
+        
         _all_packages = {}
         for node_name, node_value in self.nodes.iteritems():
             _uniq_len = len(_all_packages.keys())
@@ -108,12 +108,6 @@ class CloudPackageChecker(SaltNodes):
                         "r": _release,
                     }
                 
-                # list with differences
-                if _name not in _diff_packages:
-                    _diff_packages[_name] = {}
-                    _diff_packages[_name]['df_nodes'] = {}
-                    _diff_packages[_name]['eq_nodes'] = []
-
                 _cmp = VersionCmpResult(
                     _ver_ins,
                     _ver_can,
@@ -139,21 +133,6 @@ class CloudPackageChecker(SaltNodes):
                     'raw': _value['raw']
                 }
 
-                if _cmp.status != const.VERSION_OK:
-                    # Saving compare value so we not do str compare again
-                    _value['is_equal'] = False
-                    # add node name to list
-                    _diff_packages[_name]['df_nodes'][node_name] = {
-                        'i': _value['installed'],
-                        'c': _value['candidate'],
-                        'raw': _value['raw']
-                    }
-                else:
-                    # Saving compare value so we not do str compare again
-                    _value['is_equal'] = True
-                    _diff_packages[_name]['eq_nodes'].append(node_name)
-
-        self.diff_packages = _diff_packages
         self.all_packages = _all_packages
         _progress.newline()
 
@@ -177,7 +156,6 @@ class CloudPackageChecker(SaltNodes):
         _report({
             "nodes": self.nodes,
             "rc_diffs": {},
-            "pkg_diffs": self.diff_packages,
             "all_pkg": self.all_packages,
             "mcp_release": self.mcp_release,
             "openstack_release": self.openstack_release

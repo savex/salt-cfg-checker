@@ -12,21 +12,6 @@ pkg_dir = os.path.join(pkg_dir, os.pardir, os.pardir)
 pkg_dir = os.path.normpath(pkg_dir)
 
 
-def shortname(node_fqdn):
-    # form shortname out of node fqdn
-    return node_fqdn.split(".", 1)[0]
-
-
-def is_equal(pkg_dict):
-    # compare versions of given package
-    return pkg_dict['installed'] == pkg_dict['candidate']
-
-
-def is_active(node_dict):
-    # check node status in node dict
-    return node_dict['status'] == const.NODE_UP
-
-
 def line_breaks(text):
     # replace python linebreaks with html breaks
     return text.replace("\n", "<br />")
@@ -49,8 +34,11 @@ def get_sorted_keys(td):
             )
         )
 
+
 def get_max(_list):
     return sorted(_list)[-1]
+
+
 
 def make_action_label(act):
     return const.all_actions[act]
@@ -94,7 +82,6 @@ class _TMPLBase(_Base):
         data.update({
             "nodes": payload['nodes'],
             "rc_diffs": payload['rc_diffs'],
-            "pkg_diffs": payload['pkg_diffs'],
             "all": payload['all_pkg'],
             "mcp_release": payload['mcp_release'],
             "openstack_release": payload['openstack_release'],
@@ -108,9 +95,6 @@ class _TMPLBase(_Base):
         self._count_totals(data)
 
         # specific filters
-        self.jinja2_env.filters['shortname'] = shortname
-        self.jinja2_env.filters['is_equal'] = is_equal
-        self.jinja2_env.filters['is_active'] = is_active
         self.jinja2_env.filters['linebreaks'] = line_breaks
         self.jinja2_env.filters['make_status_label'] = make_status_label
         self.jinja2_env.filters['make_action_label'] = make_action_label
@@ -142,37 +126,9 @@ class CSVAllPackages(_TMPLBase):
 class HTMLPackageCandidates(_TMPLBase):
     tmpl = "pkg_versions_html.j2"
 
-    @staticmethod
-    def is_fail_uniq(p_dict, p_name, nodes, node_name):
-        # look up package fail for nodes with similar role
-        _tgroup = nodes[node_name]['node_group']
-        # filter all nodes with the same role
-        _nodes_list = filter(
-            lambda nd: nodes[nd]['node_group'] == _tgroup and nd != node_name,
-            nodes
-        )
-        # lookup same package
-        _fail_uniq = False
-        for _node_name in _nodes_list:
-            # check if there is a package present on node
-            _nd = nodes[_node_name]['packages']
-            if p_name not in _nd:
-                continue
-            # if both backages has same version and differ from candidate
-            if p_dict['candidate'] == _nd[p_name]['candidate'] \
-                    and _nd[p_name]['candidate'] == _nd[p_name]['installed']:
-                # it is not uniq, mark and break
-                _fail_uniq = True
-        return _fail_uniq
-
     def _extend_data(self, data):
         logger_cli.info("-> Sorting packages")
         # labels
-        data['cmp'] = {
-            const.VERSION_EQUAL: "equal",
-            const.VERSION_DIFF: "different",
-            const.VERSION_NA: "n/a"
-        }
         data['status_err'] = const.VERSION_ERR
         data['status_down'] = const.VERSION_DOWN
 
@@ -240,38 +196,6 @@ class HTMLPackageCandidates(_TMPLBase):
             'other': _do,
             'unlisted': _du
         }
-
-        
-        # Count values on per-node basis
-        for key, value in data['nodes'].iteritems():
-            # count differences
-            data['counters'][key] = {}
-            data['counters'][key]['packages'] = len(value['packages'].keys())
-            data['counters'][key]['package_diff'] = 0
-            data['counters'][key]['package_eq'] = 0
-
-            # Lookup if this fail is uniq for this node
-            for pkg_name, pkg_value in value['packages'].iteritems():
-                if pkg_value['is_equal']:
-                    pkg_value['fail_uniq'] = False
-                    data['counters'][key]['package_eq'] += 1
-                else:
-                    pkg_value['fail_uniq'] = self.is_fail_uniq(
-                        pkg_value,
-                        pkg_name,
-                        data['nodes'],
-                        key
-                    )
-                    data['counters'][key]['package_diff'] += 1
-       
-        # Count values on all-diffs basis
-        for key, value in data['pkg_diffs'].iteritems():
-            data['counters'][key] = {}
-            data['counters'][key]['df_nodes'] = len(value['df_nodes'].keys())
-            data['counters'][key]['eq_nodes'] = len(value['eq_nodes'])
-
-        # Save all packages counter
-        data['counters']['total_packages'] = data['pkg_diffs'].keys()
 
 
 # Package versions report

@@ -17,9 +17,6 @@ VERSION_UP = next(_cnt)
 VERSION_DOWN = next(_cnt)
 VERSION_ERR = next(_cnt)
 
-VERSION_DIFF = next(_cnt)
-VERSION_EQUAL = next(_cnt)
-
 # action const order is important!
 # biggest get shown in report top row
 ACT_NA = next(_cnt)
