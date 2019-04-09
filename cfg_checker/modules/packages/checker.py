@@ -60,19 +60,23 @@ class CloudPackageChecker(SaltNodes):
         logger_cli.info("# Cross-comparing: Installed vs Candidates vs Release")
         _progress = Progress(len(self.nodes.keys()))
         _progress_index = 0
+        _total_processed = 0
         # Collect packages from all of the nodes in flat dict
-        
         _all_packages = {}
         for node_name, node_value in self.nodes.iteritems():
             _uniq_len = len(_all_packages.keys())
             _progress_index += 1
+            # progress will jump from node to node
+            # it is very costly operation to execute it for each pkg
             _progress.write_progress(
                 _progress_index,
-                note="/ {} uniq packages found".format(_uniq_len)
+                note="/ {} uniq out of {} packages found".format(
+                    _uniq_len,
+                    _total_processed
+                )
             )
             for _name, _value in node_value['packages'].iteritems():
-                if _name == 'librbd1' and node_name == 'gtw01.us.intcloud.mirantis.net':
-                    a = 1
+                _total_processed += 1
                 # Parse versions
                 _ver_ins = DebianVersion(_value['installed'])
                 _ver_can = DebianVersion(_value['candidate'])
