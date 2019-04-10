@@ -4,9 +4,17 @@ after the deployment using number of routines to create reports
 
 # Local run
 It is pretty simple: 
-- deploy on cfg node
-- check your local.env file for parameters
-- ...run: `cfg_check -h`
+- deploy on cfg node, using root creds, on /root/
+```bash
+git clone https://github.com/savex/salt-cfg-checker
+cd salt-cfg-checker
+virtualenv .cfgcheck
+source .cfgcheck/bin/activate
+pip install -r requirements.txt
+```
+- you can check your local.env file for parameters (no need to update for running on cfg node)
+- packages report (HTML): `mcp_check packages report --html cloud-packages.html`
+- packages report (CSV): `mcp_check packages report --csv cloud-packages.csv`
 
 # External cloud
 Be sure to 
@@ -17,11 +25,16 @@ Be sure to
  - if node listing fails, execute `salt-key` on master 
    and create an `etc/nodes.list` file with minions list
 
+# Version history
+- [Done] Update messages to same style
+- [Done] Release versions support with customizable updates
+- [Done] Upgrades, errors and downgrades detection
+- [Done] Proper Debian package version naming convention support (https://www.debian.org/doc/debian-policy/ch-controlfields.html#version)
+
 TODO:
 - Check root on startup, exit
 - Prepare script to create venv
 - Format reclass compare file
-- Update messages to same style
+
 
 Cheers!
-
