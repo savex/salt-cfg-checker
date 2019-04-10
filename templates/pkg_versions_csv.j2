@@ -1,8 +1,23 @@
-package_name,result,installed,candidate,node
-{% for pkg_name in all_pkg.keys() | sort %}
-    {% for comb in all_pkg[pkg_name].keys() | sort %}
-        {% for result in all_pkg[pkg_name][comb]["results"].keys() %}
-{{ pkg_name }},{{ result|make_cmp_label }},{{ all_pkg[pkg_name][comb]['i'].version }},{{ all_pkg[pkg_name][comb]['c'].version }},{{ all_pkg[pkg_name][comb]['results'][result][0] }}
+{% macro package_list(pkg_dict, id_label) %}
+    {% for pkg_name in pkg_dict.keys() | get_sorted_keys %}
+        {% set p = pkg_dict[pkg_name] %}
+        {% for status in p['results'].keys() | sort(reverse=true) %}
+        {% for action in p['results'][status].keys() | sort(reverse=true) %}
+            {% for node in p['results'][status][action].keys() | sort %}
+                {% set nd = p['results'][status][action][node] %}
+    {{ id_label }},{{ pkg_name }},{{ node }},{{ status | make_status_label }},{{ action | make_action_label }},{{ nd['i'].version }},{{ nd['c'].version }},{{ p['r'] }}
+            {% endfor %}
+        {% endfor %}
         {% endfor %}
     {% endfor %}
-{% endfor %}
+    {{ caller() }}
+{% endmacro %}
+type,package_name,node,status,action,installed,candidate,release
+{% call package_list(critical, "mirantis") %}
+{% endcall %}
+{% call package_list(system, "system") %}
+{%- endcall %}
+{% call package_list(other, "other") %}
+{%- endcall %}
+{% call package_list(unlisted, "unlisted") %}
+{%- endcall %}
