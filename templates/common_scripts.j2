@@ -1,0 +1,56 @@
+<script language="JavaScript">
+        function toggleClassByID(pkg) {
+            var element = document.getElementById(pkg);
+            //var button = document.getElementById(pkg+"_button");
+
+            if( element.className && element.className.indexOf("in") > -1 ) {
+                element.classList.remove("in");
+                //button.innerHTML = "&uarr;"
+            }
+            else {
+                element.classList.add("in");
+                //button.innerHTML = "&darr;"
+            }
+        }
+    </script>
+    <script language="JavaScript">
+        function init() {
+            // Declare all variables
+            var i, content, items;
+
+            // Get all elements with class="barcontent" and hide them
+            content = document.getElementsByClassName("barcontent");
+            for (i = 1; i < content.length; i++) {
+                content[i].style.display = "none";
+            }
+            content[0].style.display = "block";
+
+            // Get all elements with class="bar-item" and remove the class "active"
+            items = document.getElementsByClassName("bar-item");
+            for (i = 1; i < items.length; i++) {
+                items[i].className = items[i].className.replace(" active", "");
+            }
+            items[0].className += " active";
+
+        }
+        function openBar(evt, barName) {
+            // Declare all variables
+            var i, barcontent, baritems;
+
+            // Get all elements with class="barcontent" and hide them
+            barcontent = document.getElementsByClassName("barcontent");
+            for (i = 0; i < barcontent.length; i++) {
+                barcontent[i].style.display = "none";
+            }
+
+            // Get all elements with class="bar-item" and remove the class "active"
+            baritems = document.getElementsByClassName("bar-item");
+            for (i = 0; i < baritems.length; i++) {
+                baritems[i].className = baritems[i].className.replace(" active", "");
+            }
+
+            // Show the current tab, and add an "active" class to the link that opened the tab
+            document.getElementById(barName).style.display = "block";
+            evt.currentTarget.className += " active";
+        }
+    </script>

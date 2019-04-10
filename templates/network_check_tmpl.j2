@@ -2,133 +2,37 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Model Tree Changes</title>
+    <title>Nodes and Networks report</title>
+    {% include 'common_styles.j2' %}
+    {% include 'common_scripts.j2' %}
     <style>
-        body {
-            font-family: Verdana, Geneva, Tahoma, sans-serif;
-            font-size: 90% !important;
-        }
-
-        h5 {padding-left: 1em; margin: 0.6em}
-        .note {font-style: italic; font-weight: normal; padding-left: 1em; margin: 0.2em; font-size: 0.7em; color: gray;}
-		/* Common */
-		.header {display:block;}
-
-        /* Bar */
-		.bar{
-			background: linear-gradient(to bottom, #126666 0%, #284753 77%);
-			width:100%;
-			overflow:hidden;
+		/* Node rows*/
+		.node {
 			display: inline-block;
+			background-color: white;
 		}
-		.bar .bar-item{
-			padding:8px 16px;
-			float:left;
-			width:auto;
-			border:none;
-			display:block;
-			outline:0;
-            color: White;
-            background-color: transparent;
+		
+        tr.node > td {
+            display: block;
+            float: left;
+            padding: 1px;
+            padding-left: 5px;
+            padding-right: 5px;
+            color: black;
+            background-color: #A1BbA1;
+            text-align: center;
+            margin: 2px;
         }
         
-        .bar .bar-item:hover {background-color: #328686;}
-        .bar .bar-item.active {background-color: #328686; color: white;}
-
-        .collapsable {visibility: collapse; display: none;}
-        .collapsable.in {visibility: visible; display: table-row;}
-
-        /* Tables */
-        .table_header {
-            background-color: #284753;
-            color: wheat;
-            text-align: center;
-            font-family: "Open Sans", Arial, Helvetica, sans-serif;
+        .meters {
+			display: inline-block;        
         }
-
-        /* Tooltip container */
-        .tooltip {
-            position: relative;
-            display: inline-block;
-            border-bottom: 1px dotted black;
+        
+        td.meters > .meter {
+            display: block;
+            float: left;
         }
-
-        .tooltip .tooltiptext {
-            visibility: hidden;
-            background-color: black;
-            font-family: "Lucida Console", Monaco, monospace;
-            font-size: 0.5em;
-            width: auto;
-            color: #fff;
-            border-radius: 6px;
-            padding: 5px 5px;
-
-            /* Position the tooltip */
-            position: absolute;
-            z-index: 1;
-        }
-
-        .tooltip:hover .tooltiptext {
-            visibility: visible;
-        }
-
     </style>
-    <script language="JavaScript">
-        function toggleClassByID(pkg) {
-            var element = document.getElementById(pkg);
-            //var button = document.getElementById(pkg+"_button");
-
-            if( element.className && element.className.indexOf("in") > -1 ) {
-                element.classList.remove("in");
-                //button.innerHTML = "&uarr;"
-            }
-            else {
-                element.classList.add("in");
-                //button.innerHTML = "&darr;"
-            }
-        }
-    </script>
-    <script language="JavaScript">
-        function init() {
-            // Declare all variables
-            var i, content, items;
-
-            // Get all elements with class="barcontent" and hide them
-            content = document.getElementsByClassName("barcontent");
-            for (i = 1; i < content.length; i++) {
-                content[i].style.display = "none";
-            }
-            content[0].style.display = "block";
-
-            // Get all elements with class="bar-item" and remove the class "active"
-            items = document.getElementsByClassName("bar-item");
-            for (i = 1; i < items.length; i++) {
-                items[i].className = items[i].className.replace(" active", "");
-            }
-            items[0].className += " active";
-
-        }
-        function openBar(evt, barName) {
-            // Declare all variables
-            var i, barcontent, baritems;
-
-            // Get all elements with class="barcontent" and hide them
-            barcontent = document.getElementsByClassName("barcontent");
-            for (i = 0; i < barcontent.length; i++) {
-                barcontent[i].style.display = "none";
-            }
-
-            // Get all elements with class="bar-item" and remove the class "active"
-            baritems = document.getElementsByClassName("bar-item");
-            for (i = 0; i < baritems.length; i++) {
-                baritems[i].className = baritems[i].className.replace(" active", "");
-            }
-
-            // Show the current tab, and add an "active" class to the link that opened the tab
-            document.getElementById(barName).style.display = "block";
-            evt.currentTarget.className += " active";
-        }
-    </script>
 </head>
 <body onload="init()">
 
@@ -137,14 +41,73 @@
     <div class="text">{{ openstack_release }}</div>
     <div class="label">MCP Version:</div>
     <div class="text">{{ mcp_release }}</div>
+    <div class="label date">generated on: {{ gen_date }}</div>
 </div>
 
 <div class="bar">
-    <button class="bar-item" onclick="openBar(event, 'mirantis')">Nodes</button>
-    <button class="bar-item" onclick="openBar(event, 'system')">Networks</button>
-    <button class="bar-item" onclick="openBar(event, 'other')">Other</button>
+    <button class="bar-item" onclick="openBar(event, 'nodes')">Nodes</button>
+    <button class="bar-item" onclick="openBar(event, 'networks')">Networks</button>
+    <button class="bar-item" onclick="openBar(event, 'services')">Other</button>
 </div>
-    
+
+{% macro nodes_page(nodes, id_label) %}
+<div id="{{ id_label }}" class="barcontent">
+    <h5>{{ caller() }}</h5>
+    <hr>
+    <table class="cluster_nodes">
+        <tr class="node hw">
+            <td class="status">UP</td>
+            <td class="name">cfg01.internal.net</td>
+            <td class="vendor">QEMU</td>
+            <td class="meter cpu">vCPU: 12</td>
+            <td class="meter ram">RAM: 500GB</td>
+            <td class="meter disk">VDA: 150/140/135</td>
+        </tr>
+    </table>
+    <hr>
+</div>
+{% endmacro %}
+
+{% macro networks_page(networks, id_label) %}
+<div id="{{ id_label }}" class="barcontent">
+    <h5>{{ caller() }}</h5>
+    <hr>
+    <table class="networks">
+        <tr class="subnet">192.168.10.0/24</tr>
+        <tr class="net collapsable">
+            <td class="status">UP</td>
+            <td class="name">cfg01.internal.net</td>
+            <td class="ip">192.168.10.11</td>
+            <td class="param">1500</td>
+            
+            
+        </tr>
+    </table>
+    <hr>
+</div>
+{% endmacro %}
+
+{% macro services_page(services, id_label) %}
+<div id="{{ id_label }}" class="barcontent">
+    <h5>{{ caller() }}</h5>
+    <hr>
+</div>
+{% endmacro %}
+
+<!-- Cluster nodes page -->
+{% call nodes_page(nodes, "nodes") %}
+    Cluster nodes status and simple meterings
+{% endcall %}
+
+<!-- Cluster nodes page -->
+{% call networks_page(networks, "networks") %}
+    Networks in the cluster
+{% endcall %}
+
+<!-- Cluster nodes page -->
+{% call services_page(services, "services") %}
+    Services status in the cluster
+{% endcall %}
 
 </body>
 </html>

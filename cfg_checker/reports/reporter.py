@@ -1,7 +1,8 @@
-import jinja2
-import six
 import abc
+import jinja2
 import os
+import six
+import time
 
 from cfg_checker.common import const
 from cfg_checker.common import logger, logger_cli
@@ -37,7 +38,6 @@ def get_sorted_keys(td):
 
 def get_max(_list):
     return sorted(_list)[-1]
-
 
 
 def make_action_label(act):
@@ -104,7 +104,8 @@ class _TMPLBase(_Base):
     def common_data(self):
         return {
             'counters': {},
-            'salt_info': {}
+            'salt_info': {},
+            'gen_date': time.strftime("%m/%d/%Y %H:%M:%S")
         }
 
     def _extend_data(self, data):

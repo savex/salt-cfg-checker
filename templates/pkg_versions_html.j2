@@ -3,37 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <title>Cloud Package versions check</title>
-    <style>
-        body {
-            font-family: "Open Sans", Arial, Helvetica, sans-serif;
-            font-size: 90% !important;
-        }
-        h5 {padding-left: 1em; margin: 0.6em}
-        .note {font-style: italic; font-weight: normal; padding-left: 1em; margin: 0.2em; font-size: 0.7em; color: gray;}
-		/* Common */
-		.header {
-			display:block;
-		}
-		
-		.label {float: left; font-size: 0.7em; color: Black; line-height: 17px; padding-left: 10px;}
-        .text {float: left; font-size: 0.8em; color: Navy; padding-left: 2px;}
-        
-        .repo {width: 3em; text-align: center; font-size: 0.7em; color: #113b11; font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;}
-        .component, td.app, td.package_name {
+    {% include 'common_styles.j2' %}
+    {% include 'common_scripts.j2' %}
+    <style>        
+        td.repo {width: 3em; text-align: center; font-size: 0.7em; color: #113b11; font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;}
+        td.component, td.app, td.package_name {
             font-size: 0.75em;
             text-align: center;
             color: #113b11;
             font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
         }
         
-        .package_name {
-            padding-left: 10px;
-            text-align: left;
-        }
         td.repo {column-width: 50px;}
         td.component {column-width: 130px;}
         td.app {column-width: 80px;}
-        td.package_name {column-width: 200px;}
+        td.package_name {column-width: 200px; padding-left: 10px; text-align: left;}
         td.installed {column-width: 16%;}
         td.candidate {column-width: 16%;}
         td.release {column-width: 13%;}
@@ -95,53 +79,7 @@
 
         .smallgreytext {float: right; font-size: 0.5em; color: gray;}
 
-		/* Bar */
-		.bar{
-			background: linear-gradient(to bottom, #126666 0%, #284753 77%);
-			width:100%;
-			overflow:hidden;
-			display: inline-block;
-		}
-		.bar .bar-item{
-			padding:8px 16px;
-			float:left;
-			width:auto;
-			border:none;
-			display:block;
-			outline:0;
-            color: White;
-            background-color: transparent;
-        }
-        
-        .bar .bar-item:hover {
-            background-color: #328686;
-        }
-        
-        .bar .bar-item.active {
-            background-color: #328686;
-            color: white;
-        }
-
-        button > div.node_name {
-            float: left;
-            font-size: 0.8em;
-        }
-
-
-        .collapsable {
-            visibility: collapse;
-            display: none;
-        }
-
-        .collapsable.in {
-            visibility: visible;
-            display: table-row;
-        }
-
-        table {
-            border: 0 hidden;
-            width: 100%;
-        }
+        /* Table specific */
         .nodes tr:nth-child(even) {
             background-color: #fff;
         }
@@ -149,97 +87,7 @@
             background-color: #d4dad9;
             
         }
-        .table_header {
-            background-color: #284753;
-            color: wheat;
-            text-align: center;
-            font-family: "Open Sans", Arial, Helvetica, sans-serif;
-        }
-
-        /* Tooltip container */
-        .tooltip {
-            position: relative;
-            display: inline-block;
-            border-bottom: 1px dotted black;
-        }
-
-        .tooltip .tooltiptext {
-            visibility: hidden;
-            background-color: black;
-            font-family: "Lucida Console", Monaco, monospace;
-            font-size: 0.5em;
-            width: auto;
-            color: #fff;
-            border-radius: 6px;
-            padding: 5px 5px;
-
-            /* Position the tooltip */
-            position: absolute;
-            z-index: 1;
-        }
-
-        .tooltip:hover .tooltiptext {
-            visibility: visible;
-        }
-
     </style>
-    <script language="JavaScript">
-        function toggleClassByID(pkg) {
-            var element = document.getElementById(pkg);
-            //var button = document.getElementById(pkg+"_button");
-
-            if( element.className && element.className.indexOf("in") > -1 ) {
-                element.classList.remove("in");
-                //button.innerHTML = "&uarr;"
-            }
-            else {
-                element.classList.add("in");
-                //button.innerHTML = "&darr;"
-            }
-        }
-    </script>
-    <script language="JavaScript">
-        function init() {
-            // Declare all variables
-            var i, content, items;
-
-            // Get all elements with class="barcontent" and hide them
-            content = document.getElementsByClassName("barcontent");
-            for (i = 1; i < content.length; i++) {
-                content[i].style.display = "none";
-            }
-            content[0].style.display = "block";
-
-            // Get all elements with class="bar-item" and remove the class "active"
-            items = document.getElementsByClassName("bar-item");
-            for (i = 1; i < items.length; i++) {
-                items[i].className = items[i].className.replace(" active", "");
-            }
-            items[0].className += " active";
-
-        }
-        function openBar(evt, barName) {
-            // Declare all variables
-            var i, barcontent, baritems;
-
-            // Get all elements with class="barcontent" and hide them
-            barcontent = document.getElementsByClassName("barcontent");
-            for (i = 0; i < barcontent.length; i++) {
-                barcontent[i].style.display = "none";
-            }
-
-            // Get all elements with class="bar-item" and remove the class "active"
-            baritems = document.getElementsByClassName("bar-item");
-            for (i = 0; i < baritems.length; i++) {
-                baritems[i].className = baritems[i].className.replace(" active", "");
-            }
-
-            // Show the current tab, and add an "active" class to the link that opened the tab
-            document.getElementById(barName).style.display = "block";
-            evt.currentTarget.className += " active";
-        }
-
-    </script>
 </head>
 <body onload="init()">
 
@@ -247,7 +95,8 @@
 	<div class="label">OpenStack release:</div>
 	<div class="text">{{ openstack_release }}</div>
 	<div class="label">MCP Version:</div>
-	<div class="text">{{ mcp_release }}</div>
+    <div class="text">{{ mcp_release }}</div>
+    <div class="label date">generated on: {{ gen_date }}</div>
 </div>
 
 <div class="bar">
@@ -326,13 +175,13 @@
     <table class="pkgversions">
             <tbody>
             <tr>
-                <td class="table_header repo" width="50px">repo</td>
-                <td class="table_header component" width="130px">Component</td>
-                <td class="table_header app" width="80px">App</td>
-                <td class="table_header package_name" width="200px">Package name</td>
-                <td class="table_header installed">Installed</td>
-                <td class="table_header candidate">Candidate</td>
-                <td class="table_header release">Release</td>
+                <td class="table_header" width="50px">repo</td>
+                <td class="table_header" width="130px">Component</td>
+                <td class="table_header" width="80px">App</td>
+                <td class="table_header" width="200px">Package name</td>
+                <td class="table_header">Installed</td>
+                <td class="table_header">Candidate</td>
+                <td class="table_header">Release</td>
             </tr>
             <!-- Print errors -->
             <tr><td colspan="7">Errors ({{ errors[id_label] }})</td></tr>

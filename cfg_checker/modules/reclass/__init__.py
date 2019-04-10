@@ -10,7 +10,9 @@ from cfg_checker.reports import reporter
 
 def do_list(args):
     logger_cli.info("# Reclass list")
-    _path = args_utils.get_path_arg(args.models_path)
+    _arg_path = args_utils.get_arg(args, 'models_path')
+    logger_cli.info("-> Current path is: {}".format(_arg_path))
+    _path = args_utils.get_path_arg(_arg_path)
     
     logger_cli.info("# ...models path is '{}'".format(args.models_path))
     
@@ -38,7 +40,7 @@ def do_list(args):
 
 def do_diff(args):
     logger_cli.info("# Reclass comparer (HTML report: '{}'".format(args.file))
-    _filename = args_utils.get_file_arg(args)
+    _filename = args_utils.get_arg(args, 'html')
 
     # checking folder params
     _model1 = args_utils.get_path_arg(args.model1)

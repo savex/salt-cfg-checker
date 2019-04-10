@@ -3,11 +3,20 @@ import os
 from cfg_checker.common.exception import ConfigException
 
 
-def get_file_arg(args):
-    if args.file:
-        return args.file
+def get_arg(args, str_arg):
+    _attr = getattr(args, str_arg)
+    if _attr:
+        return _attr
     else:
-        raise ConfigException("No report filename supplied")
+        _c = args.command if hasattr(args, 'command') else ''
+        _t = args.type if hasattr(args, 'type') else ''
+        raise ConfigException(
+            "Argument '{}' not found executing: mcp_check {} {}".format(
+                str_arg,
+                _c,
+                _t
+            )
+        )
 
 
 def get_path_arg(path):
@@ -18,7 +27,7 @@ def get_path_arg(path):
 
 
 def get_report_type_and_filename(args):
-    if hasattr(args, 'html') or hasattr(args, 'csv'):
+    if args.html or args.csv:
         if args.html and args.csv:
             raise ConfigException("Multuple report types not supported")
         if args.html is not None:

@@ -1,0 +1,94 @@
+<style>
+    body {
+        font-family: "Open Sans", Arial, Helvetica, sans-serif;
+        font-size: 90% !important;
+    }
+    h5 {padding-left: 1em; margin: 0.6em}
+    .note {font-style: italic; font-weight: normal; padding-left: 1em; margin: 0.2em; font-size: 0.7em; color: gray;}
+    /* Common */
+    .header {
+        display:block;
+    }
+    
+    .label {float: left; font-size: 0.7em; color: Black; line-height: 17px; padding-left: 10px;}
+    .text {float: left; font-size: 0.8em; color: Navy; padding-left: 2px;}
+    .date {float: right;}
+    
+    .smallgreytext {float: right; font-size: 0.5em; color: gray;}
+
+    /* Bar */
+    .bar{
+        background: linear-gradient(to bottom, #126666 0%, #284753 77%);
+        width:100%;
+        overflow:hidden;
+        display: inline-block;
+    }
+    .bar .bar-item{
+        padding:8px 16px;
+        float:left;
+        width:auto;
+        border:none;
+        display:block;
+        outline:0;
+        color: White;
+        background-color: transparent;
+    }
+    
+    .bar .bar-item:hover {
+        background-color: #328686;
+    }
+    
+    .bar .bar-item.active {
+        background-color: #328686;
+        color: white;
+    }
+
+    .collapsable {
+        visibility: collapse;
+        display: none;
+    }
+
+    .collapsable.in {
+        visibility: visible;
+        display: table-row;
+    }
+
+    table {
+        border: 0 hidden;
+        width: 100%;
+    }
+
+    .table_header {
+        background-color: #284753;
+        color: wheat;
+        text-align: center;
+        font-family: "Open Sans", Arial, Helvetica, sans-serif;
+    }
+
+    /* Tooltip container */
+    .tooltip {
+        position: relative;
+        display: inline-block;
+        border-bottom: 1px dotted black;
+    }
+
+    .tooltip .tooltiptext {
+        visibility: hidden;
+        background-color: black;
+        font-family: "Lucida Console", Monaco, monospace;
+        font-size: 0.5em;
+        width: auto;
+        color: #fff;
+        border-radius: 6px;
+        padding: 5px 5px;
+
+        /* Position the tooltip */
+        position: absolute;
+        z-index: 1;
+    }
+
+    .tooltip:hover .tooltiptext {
+        visibility: visible;
+    }
+
+</style>

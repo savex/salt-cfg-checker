@@ -249,7 +249,7 @@ class NetworkChecker(SaltNodes):
         )
         _report({
             "nodes": self.nodes,
-            "network": {}
+            "network": {},
             "mcp_release": self.mcp_release,
             "openstack_release": self.openstack_release
 

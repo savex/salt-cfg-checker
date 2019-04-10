@@ -83,10 +83,12 @@ def config_check_entrypoint():
     )
     pkg_report_parser.add_argument(
         '--html',
+        metavar='packages_html_filename',
         help="HTML filename to save report"
     )
     pkg_report_parser.add_argument(
         '--csv',
+        metavar='packages_csv_filename',
         help="CSV filename to save report"
     )
 
@@ -105,6 +107,12 @@ def config_check_entrypoint():
     net_report_parser = net_subparsers.add_parser(
         'report',
         help="Generate network check report"
+    )
+
+    net_report_parser.add_argument(
+        '--html',
+        metavar='network_html_filename',
+        help="HTML filename to save report"
     )
     
     # reclass
@@ -138,6 +146,12 @@ def config_check_entrypoint():
         required=True,
         help="Model B <path>. Model name is the folder name"
     )
+    reclass_diff_parser.add_argument(
+        '--html',
+        metavar='reclass_html_filename',
+        help="HTML filename to save report"
+    )
+
 
 
     #parse arguments
