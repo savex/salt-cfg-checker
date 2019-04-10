@@ -17,7 +17,7 @@ pip install -r requirements.txt
 - packages report (CSV): `mcp_check packages report --csv cloud-packages.csv`
 
 # External cloud
-Be sure to 
+You can also create your env file to connect to env
  - create your *.env file
    or supply environment vars to module other way
  - in the `env` file set host and user for SSH. 
