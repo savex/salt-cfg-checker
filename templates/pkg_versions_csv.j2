@@ -1,11 +1,11 @@
 {% macro package_list(pkg_dict, id_label) %}
-    {% for pkg_name in pkg_dict.keys() | get_sorted_keys %}
+    {% for pkg_name in pkg_dict | get_sorted_keys %}
         {% set p = pkg_dict[pkg_name] %}
         {% for status in p['results'].keys() | sort(reverse=true) %}
         {% for action in p['results'][status].keys() | sort(reverse=true) %}
             {% for node in p['results'][status][action].keys() | sort %}
                 {% set nd = p['results'][status][action][node] %}
-    {{ id_label }},{{ pkg_name }},{{ node }},{{ status | make_status_label }},{{ action | make_action_label }},{{ nd['i'].version }},{{ nd['c'].version }},{{ p['r'] }}
+    {{ id_label }},{{ pkg_name }},{{ node }},{{ status | make_status_label }},{{ action | make_action_label }},{{ nd['i'].version }},{{ nd['c'].version }},{{ p['r'].version }}
             {% endfor %}
         {% endfor %}
         {% endfor %}

@@ -115,18 +115,10 @@ class _TMPLBase(_Base):
 
     def _extend_data(self, data):
         pass
+    
 
-
-# HTML Package versions report
-class CSVAllPackages(_TMPLBase):
-    tmpl = "pkg_versions_csv.j2"
-
-
-# HTML Package versions report
-class HTMLPackageCandidates(_TMPLBase):
-    tmpl = "pkg_versions_html.j2"
-
-    def _extend_data(self, data):
+    @staticmethod
+    def _sort_all_packages(data):
         logger_cli.info("-> Sorting packages")
         # labels
         data['status_err'] = const.VERSION_ERR
@@ -196,6 +188,24 @@ class HTMLPackageCandidates(_TMPLBase):
             'other': _do,
             'unlisted': _du
         }
+
+
+
+# HTML Package versions report
+class CSVAllPackages(_TMPLBase):
+    tmpl = "pkg_versions_csv.j2"
+
+    def _extend_data(self, data):
+        self._sort_all_packages(data)
+
+
+# HTML Package versions report
+class HTMLPackageCandidates(_TMPLBase):
+    tmpl = "pkg_versions_html.j2"
+
+    def _extend_data(self, data):
+        self._sort_all_packages(data)
+
 
 
 # Package versions report
