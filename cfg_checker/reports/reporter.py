@@ -77,16 +77,9 @@ class _TMPLBase(_Base):
     def __call__(self, payload):
         # init data structures
         data = self.common_data()
-        # payload should have pre-sorted structure
-        # system, nodes, clusters, and the rest in other
-        data.update({
-            "nodes": payload['nodes'],
-            "rc_diffs": payload['rc_diffs'],
-            "all": payload['all_pkg'],
-            "mcp_release": payload['mcp_release'],
-            "openstack_release": payload['openstack_release'],
-            "tabs": {}
-        })
+        # payload should have pre-sorted structure according to report called
+        # nodes, openstack_release, mcp_release, etc...
+        data.update(payload)
 
         # add template specific data
         self._extend_data(data)
@@ -96,10 +89,11 @@ class _TMPLBase(_Base):
 
         # specific filters
         self.jinja2_env.filters['linebreaks'] = line_breaks
+        self.jinja2_env.filters['get_max'] = get_max
+
+        self.jinja2_env.filters['get_sorted_keys'] = get_sorted_keys
         self.jinja2_env.filters['make_status_label'] = make_status_label
         self.jinja2_env.filters['make_action_label'] = make_action_label
-        self.jinja2_env.filters['get_max'] = get_max
-        self.jinja2_env.filters['get_sorted_keys'] = get_sorted_keys
 
         # render!
         logger_cli.info("-> Using template: {}".format(self.tmpl))
@@ -115,97 +109,16 @@ class _TMPLBase(_Base):
 
     def _extend_data(self, data):
         pass
-    
-
-    @staticmethod
-    def _sort_all_packages(data):
-        logger_cli.info("-> Sorting packages")
-        # labels
-        data['status_err'] = const.VERSION_ERR
-        data['status_down'] = const.VERSION_DOWN
-
-        # Presort packages
-        data['critical'] = {}
-        data['system'] = {}
-        data['other'] = {}
-        data['unlisted'] = {}
-
-        _l = len(data['all'])
-        _progress = Progress(_l)
-        _progress_index = 0
-        # counters
-        _ec = _es = _eo = _eu = 0
-        _dc = _ds = _do = _du = 0
-        while _progress_index < _l:
-            # progress bar
-            _progress_index += 1
-            _progress.write_progress(_progress_index)
-            # sort packages
-            _pn, _val = data['all'].popitem()
-            if not _val['desc']:
-                # not listed package in version lib
-                data['unlisted'].update({
-                    _pn: _val
-                })
-                _eu += _val['results'].keys().count(const.VERSION_ERR)
-                _du += _val['results'].keys().count(const.VERSION_DOWN)
-            else:
-                _c = _val['desc']['component']
-                # critical: not blank and not system
-                if len(_c) > 0 and _c != 'System':
-                    data['critical'].update({
-                        _pn: _val
-                    })
-                    _ec += _val['results'].keys().count(const.VERSION_ERR)
-                    _dc += _val['results'].keys().count(const.VERSION_DOWN)
-                # system
-                elif _c == 'System':
-                    data['system'].update({
-                        _pn: _val
-                    })
-                    _es += _val['results'].keys().count(const.VERSION_ERR)
-                    _ds += _val['results'].keys().count(const.VERSION_DOWN)
-                # rest
-                else:
-                    data['other'].update({
-                        _pn: _val
-                    })
-                    _eo += _val['results'].keys().count(const.VERSION_ERR)
-                    _do += _val['results'].keys().count(const.VERSION_DOWN)
-
-        
-        _progress.newline()
-
-        data['errors'] = {
-            'mirantis': _ec,
-            'system': _es,
-            'other': _eo,
-            'unlisted': _eu
-        }
-        data['downgrades'] = {
-            'mirantis': _dc,
-            'system': _ds,
-            'other': _do,
-            'unlisted': _du
-        }
-
 
 
 # HTML Package versions report
 class CSVAllPackages(_TMPLBase):
     tmpl = "pkg_versions_csv.j2"
 
-    def _extend_data(self, data):
-        self._sort_all_packages(data)
-
 
 # HTML Package versions report
 class HTMLPackageCandidates(_TMPLBase):
     tmpl = "pkg_versions_html.j2"
-
-    def _extend_data(self, data):
-        self._sort_all_packages(data)
-
 
 
 # Package versions report

@@ -249,6 +249,9 @@ class NetworkChecker(SaltNodes):
         )
         _report({
             "nodes": self.nodes,
-            "diffs": {}
+            "network": {}
+            "mcp_release": self.mcp_release,
+            "openstack_release": self.openstack_release
+
         })
         logger_cli.info("-> Done")

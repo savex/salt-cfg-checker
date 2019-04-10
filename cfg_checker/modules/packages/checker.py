@@ -16,6 +16,81 @@ from versions import PkgVersions, DebianVersion, VersionCmpResult
 
 
 class CloudPackageChecker(SaltNodes):
+    @staticmethod
+    def presort_packages(all_packages):
+        logger_cli.info("-> Presorting packages")
+        # labels
+        _data = {}
+        _data['status_err'] = const.VERSION_ERR
+        _data['status_down'] = const.VERSION_DOWN
+
+        # Presort packages
+        _data['critical'] = {}
+        _data['system'] = {}
+        _data['other'] = {}
+        _data['unlisted'] = {}
+
+        _l = len(all_packages)
+        _progress = Progress(_l)
+        _progress_index = 0
+        # counters
+        _ec = _es = _eo = _eu = 0
+        _dc = _ds = _do = _du = 0
+        while _progress_index < _l:
+            # progress bar
+            _progress_index += 1
+            _progress.write_progress(_progress_index)
+            # sort packages
+            _pn, _val = all_packages.popitem()
+            if not _val['desc']:
+                # not listed package in version lib
+                _data['unlisted'].update({
+                    _pn: _val
+                })
+                _eu += _val['results'].keys().count(const.VERSION_ERR)
+                _du += _val['results'].keys().count(const.VERSION_DOWN)
+            else:
+                _c = _val['desc']['component']
+                # critical: not blank and not system
+                if len(_c) > 0 and _c != 'System':
+                    _data['critical'].update({
+                        _pn: _val
+                    })
+                    _ec += _val['results'].keys().count(const.VERSION_ERR)
+                    _dc += _val['results'].keys().count(const.VERSION_DOWN)
+                # system
+                elif _c == 'System':
+                    _data['system'].update({
+                        _pn: _val
+                    })
+                    _es += _val['results'].keys().count(const.VERSION_ERR)
+                    _ds += _val['results'].keys().count(const.VERSION_DOWN)
+                # rest
+                else:
+                    _data['other'].update({
+                        _pn: _val
+                    })
+                    _eo += _val['results'].keys().count(const.VERSION_ERR)
+                    _do += _val['results'].keys().count(const.VERSION_DOWN)
+
+        
+        _progress.newline()
+
+        _data['errors'] = {
+            'mirantis': _ec,
+            'system': _es,
+            'other': _eo,
+            'unlisted': _eu
+        }
+        _data['downgrades'] = {
+            'mirantis': _dc,
+            'system': _ds,
+            'other': _do,
+            'unlisted': _du
+        }
+
+        return _data
+
     def collect_installed_packages(self):
         """
         Collect installed packages on each node
@@ -137,8 +212,9 @@ class CloudPackageChecker(SaltNodes):
                     'raw': _value['raw']
                 }
 
-        self.all_packages = _all_packages
+        self._packages = _all_packages
         _progress.newline()
+    
 
     def create_report(self, filename, rtype):
         """
@@ -157,11 +233,11 @@ class CloudPackageChecker(SaltNodes):
             _type,
             filename
         )
-        _report({
+        payload = {
             "nodes": self.nodes,
-            "rc_diffs": {},
-            "all_pkg": self.all_packages,
             "mcp_release": self.mcp_release,
             "openstack_release": self.openstack_release
-        })
+        }
+        payload.update(self.presort_packages(self._packages))
+        _report(payload)
         logger_cli.info("-> Done")
