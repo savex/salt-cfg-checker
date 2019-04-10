@@ -26,10 +26,10 @@ Be sure to
    and create an `etc/nodes.list` file with minions list
 
 # Version history
-- [Done] Update messages to same style
-- [Done] Release versions support with customizable updates
-- [Done] Upgrades, errors and downgrades detection
-- [Done] Proper Debian package version naming convention support (https://www.debian.org/doc/debian-policy/ch-controlfields.html#version)
+- [*Done*] Update messages to same style
+- [*Done*] Release versions support with customizable updates
+- [*Done*] Upgrades, errors and downgrades detection
+- [*Done*] Proper Debian package [version](https://www.debian.org/doc/debian-policy/ch-controlfields.html#version) naming convention support
 
 TODO:
 - Check root on startup, exit
