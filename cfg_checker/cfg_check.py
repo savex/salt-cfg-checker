@@ -82,6 +82,11 @@ def config_check_entrypoint():
         help="Report package versions to HTML file"
     )
     pkg_report_parser.add_argument(
+        '--full',
+        metavar='packages_html_filename',
+        help="HTML report will have all of the packages, not just errors"
+    )
+    pkg_report_parser.add_argument(
         '--html',
         metavar='packages_html_filename',
         help="HTML filename to save report"

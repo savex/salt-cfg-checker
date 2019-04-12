@@ -17,7 +17,7 @@ from versions import PkgVersions, DebianVersion, VersionCmpResult
 
 class CloudPackageChecker(SaltNodes):
     @staticmethod
-    def presort_packages(all_packages):
+    def presort_packages(all_packages, full=None):
         logger_cli.info("-> Presorting packages")
         # labels
         _data = {}
@@ -58,15 +58,16 @@ class CloudPackageChecker(SaltNodes):
             # sort packages
             _pn, _val = all_packages.popitem()
             _c = _val['desc']['component']
-            # Check if this packet has errors
-            # if all is ok -> just skip it
-            _max_status = max(_val['results'].keys())
-            if _max_status <= const.VERSION_OK:
-                _max_action = max(_val['results'][_max_status].keys())
-                if _max_action == const.ACT_NA:
-                    # this package do not ha any comments
-                    # ...just skip it from report
-                    continue
+            if full:
+                # Check if this packet has errors
+                # if all is ok -> just skip it
+                _max_status = max(_val['results'].keys())
+                if _max_status <= const.VERSION_OK:
+                    _max_action = max(_val['results'][_max_status].keys())
+                    if _max_action == const.ACT_NA:
+                        # this package do not ha any comments
+                        # ...just skip it from report
+                        continue
 
             if len(_c) > 0 and _c == 'unlisted':
                 # not listed package in version lib
@@ -241,7 +242,7 @@ class CloudPackageChecker(SaltNodes):
         _progress.newline()
     
 
-    def create_report(self, filename, rtype):
+    def create_report(self, filename, rtype, full=None):
         """
         Create static html showing packages diff per node
 
@@ -263,6 +264,6 @@ class CloudPackageChecker(SaltNodes):
             "mcp_release": self.mcp_release,
             "openstack_release": self.openstack_release
         }
-        payload.update(self.presort_packages(self._packages))
+        payload.update(self.presort_packages(self._packages, full))
         _report(payload)
         logger_cli.info("-> Done")

@@ -18,4 +18,4 @@ def do_report(args):
     # diff installed and candidates
     pChecker.collect_packages()
     # report it
-    pChecker.create_report(_filename, rtype=_type)
+    pChecker.create_report(_filename, rtype=_type, full=args.full)
