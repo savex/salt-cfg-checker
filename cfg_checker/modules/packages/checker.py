@@ -58,6 +58,16 @@ class CloudPackageChecker(SaltNodes):
             # sort packages
             _pn, _val = all_packages.popitem()
             _c = _val['desc']['component']
+            # Check if this packet has errors
+            # if all is ok -> just skip it
+            _max_status = max(_val['results'].keys())
+            if _max_status <= const.VERSION_OK:
+                _max_action = max(_val['results'][_max_status].keys())
+                if _max_action == const.ACT_NA:
+                    # this package do not ha any comments
+                    # ...just skip it from report
+                    continue
+
             if len(_c) > 0 and _c == 'unlisted':
                 # not listed package in version lib
                 _data['unlisted'].update({
