@@ -6,7 +6,13 @@
     {% include 'common_styles.j2' %}
     {% include 'common_scripts.j2' %}
     <style>
-		/* Node rows*/
+        table.cluster_nodes {
+            width: 90%;
+            margin-left: 5%;
+            margin-right: 5%;
+        }
+    
+        /* Node rows*/
 		.node {
 			display: inline-block;
 			background-color: white;
@@ -55,14 +61,18 @@
     <h5>{{ caller() }}</h5>
     <hr>
     <table class="cluster_nodes">
-        <tr class="node hw">
-            <td class="status">UP</td>
-            <td class="name">cfg01.internal.net</td>
+    {% for node in nodes.keys() | sort %}
+        {% set _ndat = nodes[node] %}
+        <tr class="node virt">
+            <td class="status">{{ _ndat['status'] }}</td>
+            <td class="name">{{ node }}</td>
+            <td class="role">{{ _ndat['role'] }}</td>
             <td class="vendor">QEMU</td>
             <td class="meter cpu">vCPU: 12</td>
             <td class="meter ram">RAM: 500GB</td>
             <td class="meter disk">VDA: 150/140/135</td>
         </tr>
+    {% endfor %}
     </table>
     <hr>
 </div>
@@ -79,8 +89,6 @@
             <td class="name">cfg01.internal.net</td>
             <td class="ip">192.168.10.11</td>
             <td class="param">1500</td>
-            
-            
         </tr>
     </table>
     <hr>

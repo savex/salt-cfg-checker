@@ -41,10 +41,39 @@ def get_max(_list):
 
 
 def make_action_label(act):
-    return const.all_actions[act]
+    _act_labels = {
+        const.ACT_UPGRADE: "Upgrade possible",
+        const.ACT_NEED_UP: "Needs upgrade",
+        const.ACT_NEED_DOWN: "Needs downgrade",
+        const.ACT_REPO: "Needs repo update",
+        const.ACT_NA: ""
+    }
+    return _act_labels[act]
+
+
+def make_action_class(act):
+    _act_classes = {
+        const.ACT_UPGRADE: "possible",
+        const.ACT_NEED_UP: "needs_up",
+        const.ACT_NEED_DOWN: "needs_down",
+        const.ACT_REPO: "needs_repo",
+        const.ACT_NA: ""
+    }
+    return _act_classes[act]
 
 
 def make_status_label(sts):
+    _status_labels = {
+        const.VERSION_OK: "OK",
+        const.VERSION_UP: "Upgraded",
+        const.VERSION_DOWN: "Downgraded",
+        const.VERSION_ERR: "ERROR",
+        const.VERSION_NA: "N/A"
+    }
+    return _status_labels[sts]
+
+
+def make_status_class(sts):
     return const.all_statuses[sts]
 
 
@@ -93,7 +122,9 @@ class _TMPLBase(_Base):
 
         self.jinja2_env.filters['get_sorted_keys'] = get_sorted_keys
         self.jinja2_env.filters['make_status_label'] = make_status_label
+        self.jinja2_env.filters['make_status_class'] = make_status_class
         self.jinja2_env.filters['make_action_label'] = make_action_label
+        self.jinja2_env.filters['make_action_class'] = make_action_class
 
         # render!
         logger_cli.info("-> Using template: {}".format(self.tmpl))

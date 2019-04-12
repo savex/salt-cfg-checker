@@ -21,6 +21,21 @@ class CloudPackageChecker(SaltNodes):
         logger_cli.info("-> Presorting packages")
         # labels
         _data = {}
+        _data = {
+            "cs": {
+                "ok": const.VERSION_OK,
+                "up": const.VERSION_UP,
+                "down": const.VERSION_DOWN,
+                "err": const.VERSION_ERR
+            },
+            "ca": {
+                "na": const.ACT_NA,
+                "up": const.ACT_UPGRADE,
+                "need_up": const.ACT_NEED_UP,
+                "need_down": const.ACT_NEED_DOWN,
+                "repo": const.ACT_REPO
+            }
+        }
         _data['status_err'] = const.VERSION_ERR
         _data['status_down'] = const.VERSION_DOWN
 
@@ -42,36 +57,36 @@ class CloudPackageChecker(SaltNodes):
             _progress.write_progress(_progress_index)
             # sort packages
             _pn, _val = all_packages.popitem()
-            if not _val['desc']:
+            _c = _val['desc']['component']
+            if len(_c) > 0 and _c == 'unlisted':
                 # not listed package in version lib
                 _data['unlisted'].update({
                     _pn: _val
                 })
                 _eu += _val['results'].keys().count(const.VERSION_ERR)
                 _du += _val['results'].keys().count(const.VERSION_DOWN)
+            # mirantis/critical
+            elif len(_c) > 0 and _c != 'System':
+                # not blank and not system
+                _data['critical'].update({
+                    _pn: _val
+                })
+                _ec += _val['results'].keys().count(const.VERSION_ERR)
+                _dc += _val['results'].keys().count(const.VERSION_DOWN)
+            # system
+            elif _c == 'System':
+                _data['system'].update({
+                    _pn: _val
+                })
+                _es += _val['results'].keys().count(const.VERSION_ERR)
+                _ds += _val['results'].keys().count(const.VERSION_DOWN)
+            # rest
             else:
-                _c = _val['desc']['component']
-                # critical: not blank and not system
-                if len(_c) > 0 and _c != 'System':
-                    _data['critical'].update({
-                        _pn: _val
-                    })
-                    _ec += _val['results'].keys().count(const.VERSION_ERR)
-                    _dc += _val['results'].keys().count(const.VERSION_DOWN)
-                # system
-                elif _c == 'System':
-                    _data['system'].update({
-                        _pn: _val
-                    })
-                    _es += _val['results'].keys().count(const.VERSION_ERR)
-                    _ds += _val['results'].keys().count(const.VERSION_DOWN)
-                # rest
-                else:
-                    _data['other'].update({
-                        _pn: _val
-                    })
-                    _eo += _val['results'].keys().count(const.VERSION_ERR)
-                    _do += _val['results'].keys().count(const.VERSION_DOWN)
+                _data['other'].update({
+                    _pn: _val
+                })
+                _eo += _val['results'].keys().count(const.VERSION_ERR)
+                _do += _val['results'].keys().count(const.VERSION_DOWN)
 
         
         _progress.newline()

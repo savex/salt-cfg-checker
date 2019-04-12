@@ -18,7 +18,9 @@
         td.component {column-width: 130px;}
         td.app {column-width: 80px;}
         td.package_name {column-width: 200px; padding-left: 10px; text-align: left;}
+        td.node_name {column-width: 210px;}
         td.installed {column-width: 16%;}
+        td.status_container {column-width: 200px;}
         td.candidate {column-width: 16%;}
         td.release {column-width: 13%;}
 
@@ -29,6 +31,7 @@
         .status {
             display: block;
             float: left;
+            width: 80px;
             padding: 1px;
             padding-left: 5px;
             padding-right: 5px;
@@ -39,6 +42,7 @@
         .action {
             display: block;
             float: left;
+            width: 120px;
             padding: 1px;
             padding-left: 5px;
             padding-right: 5px;
@@ -56,25 +60,46 @@
             background-color: darkred;
         }
         .status_container .upgraded {
-            color: darkgreen;
-            background-color: lightgreen;
+            color: azure;
+            background-color: green;
         }
         .status_container .downgraded {
             color: white;
             background-color: darkolivegreen;
         }
 
+        .status_container .needs_repo {
+            color: black;
+            background-color: #50aacc;
+        }
+
+        .status_container .needs_up {
+            color: black;
+            background-color: #aaccaa;
+        }
+
+        .status_container .needs_down {
+            color: black;
+            background-color: #ffcc48;
+        }
+
+        .status_container .possible {
+            color: gray;
+            background-color: #d4dad9;
+        }
+
+
+
         .version {text-align: left; padding: 2px}
         .v_epoch, .v_upstream, .v_debian, .colon, .dash {
             color: darkslategray;
-            font-family: monospace;
             float: left;
             display: block;
         }
 
         .ok {color: darkslategray;}
         .error {color: white; background-color: darkred;}
-        .upgraded {color: green; font-weight: bold;}
+        .upgraded {color: whitesmoke;}
         .downgraded {color: red;}
 
         .smallgreytext {float: right; font-size: 0.5em; color: gray;}
@@ -104,18 +129,19 @@
 	<button class="bar-item" onclick="openBar(event, 'system')">System</button>
     <button class="bar-item" onclick="openBar(event, 'other')">Other</button>
     <button class="bar-item" onclick="openBar(event, 'unlisted')">Unlisted</button>
+    <button class="bar-item" onclick="openBar(event, 'legend')">Legend</button>
 </div>
 
 {% macro prettify_version(v) %}
     <div class="version">
         {% if v.epoch %}
-        <div class="v_epoch {{ v.epoch_status | make_status_label }}">{{ v.epoch }}</div>
+        <div class="v_epoch {{ v.epoch_status | make_status_class }}">{{ v.epoch }}</div>
         <div class="colon">:</div>
         {% endif %}
-        <div class="v_upstream {{ v.upstream_status | make_status_label }}">{{ v.upstream }}{{ v.upstream_rev }}</div>
+        <div class="v_upstream {{ v.upstream_status | make_status_class }}">{{ v.upstream }}{{ v.upstream_rev }}</div>
         {% if v.debian %}
         <div class="dash">-</div>
-        <div class="v_debian {{ v.debian_status | make_status_label }}">{{ v.debian }}{{ v.debian_rev }}</div>
+        <div class="v_debian {{ v.debian_status | make_status_class }}">{{ v.debian }}{{ v.debian_rev }}</div>
         {% endif %}
         {{ caller() }}
     </div>
@@ -128,43 +154,43 @@
             <td class="app">{{ dat['desc']['app'] }}</td>
             <td class="package_name">{{ pkg_name }}</td>
             <td class="status_container" colspan="3">
-                <div class="status {{ status_shown | make_status_label }}">{{ status_shown | make_status_label }}</div>
+                <div class="status {{ status_shown | make_status_class }}">{{ status_shown | make_status_label }}</div>
                 {% if action_shown | make_action_label %}
-                    <div class="action">{{ action_shown | make_action_label }}</div>
+                    <div class="action {{ action_shown | make_action_class }}">{{ action_shown | make_action_label }}</div>
                 {% endif %}
             </td>
         </tr>
-        <tr class="collapsable" id="{{ id_label }}_{{ pkg_name }}_{{ status_shown }}_{{ action_shown }}"><td colspan=7>
-            <table class="nodes"><tbody>
-                {% for status in dat['results'].keys() | sort(reverse=true) %}
-                {% for action in dat['results'][status].keys() | sort(reverse=true) %}
-                {% set counter = 1 + loop.index0 %}
-                {% for node in dat['results'][status][action].keys() | sort %}
-                {% set n_counter = 1 + loop.index0 %}
-                {% set nd = dat['results'][status][action][node] %}
-                <tr>
-                    <td class="repo">{{ n_counter }}</td>
-                    <td class="package_name" colspan="2">{{ node }}</td>
-                    <td class="status_container">
-                        <div class="status {{ status | make_status_label }}">{{ status | make_status_label }}</div>
-                        {% if action | make_action_label %}
-                            <div class="action">{{ action | make_action_label }}</div>
-                        {% endif %}
-                    </td>
-                    <td class="installed">
-                        <div class="tooltip">
-                            {% call prettify_version(nd['i']) %}
-                            <pre class="tooltiptext">{{ nd['raw'] | linebreaks }}</pre>
-                            {% endcall %}
-                        </div>
-                    </td>
-                    <td class="candidate">{{ nd['c'].version }}</td>
-                    <td class="release">{{ dat['r'].version }}</td>
-                </tr>
-                {% endfor %}
-                {% endfor %}
-                {% endfor %}
-            </tbody></table>
+        <tr class="collapsable" id="{{ id_label }}_{{ pkg_name }}_{{ status_shown }}_{{ action_shown }}"><td colspan="7">
+        <table class="nodes"><tbody>
+        {% for status in dat['results'].keys() | sort(reverse=true) %}
+        {% for action in dat['results'][status].keys() | sort(reverse=true) %}
+        {% set counter = 1 + loop.index0 %}
+        {% for node in dat['results'][status][action].keys() | sort %}
+        {% set n_counter = 1 + loop.index0 %}
+        {% set nd = dat['results'][status][action][node] %}
+        <tr>
+            <td class="repo">{{ n_counter }}</td>
+            <td class="node_name">{{ node }}</td>
+            <td class="status_container">
+                <div class="status {{ status | make_status_class }}">{{ status | make_status_label }}</div>
+                {% if action | make_action_label %}
+                    <div class="action {{ action | make_action_class }}">{{ action | make_action_label }}</div>
+                {% endif %}
+            </td>
+            <td class="installed">
+                <div class="tooltip">
+                    {% call prettify_version(nd['i']) %}
+                    <pre class="tooltiptext">{{ nd['raw'] | linebreaks }}</pre>
+                    {% endcall %}
+                </div>
+            </td>
+            <td class="candidate">{{ nd['c'].version }}</td>
+            <td class="release">{{ dat['r'].version }}</td>
+        </tr>
+        {% endfor %}
+        {% endfor %}
+        {% endfor %}
+        </tbody></table>
         </td></tr>
     {{ caller() }}
 {% endmacro %}
@@ -245,6 +271,58 @@
 {% call package_table(unlisted, "unlisted") %}
     Packages that are not listed in version map. I.e. unexpected on the environment
 {%- endcall %}
-       
+
+<!-- Legend -->
+<div id="legend" class="barcontent">
+    <h5>Legend: status and action explanation and possible combinations</h5>
+    <table class="pkgversions">
+        <tbody>
+        <tr><td colspan="7">Version status desctiptions</td></tr>
+        <tr>
+            <td class="status_container"><div class="status {{ cs.ok | make_status_class }}">{{ cs.ok | make_status_label }}</div></td>
+            <td>Installed and Candidate epoch:upstream version mach</td>
+        </tr>
+        <tr>
+            <td class="status_container"><div class="status {{ cs.up | make_status_class }}">{{ cs.up | make_status_label }}</div></td>
+            <td>Installed version is newer that the one found in Repo (i.e. candidate) or Release notes recordset</td>
+        </tr>
+        <tr>
+            <td class="status_container"><div class="status {{ cs.down | make_status_class }}">{{ cs.down | make_status_label }}</div></td>
+            <td>Installed version is older that the one found in Repo (i.e. candidate) or Release notes recordset</td>
+        </tr>
+        <tr>
+            <td class="status_container"><div class="status {{ cs.err | make_status_class }}">{{ cs.err | make_status_label }}</div></td>
+            <td>Installed version conflicts with a combination of Candidate and Release notes versions</td>
+        </tr>
+        <tr><td colspan="7">Action descriptions</td></tr>
+        <tr>
+            <td class="status_container"><div class="action {{ ca.na | make_action_class }}">{{ ca.na | make_action_label }} (no action)</div></td>
+            <td>No action suggested</td>
+        </tr>
+        <tr>
+            <td class="status_container"><div class="action {{ ca.up | make_action_class }}">{{ ca.up | make_action_label }}</div></td>
+            <td>There is an upgrade possible for the package. But it is not strictly required action.</td>
+        </tr>
+        <tr>
+            <td class="status_container"><div class="action {{ ca.need_up | make_action_class }}">{{ ca.need_up | make_action_label }}</div></td>
+            <td>Package should be upgraded to match version either in repo or in Release notes</td>
+        </tr>
+        <tr>
+            <td class="status_container"><div class="action {{ ca.need_down | make_action_class }}">{{ ca.need_down | make_action_label }}</div></td>
+            <td>Package should be downgraded to match version either in repo or in Release notes</td>
+        </tr>
+        <tr>
+            <td class="status_container"><div class="action {{ ca.repo | make_action_class }}">{{ ca.repo | make_action_label }}</div></td>
+            <td>Repo that is configured on the target node contains invalid version and should be updated</td>
+        </tr>
+        <tr><td colspan="7">Versions status and Action combinations</td></tr>
+        <tr>
+            <td class="status_container">
+                <div class="status {{ cs.err | make_status_class }}">{{ cs.err | make_status_label }}</div>
+                <div class="action {{ ca.repo | make_action_class }}">{{ ca.repo | make_action_label }}</div>
+            </td>
+        </tr>
+    </tbody></table>
+</div>
 </body>
 </html>

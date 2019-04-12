@@ -288,7 +288,7 @@ class VersionCmpResult(object):
                     self.status = const.VERSION_ERR
                     self.action = const.ACT_NEED_DOWN
                 elif c > r:
-                    # installed and repo versions newer that release
+                    # installed and repo versions newer than release
                     self.status = const.VERSION_UP
                     self.action = const.ACT_NEED_DOWN
                 elif c < r and r < i:
