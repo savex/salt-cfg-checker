@@ -1,0 +1,212 @@
+{
+    "ens4": {
+        "upper": null,
+        "qlen": "1000",
+        "if_index": "3",
+        "lower": null,
+        "mtu": "9050",
+        "state": "UP",
+        "other": [
+            "<BROADCAST,MULTICAST,UP,LOWER_UP>",
+            "qdisc",
+            "pfifo_fast",
+            "group",
+            "default"
+        ],
+        "link": {
+            "fa:16:3e:4e:f3:c8": {
+                "brd": "ff:ff:ff:ff:ff:ff",
+                "link-netnsid": "n/a",
+                "other": []
+            }
+        },
+        "at": "",
+        "type": "physical",
+        "ipv4": {
+            "10.10.100.7/16": {
+                "brd": "10.10.255.255",
+                "other": [
+                    "scope",
+                    "global",
+                    "ens4"
+                ]
+            }
+        }
+    },
+    "ens5": {
+        "upper": null,
+        "qlen": "1000",
+        "if_index": "4",
+        "lower": null,
+        "mtu": "9050",
+        "state": "UP",
+        "other": [
+            "<BROADCAST,MULTICAST,UP,LOWER_UP>",
+            "qdisc",
+            "pfifo_fast",
+            "group",
+            "default"
+        ],
+        "link": {
+            "fa:16:3e:db:db:4f": {
+                "brd": "ff:ff:ff:ff:ff:ff",
+                "link-netnsid": "n/a",
+                "other": []
+            }
+        },
+        "at": "",
+        "type": "physical",
+        "ipv4": {
+            "10.12.100.14/16": {
+                "brd": "10.12.255.255",
+                "other": [
+                    "scope",
+                    "global",
+                    "ens5"
+                ]
+            }
+        }
+    },
+    "ens6": {
+        "upper": null,
+        "qlen": "1000",
+        "if_index": "5",
+        "lower": null,
+        "mtu": "9050",
+        "state": "UP",
+        "other": [
+            "<BROADCAST,MULTICAST,UP,LOWER_UP>",
+            "qdisc",
+            "pfifo_fast",
+            "group",
+            "default"
+        ],
+        "link": {
+            "fa:16:3e:06:0f:3b": {
+                "brd": "ff:ff:ff:ff:ff:ff",
+                "link-netnsid": "n/a",
+                "other": []
+            }
+        },
+        "at": "",
+        "type": "physical",
+        "ipv4": {
+            "10.13.100.22/16": {
+                "brd": "10.13.255.255",
+                "other": [
+                    "scope",
+                    "global",
+                    "ens6"
+                ]
+            }
+        }
+    },
+    "ens3": {
+        "upper": null,
+        "qlen": "1000",
+        "if_index": "2",
+        "lower": null,
+        "mtu": "9050",
+        "state": "UP",
+        "other": [
+            "<BROADCAST,MULTICAST,UP,LOWER_UP>",
+            "qdisc",
+            "pfifo_fast",
+            "group",
+            "default"
+        ],
+        "link": {
+            "fa:16:3e:0c:15:32": {
+                "brd": "ff:ff:ff:ff:ff:ff",
+                "link-netnsid": "n/a",
+                "other": []
+            }
+        },
+        "at": "",
+        "type": "physical",
+        "ipv4": {
+            "10.11.0.11/16": {
+                "brd": "10.11.255.255",
+                "other": [
+                    "scope",
+                    "global",
+                    "ens3"
+                ]
+            },
+            "10.11.0.10/32": {
+                "brd": "n/a",
+                "other": [
+                    "scope",
+                    "global",
+                    "ens3"
+                ]
+            }
+        }
+    },
+    "lo": {
+        "upper": null,
+        "qlen": "1000",
+        "if_index": "1",
+        "lower": null,
+        "mtu": "65536",
+        "state": "UNKNOWN",
+        "other": [
+            "<LOOPBACK,UP,LOWER_UP>",
+            "qdisc",
+            "noqueue",
+            "group",
+            "default"
+        ],
+        "link": {},
+        "at": "",
+        "type": "virtual",
+        "ipv4": {
+            "127.0.0.1/8": {
+                "brd": "n/a",
+                "other": [
+                    "scope",
+                    "host",
+                    "lo"
+                ]
+            }
+        }
+    },
+    "routes": {
+        "10.12.0.0/16": {
+            "device": "ens5",
+            "source": "10.12.100.14",
+            "args": " proto kernel  scope link ",
+            "gateway": null
+        },
+        "10.11.0.0/16": {
+            "device": "ens3",
+            "source": "10.11.0.11",
+            "args": " proto kernel  scope link ",
+            "gateway": null
+        },
+        "default": {
+            "device": "ens4",
+            "args": "",
+            "gateway": "10.10.0.1"
+        },
+        "10.10.0.0/16": {
+            "device": "ens4",
+            "source": "10.10.100.7",
+            "args": " proto kernel  scope link ",
+            "gateway": null
+        },
+        "raw": [],
+        "169.254.169.254": {
+            "device": "ens5",
+            "source": "n/a",
+            "args": "",
+            "gateway": "10.12.100.30"
+        },
+        "10.13.0.0/16": {
+            "device": "ens6",
+            "source": "10.13.100.22",
+            "args": " proto kernel  scope link ",
+            "gateway": null
+        }
+    }
+}

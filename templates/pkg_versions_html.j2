@@ -20,12 +20,11 @@
         td.package_name {column-width: 200px; padding-left: 10px; text-align: left;}
         td.node_name {column-width: 210px;}
         td.installed {column-width: 16%;}
-        td.status_container {column-width: 200px;}
         td.candidate {column-width: 16%;}
         td.release {column-width: 13%;}
 
         .status_container {
-            display: inline-block;
+            display: inline-flex;
         }
 
         .status {
@@ -51,6 +50,22 @@
             text-align: center;
         }
 
+        .node {
+            display: block;
+            float: left;
+            width: auto;
+            padding: 1px;
+            padding-left: 2px;
+            padding-right: 2px;
+            margin-left: 3px;
+            border-width: 1px;
+            border-color: gray;
+            border-style: solid;
+            color: gray;
+            background-color: white;
+            text-align: center;
+        }
+
         .status_container .ok {
             color: white;
             background-color: #113b11;
@@ -69,8 +84,8 @@
         }
 
         .status_container .needs_repo {
-            color: black;
-            background-color: #50aacc;
+            color: #545454;
+            background-color: #a1b1b0;
         }
 
         .status_container .needs_up {
@@ -88,6 +103,32 @@
             background-color: #d4dad9;
         }
 
+        .status_container .node_error {
+            color: red;
+            border-color: red;
+            background-color: white;
+        }
+
+        .status_container .node_warning {
+            color: olive;
+            border-color: olive;
+            background-color: white;
+        }
+
+        .status_container .node_more {
+            color: gray;
+            border-color: gray;
+            background-color: white;
+            border-style: none;
+        }
+
+        .status_container .text {
+            width: 500px;
+            font-size: 1em;
+            padding-left: 10px;
+            line-height: 20px;
+        }
+
 
 
         .version {text-align: left; padding: 2px}
@@ -99,10 +140,12 @@
 
         .ok {color: darkslategray;}
         .error {color: white; background-color: darkred;}
+        .warning {color: black; background-color: lightgoldenrodyellow;}
         .upgraded {color: whitesmoke; background-color: darkslategray;}
         .downgraded {color: red;}
 
         .smallgreytext {float: right; font-size: 0.5em; color: gray;}
+        .tooltiptext { top: 120%; }
 
         /* Table specific */
         .nodes tr:nth-child(even) {
@@ -135,13 +178,13 @@
 {% macro prettify_version(v) %}
     <div class="version">
         {% if v.epoch %}
-        <div class="v_epoch {{ v.epoch_status | make_status_class }}">{{ v.epoch }}</div>
+        <div class="v_epoch {{ v.epoch_status | pkg_status_class }}">{{ v.epoch }}</div>
         <div class="colon">:</div>
         {% endif %}
-        <div class="v_upstream {{ v.upstream_status | make_status_class }}">{{ v.upstream }}{{ v.upstream_rev }}</div>
+        <div class="v_upstream {{ v.upstream_status | pkg_status_class }}">{{ v.upstream }}{{ v.upstream_rev }}</div>
         {% if v.debian %}
         <div class="dash">-</div>
-        <div class="v_debian {{ v.debian_status | make_status_class }}">{{ v.debian }}{{ v.debian_rev }}</div>
+        <div class="v_debian {{ v.debian_status | pkg_status_class }}">{{ v.debian }}{{ v.debian_rev }}</div>
         {% endif %}
         {{ caller() }}
     </div>
@@ -150,31 +193,49 @@
 {% macro render_package(pkg_name, dat, status_shown, action_shown, id_label) %}
         <tr onclick="toggleClassByID('{{ id_label }}_{{ pkg_name }}_{{ status_shown }}_{{ action_shown }}')" id="{{ id_label }}_{{ pkg_name }}_{{ status_shown }}_{{ action_shown }}_button">
             <td class="repo">{{ dat['desc']['repo'] }}</td>
-            <td class="component">{{ dat['desc']['component'] }}</td>
+            <td class="component">{{ dat['desc']['section'] }}</td>
             <td class="app">{{ dat['desc']['app'] }}</td>
             <td class="package_name">{{ pkg_name }}</td>
             <td class="status_container" colspan="3">
-                <div class="status {{ status_shown | make_status_class }}">{{ status_shown | make_status_label }}</div>
-                {% if action_shown | make_action_label %}
-                    <div class="action {{ action_shown | make_action_class }}">{{ action_shown | make_action_label }}</div>
+                <div class="status {{ status_shown | pkg_status_class }}">{{ status_shown | pkg_status_label }}</div>
+                {% if action_shown | pkg_action_label %}
+                    <div class="action {{ action_shown | pkg_action_class }}">{{ action_shown | pkg_action_label }}</div>
                 {% endif %}
+                {% set counter = [0] %}
+                {% for status in dat['results'].keys() | sort(reverse=true) %}
+                {% if status_err == status or status_warn == status %}
+                    {% for action in dat['results'][status].keys() | sort(reverse=true) %}
+                    {% for node in dat['results'][status][action].keys() | sort %}
+                    {% if counter.append(counter.pop() + 1) %}{% endif %}
+                    {% if counter[0] < 10 %}
+                        <div class="node node_{{ status | pkg_status_class }}" alt="{{ counter }}">{{ nodes[node].shortname }}</div>
+                    {% endif %}
+                    {% endfor %}
+                    {% endfor %}
+                {% endif %}
+                {% endfor %}
+
+                {% if counter[0] > 10 %}
+                    <div class="node node_more" alt="{{ counter[0]-10 }} more">...</div>
+                {% endif %}
+
             </td>
         </tr>
         <tr class="collapsable" id="{{ id_label }}_{{ pkg_name }}_{{ status_shown }}_{{ action_shown }}"><td colspan="7">
         <table class="nodes"><tbody>
+        {% set counter = [0] %}
         {% for status in dat['results'].keys() | sort(reverse=true) %}
         {% for action in dat['results'][status].keys() | sort(reverse=true) %}
-        {% set counter = 1 + loop.index0 %}
         {% for node in dat['results'][status][action].keys() | sort %}
-        {% set n_counter = 1 + loop.index0 %}
+        {% if counter.append(counter.pop() + 1) %}{% endif %}
         {% set nd = dat['results'][status][action][node] %}
         <tr>
-            <td class="repo">{{ n_counter }}</td>
+            <td class="repo">{{ counter[0] }}</td>
             <td class="node_name">{{ node }}</td>
             <td class="status_container">
-                <div class="status {{ status | make_status_class }}">{{ status | make_status_label }}</div>
-                {% if action | make_action_label %}
-                    <div class="action {{ action | make_action_class }}">{{ action | make_action_label }}</div>
+                <div class="status {{ status | pkg_status_class }}">{{ status | pkg_status_label }}</div>
+                {% if action | pkg_action_label %}
+                    <div class="action {{ action | pkg_action_class }}">{{ action | pkg_action_label }}</div>
                 {% endif %}
             </td>
             <td class="installed">
@@ -185,7 +246,12 @@
                 </div>
             </td>
             <td class="candidate">{{ nd['c'].version }}</td>
-            <td class="release">{{ dat['r'].version }}</td>
+            <td class="release">
+                <div class="tooltip">
+                    {{ dat['r'].version }}
+                    <pre class="repoinfotext">{{ dat['repos'] | pkg_repo_info }}</pre>
+                </div>
+            </td>
         </tr>
         {% endfor %}
         {% endfor %}
@@ -223,6 +289,20 @@
             <tr><td class="note" colspan="7">no errors found </td></tr>
             {% endif %}
 
+            <!-- Print warnings -->
+            <tr><td colspan="7">Warnings ({{ warnings[id_label] }})</td></tr>
+            {% for pkg_name in pkg_dict | get_sorted_keys %}
+            {% set dat = pkg_dict[pkg_name] %}
+                {% if status_warn in dat['results'] %}
+                    {% set action_to_show = dat['results'][status_warn].keys() | get_max %}
+                    {% call render_package(pkg_name, dat, status_warn, action_to_show, id_label) %}
+                    {% endcall %}
+                {% endif%}
+            {% endfor %}
+            {% if not warnings[id_label] %}
+            <tr><td class="note" colspan="7">no warnings found </td></tr>
+            {% endif %}
+
             <!-- Print downgrades -->
             <tr><td colspan="7">Downgrades ({{ downgrades[id_label] }})</td></tr>
             {% for pkg_name in pkg_dict | get_sorted_keys %}
@@ -243,7 +323,7 @@
             {% set dat = pkg_dict[pkg_name] %}
                 {% set status_to_show = dat['results'].keys() | get_max %}
                 {% set action_to_show = dat['results'][status_to_show].keys() | get_max %}
-                {% if status_err != status_to_show and status_down !=  status_to_show %}
+                {% if status_err != status_to_show and status_down !=  status_to_show and status_warn != status_to_show %}
                     {% call render_package(pkg_name, dat, status_to_show, action_to_show, id_label) %}
                     {% endcall %}
                 {% endif %}
@@ -274,55 +354,138 @@
 
 <!-- Legend -->
 <div id="legend" class="barcontent">
-    <h5>Legend: status and action explanation and possible combinations</h5>
-    <table class="pkgversions">
-        <tbody>
-        <tr><td colspan="7">Version status desctiptions</td></tr>
-        <tr>
-            <td class="status_container"><div class="status {{ cs.ok | make_status_class }}">{{ cs.ok | make_status_label }}</div></td>
-            <td>Installed and Candidate epoch:upstream version mach</td>
-        </tr>
-        <tr>
-            <td class="status_container"><div class="status {{ cs.up | make_status_class }}">{{ cs.up | make_status_label }}</div></td>
-            <td>Installed version is newer that the one found in Repo (i.e. candidate) or Release notes recordset</td>
-        </tr>
-        <tr>
-            <td class="status_container"><div class="status {{ cs.down | make_status_class }}">{{ cs.down | make_status_label }}</div></td>
-            <td>Installed version is older that the one found in Repo (i.e. candidate) or Release notes recordset</td>
-        </tr>
-        <tr>
-            <td class="status_container"><div class="status {{ cs.err | make_status_class }}">{{ cs.err | make_status_label }}</div></td>
-            <td>Installed version conflicts with a combination of Candidate and Release notes versions</td>
-        </tr>
-        <tr><td colspan="7">Action descriptions</td></tr>
-        <tr>
-            <td class="status_container"><div class="action {{ ca.na | make_action_class }}">{{ ca.na | make_action_label }} (no action)</div></td>
-            <td>No action suggested</td>
-        </tr>
-        <tr>
-            <td class="status_container"><div class="action {{ ca.up | make_action_class }}">{{ ca.up | make_action_label }}</div></td>
-            <td>There is an upgrade possible for the package. But it is not strictly required action.</td>
-        </tr>
-        <tr>
-            <td class="status_container"><div class="action {{ ca.need_up | make_action_class }}">{{ ca.need_up | make_action_label }}</div></td>
-            <td>Package should be upgraded to match version either in repo or in Release notes</td>
-        </tr>
-        <tr>
-            <td class="status_container"><div class="action {{ ca.need_down | make_action_class }}">{{ ca.need_down | make_action_label }}</div></td>
-            <td>Package should be downgraded to match version either in repo or in Release notes</td>
-        </tr>
-        <tr>
-            <td class="status_container"><div class="action {{ ca.repo | make_action_class }}">{{ ca.repo | make_action_label }}</div></td>
-            <td>Repo that is configured on the target node contains invalid version and should be updated</td>
-        </tr>
-        <tr><td colspan="7">Versions status and Action combinations</td></tr>
-        <tr>
-            <td class="status_container">
-                <div class="status {{ cs.err | make_status_class }}">{{ cs.err | make_status_label }}</div>
-                <div class="action {{ ca.repo | make_action_class }}">{{ ca.repo | make_action_label }}</div>
-            </td>
-        </tr>
-    </tbody></table>
+	<table width="100%"><tbody>
+		<tr>
+			<td width="50%"><h5>Version status desctiptions</h5></td>
+			<td width="50%"><h5>Action descriptions</h5></td>
+		</tr>
+
+		<tr>
+			<td width="50%">
+				<div class="status_container">
+					<div class="status {{ cs.ok | pkg_status_class }}">{{ cs.ok | pkg_status_label }}</div>
+					<div class="text">Installed and Candidate epoch:upstream version mach</div>
+				</div>
+			</td>
+			<td width="50%">
+				<div class="status_container">
+					<div class="action {{ ca.na | pkg_action_class }}">{{ ca.na | pkg_action_label }} (no action)</div>
+					<div class="text">No action suggested</div>
+				</div>
+			</td>
+		</tr>
+		<tr>
+			<td width="50%">
+				<div class="status_container">
+					<div class="status {{ cs.up | pkg_status_class }}">{{ cs.up | pkg_status_label }}</div>
+					<div class="text">Installed version is newer that the one found in Repo (i.e. candidate) or Release notes recordset</div>
+				</div>
+			</td>
+			<td width="50%">
+				<div class="status_container">
+					<div class="action {{ ca.up | pkg_action_class }}">{{ ca.up | pkg_action_label }}</div>
+					<div class="text">There is an upgrade possible for the package. But it is not strictly required action</div>
+				</div>
+			</td>
+		</tr>
+		<tr>
+			<td width="50%">
+				<div class="status_container">
+					<div class="status {{ cs.down | pkg_status_class }}">{{ cs.down | pkg_status_label }}</div>
+					<div class="text">Installed version is older that the one found in Repo (i.e. candidate) or Release notes recordset</div>
+				</div>
+			</td>
+			<td width="50%">
+				<div class="status_container">
+					<div class="action {{ ca.need_up | pkg_action_class }}">{{ ca.need_up | pkg_action_label }}</div>
+					<div class="text">Package should be upgraded to match version either in repo or in Release notes</div>
+				</div>
+			</td>
+		</tr>
+		<tr>
+			<td width="50%">
+				<div class="status_container">
+					<div class="status {{ cs.err | pkg_status_class }}">{{ cs.err | pkg_status_label }}</div>
+					<div class="text">Installed version conflicts with a combination of Candidate and Release notes versions</div>
+				</div>
+			</td>
+			<td width="50%">
+				<div class="status_container">
+					<div class="action {{ ca.need_down | pkg_action_class }}">{{ ca.need_down | pkg_action_label }}</div>
+					<div class="text">Package should be downgraded to match version either in repo or in Release notes</div>
+				</div>
+			</td>
+		</tr>
+		<tr>
+			<td width="50%">
+			</td>
+			<td width="50%">
+				<div class="status_container">
+					<div class="action {{ ca.repo | pkg_action_class }}">{{ ca.repo | pkg_action_label }}</div>
+					<div class="text">Repo that is configured on the target node contains invalid version and should be updated</div>
+				</div>
+			</td>
+		</tr>
+	</tbody></table>
+    <hr>
+    <h5>Versions status and Action combinations</h5>
+    <div class="status_container">
+        <div class="status {{ cs.ok | pkg_status_class }}">{{ cs.ok | pkg_status_label }}</div>
+        <div class="action {{ ca.na | pkg_action_class }}">{{ ca.na | pkg_action_label }} (no action)</div>
+        <div class="text">All versions are inline with each other</div>
+    </div>
+    <div class="status_container">
+        <div class="status {{ cs.up | pkg_status_class }}">{{ cs.up | pkg_status_label }}</div>
+        <div class="action {{ ca.na | pkg_action_class }}">{{ ca.na | pkg_action_label }} (no action)</div>
+        <div class="text">Installed version is newer that Cadidate, Release version - unknown or not tracked</div>
+    </div>
+    <div class="status_container">
+        <div class="status {{ cs.ok | pkg_status_class }}">{{ cs.ok | pkg_status_label }}</div>
+        <div class="action {{ ca.up | pkg_action_class }}">{{ ca.up | pkg_action_label }}</div>
+        <div class="text">Installed version is equal to Release, but there is newer in the repo</div>
+    </div>
+    <div class="status_container">
+        <div class="status {{ cs.up | pkg_status_class }}">{{ cs.up | pkg_status_label }}</div>
+        <div class="action {{ ca.up | pkg_action_class }}">{{ ca.up | pkg_action_label }}</div>
+        <div class="text">Installed version is newer than Release, and there is even newer in the repo</div>
+    </div>
+    <div class="status_container">
+        <div class="status {{ cs.err | pkg_status_class }}">{{ cs.err | pkg_status_label }}</div>
+        <div class="action {{ ca.need_up | pkg_action_class }}">{{ ca.need_up | pkg_action_label }}</div>
+        <div class="text">Installed version is older than Candidate and Release versions and must be upgraded</div>
+    </div>
+    <div class="status_container">
+        <div class="status {{ cs.err | pkg_status_class }}">{{ cs.err | pkg_status_label }}</div>
+        <div class="action {{ ca.need_down | pkg_action_class }}">{{ ca.need_down | pkg_action_label }}</div>
+        <div class="text">Unknown version installed, Release and Candidate versions are older</div>
+    </div>
+    <div class="status_container">
+        <div class="status {{ cs.err | pkg_status_class }}">{{ cs.err | pkg_status_label }}</div>
+        <div class="action {{ ca.repo | pkg_action_class }}">{{ ca.repo | pkg_action_label }}</div>
+        <div class="text">Installed and Candidate versions is older than release and repo must be updated</div>
+    </div>
+
+    <div class="status_container">
+        <div class="status {{ cs.up | pkg_status_class }}">{{ cs.up | pkg_status_label }}</div>
+        <div class="action {{ ca.repo | pkg_action_class }}">{{ ca.repo | pkg_action_label }}</div>
+        <div class="text">Candidate version in repo is older vs Release and both older vs Installed</div>
+    </div>
+    <div class="status_container">
+        <div class="status {{ cs.ok | pkg_status_class }}">{{ cs.ok | pkg_status_label }}</div>
+        <div class="action {{ ca.repo | pkg_action_class }}">{{ ca.repo | pkg_action_label }}</div>
+        <div class="text">Candidate version in Repo is older vs release, but release version installed</div>
+    </div>
+    
+    <div class="status_container">
+        <div class="status {{ cs.down | pkg_status_class }}">{{ cs.down | pkg_status_label }}</div>
+        <div class="action {{ ca.repo | pkg_action_class }}">{{ ca.repo | pkg_action_label }}</div>
+        <div class="text">Both Candidate in repo and Installed older vs release</div>
+    </div>
+    <div class="status_container">
+
+        <div class="text"></div>
+    </div>
+
 </div>
 </body>
 </html>

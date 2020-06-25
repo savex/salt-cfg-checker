@@ -1,0 +1,13 @@
+{
+  "all": {
+    "url": "http://fakedomain.com/2099.0.0/fakerepo/", 
+    "ubuntu": [
+      {
+        "type": "main", 
+        "filepath": "http://fakedomain.com/2099.0.0/ubuntu/dists/trusty/main/binary-amd64/Packages.gz", 
+        "arch": "amd64", 
+        "ubuntu-release": "trusty"
+      } 
+    ]
+  } 
+}

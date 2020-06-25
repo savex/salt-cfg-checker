@@ -1,8 +1,11 @@
 import os
+import sys
 
-from exception import ConfigException
-from log import logger, logger_cli
-from other import utils
+from cfg_checker.common.exception import ConfigException
+
+from cfg_checker.common.log import logger_cli
+
+from cfg_checker.common.other import utils
 
 pkg_dir = os.path.dirname(__file__)
 pkg_dir = os.path.join(pkg_dir, os.pardir, os.pardir)
@@ -13,11 +16,17 @@ _default_work_folder = os.path.normpath(pkg_dir)
 
 
 class CheckerConfiguration(object):
+    @staticmethod
     def load_nodes_list():
-        return utils.get_nodes_list(
-            os.environ.get('CFG_ALL_NODES', None),
-            os.environ.get('SALT_NODE_LIST_FILE', None)
-        )
+        _file = os.environ.get('SALT_NODE_LIST_FILE', None)
+        if _file:
+            _v, _ = utils.get_nodes_list(
+                os.path.join(pkg_dir, _file),
+                env_sting=os.environ.get('CFG_ALL_NODES', None)
+            )
+            return _v
+        else:
+            return None
 
     def _init_values(self):
         """Load values from environment variables or put default ones
@@ -74,7 +83,11 @@ class CheckerConfiguration(object):
         if os.path.isfile(_config_path):
             with open(_config_path) as _f:
                 _list = _f.read().splitlines()
-            logger_cli.info("# Loading env vars from '{}'".format(_config_path))
+            logger_cli.info(
+                "# Loading env vars from '{}'".format(
+                    _config_path
+                )
+            )
         else:
             raise ConfigException(
                 "# Failed to load enviroment vars from '{}'".format(
@@ -103,12 +116,26 @@ class CheckerConfiguration(object):
                 )
             )
         else:
-            logger_cli.debug("-> ...loaded total of '{}' vars".format(len(_list)))
+            logger_cli.debug(
+                "-> ...loaded total of '{}' vars".format(
+                    len(_list)
+                )
+            )
             self.salt_env = _env_name
 
     def __init__(self):
         """Base configuration class. Only values that are common for all scripts
         """
+        # Make sure we running on Python 3
+        if sys.version_info[0] < 3 and sys.version_info[1] < 5:
+            logger_cli.error("# ERROR: Python 3.5+ is required")
+            sys.exit(1)
+        else:
+            logger_cli.debug("### Python version is {}.{}".format(
+                sys.version_info[0],
+                sys.version_info[1]
+            ))
+
         _env = os.getenv('SALT_ENV', None)
         self._init_env(_env)
         self._init_values()

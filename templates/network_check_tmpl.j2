@@ -7,37 +7,244 @@
     {% include 'common_scripts.j2' %}
     <style>
         table.cluster_nodes {
-            width: 90%;
-            margin-left: 5%;
-            margin-right: 5%;
+            width: 98%;
+            margin-left: 1%;
+            margin-right: 1%;
         }
     
         /* Node rows*/
 		.node {
+			font-family: "LaoSangamMN", Monaco, monospace;
+			font-size: 0.8em;
 			display: inline-block;
 			background-color: white;
 		}
+		.collapsable {
+			font-family: "LaoSangamMN", Monaco, monospace;
+			font-size: 0.8em;
+			display: none;
+            background-color: white;
+            visibility: hidden;
+        }
+        .collapsable.in {
+            visibility: visible;
+            display: inline-block;
+        }
+
+        div.services > .collapsable.in {
+            display: table-row;
+        }
 		
-        tr.node > td {
+        tr.node > td, tr.collapsable > td {
             display: block;
             float: left;
             padding: 1px;
-            padding-left: 5px;
-            padding-right: 5px;
-            color: black;
-            background-color: #A1BbA1;
-            text-align: center;
             margin: 2px;
         }
-        
-        .meters {
-			display: inline-block;        
+        td > .kvm_group {
+            display: grid;
+            grid-template-columns: auto auto auto;
+            padding-left: 0px;
+            padding-right: 0px;
+            margin: 1px;
+        }
+        td > .disk_group {
+            display: grid;
+            grid-template-columns: 170px 40px 40px 40px 40px;
+            padding-left: 0px;
+            padding-right: 0px;
+            margin: 1px;
+        }
+        td > .ram_group {
+            display: grid;
+            grid-template-columns: 40px 40px 40px 40px;
+            padding-left: 0px;
+            padding-right: 0px;
+            margin: 1px;
+        }
+        td > .net_group {
+            display: grid;
+            grid-template-columns: 50px 50px 40px 40px 40px;
+            padding-left: 0px;
+            padding-right: 0px;
+            margin: 1px;
+        }
+        td > .vcpu_group {
+            display: grid;
+            grid-template-columns: auto;
+            padding-left: 0px;
+            padding-right: 0px;
+            margin: 1px;
+        }
+
+        .item {
+        	display: inline-grid;
+  			border-width: 1px;
+			border-style: solid;
+			margin: 1px 1px 1px 1px;
+            padding: 0px 1px 0px 1px;
+        }
+
+	    .status_none { border-radius: 10px; width: 8px; }
+	    .status_up { border-radius: 10px; width: 8px; background-color: #393; color: #393; }
+        .status_down { border-radius: 10px; width: 8px; background-color: #933; color: #933; }
+        .status_skip { border-radius: 10px; width: 8px; background-color: #aaa; color: #aaa; }
+
+        .down > .col_name, .down > .col_role, .down > .col_down {
+            background-color: #fee;
+            background-image: linear-gradient(white, #fee, #fee, white);
+            margin: 0px;
+        }
+        .skip > .col_name, .skip > .col_role, .skip > .col_skip {
+            background-color: #eee;
+            background-image: linear-gradient(white, #eee, #eee, white);
+            margin: 0px;
+        }
+        .down > .col_name, .skip > .col_name { padding-left: 3px; }
+        .down > .col_role, .skip > .col_role { padding-left: 5px; }
+
+        .head { height: 18px; }
+	    .col_name {	width: 90px; }
+	    .col_role {	width: 130px; }
+	    .col_vendor { width: 70px; }
+        .col_release { width: 100px; }
+        .col_kernel { min-width: 100px; }
+        .col_vcpu { min-width: 40px; }
+        .col_net { min-width: 150px; }
+        .col_ram { min-width: 162px; }
+        .col_disk { min-width: 290px; }
+
+        .col_down, .col_skip {
+            min-width: 1020px;
+            text-align: left;
+            font-style: italic;
+            padding-left: 50px !important;
+            color: gray;
         }
         
-        td.meters > .meter {
+        .col_node_notes { width: 225px; }
+        .col_cpu_notes { width: 177px; }
+
+        .meters {
+            display: inline-block;
+            margin: 1px;
+        }
+        .meters > .meter {
             display: block;
             float: left;
+  			border-width: 1px;
+			border-style: solid;
+			margin: 0px 1px 0px 1px;
+            padding: 0px 1px 0px 1px;
+            
         }
+        .kvm_id, .kvm_node, .kvm_status {
+            border-width: 0px;
+            background-color: #f0f0f0;
+        }
+        .kvm_id, .kvm_status {
+            text-align: center;
+        }
+        .meters > .ok, .disk_group > .ok, .ram_group > .ok{
+			border-color: #80a080;
+			background-color: #efe;
+        }
+        .meters > .warn, .disk_group > .warn, .ram_group > .warn {
+			border-color: #d3a200;
+			background-color: rgb(255, 216, 133);
+        }
+        .meters > .fail, .disk_group > .fail, .ram_group > .fail {
+			border-color: #bb0000;
+			background-color: rgb(250, 135, 135);
+        }
+        .cpu { border-color: #a0c0a0; background-color: rgb(252, 248, 248); }
+        .net { border-color: #c0c0a0; background-color: rgb(255, 255, 251); text-align: right; }
+        .ram { border-color: #a0c0c0; background-color: rgb(255, 250, 250); text-align: right; }
+        .disk { border-color: #cedfdf; background-color: rgb(237, 241, 243); text-align: right; }
+        .disk_group > .path {
+            text-align: left;
+        }
+        .map_grid {
+            display: grid;
+            grid-template-columns: auto auto auto auto auto auto auto auto auto auto;
+            grid-column-gap: 20px;
+            padding-left: 0px;
+            padding-right: 0px;
+            margin: 1px;
+            margin-left: 20px;
+
+        }
+        .map_item {
+        	display: inline-grid;
+            border-width: 0px;
+			border-style: solid;
+			margin: 1px 1px 1px 1px;
+            padding: 0px 1px 0px 1px;
+        }
+
+        .map_grid > .ok {
+            color: #80a080;
+        }
+        .map_grid > .warn {
+            color: #d3a200;
+        }
+        .map_grid > .fail {
+            color: #bb0000;
+        }
+
+        .services {
+			font-family: "LaoSangamMN", Monaco, monospace;
+			font-size: 1.1em;
+			background-color: white;
+        }
+        .service_node {
+            margin-bottom: 2px;
+            display: flex;
+        }
+        .service_name, .node_name {
+            text-align: center;
+            border-width: 0px;
+			border-style: solid;
+			margin: 1px 1px 1px 1px;
+            padding: 0px 1px 0px 1px;
+            min-width: 250px;
+            border-radius: 10px;
+        }
+        .node_name {
+            background-color: #ddd;
+        }
+        .service_grid {
+            display: grid;
+            grid-template-columns: repeat(8, auto);
+            grid-template-rows: repeat(10, auto);
+            grid-auto-flow: column;
+            grid-column-gap: 20px;
+            padding-left: 0px;
+            padding-right: 0px;
+            margin: 1px;
+            margin-left: 20px;
+          }
+        .service {
+            display: inline-grid;
+            text-align: center;
+            border-width: 0px;
+			border-style: solid;
+			margin: 1px 1px 1px 1px;
+            padding: 0px 1px 0px 1px;
+            min-width: 150px;
+            border-radius: 10px;
+        }
+
+        .service_grid > .on, .service_node > .ok {
+            background-color: #8c8;
+        }
+        .service_grid > .off, .service_node > .off{
+            background-color: #9aa;
+        }
+        .service_grid > .fail, .service_node > .fail {
+            background-color: rgb(250, 135, 135);
+        }
+
     </style>
 </head>
 <body onload="init()">
@@ -47,13 +254,17 @@
     <div class="text">{{ openstack_release }}</div>
     <div class="label">MCP Version:</div>
     <div class="text">{{ mcp_release }}</div>
+    <div class="label">RAM % Warning/Critical:</div>
+    <div class="text">{{ const['ram_warn'] }}/{{ const['ram_critical'] }}</div>
+    <div class="label">Disk % Warning/Critical:</div>
+    <div class="text">{{ const['disk_warn'] }}/{{ const['disk_critical'] }}</div>
     <div class="label date">generated on: {{ gen_date }}</div>
 </div>
 
 <div class="bar">
     <button class="bar-item" onclick="openBar(event, 'nodes')">Nodes</button>
     <button class="bar-item" onclick="openBar(event, 'networks')">Networks</button>
-    <button class="bar-item" onclick="openBar(event, 'services')">Other</button>
+    <button class="bar-item" onclick="openBar(event, 'services')">Services</button>
 </div>
 
 {% macro nodes_page(nodes, id_label) %}
@@ -61,17 +272,144 @@
     <h5>{{ caller() }}</h5>
     <hr>
     <table class="cluster_nodes">
+        <tr class="node">
+            <td class="status_none"></td>
+            <td class="head col_name">Name</td>
+            <td class="head col_role">Role</td>
+            <td class="head col_vendor">Virtual</td>
+            <td class="head col_release">Linux</td>
+            <td class="head col_kernel">Kernel</td>
+
+            <td class="head col_vcpu">
+                <div class="meters vcpu">
+                    <div class="meter cpu">vCPU</div>
+                </div>
+            </td>
+            <td class="head col_net">
+                <div class="net_group">
+                    <div class="item net">vCpu</div>
+                    <div class="item net">Total</div>
+                    <div class="item net">Drop</div>
+                    <div class="item net">Sq.</div>
+                    <div class="item net">Cl.</div>
+                </div>
+            </td>
+            <td class="head col_ram">
+                <div class="ram_group">
+                    <div class="item ram">Total</div>
+                    <div class="item ram">Used</div>
+                    <div class="item ram">Free</div>
+                    <div class="item ram">Avail.</div>
+                </div>
+            </td>
+            <td class="head col_disk">
+                <div class="disk_group">
+                    <div class="item disk path">Device path</div>
+                    <div class="item disk">Total</div>
+                    <div class="item disk">Used</div>
+                    <div class="item disk">Free</div>
+                    <div class="item disk">%</div>
+                </div>
+            </td>
+        </tr>
     {% for node in nodes.keys() | sort %}
         {% set _ndat = nodes[node] %}
-        <tr class="node virt">
-            <td class="status">{{ _ndat['status'] }}</td>
-            <td class="name">{{ node }}</td>
-            <td class="role">{{ _ndat['role'] }}</td>
-            <td class="vendor">QEMU</td>
-            <td class="meter cpu">vCPU: 12</td>
-            <td class="meter ram">RAM: 500GB</td>
-            <td class="meter disk">VDA: 150/140/135</td>
+        {% set _status = _ndat['status'] | node_status_class %}
+        {% if _status == 'down' %}
+        <tr class="node down">
+            <td class="status_{{ _status }}">.</td>
+            <td class="head col_name">{{ _ndat['shortname'] }}</td>
+            <td class="head col_role">{{ _ndat['role'] }}</td>
+            <td class="head col_down" colspan="7"> ...no data collected: node is down</td>
         </tr>
+        {% elif _status == 'skip' %}
+        <tr class="node skip">
+            <td class="status_{{ _status }}">.</td>
+            <td class="head col_name">{{ _ndat['shortname'] }}</td>
+            <td class="head col_role">{{ _ndat['role'] }}</td>
+            <td class="head col_skip" colspan="7"> ...no skipped from processing</td>
+        </tr>
+        {% else %}
+        <tr class="node" onclick="toggleClassByID('info_{{ node }}')" id='info_{{ node }}_button'>
+            <td class="status_{{ _ndat['status'] | node_status_class }}">.</td>
+            <td class="head col_name">{{ _ndat['shortname'] }}</td>
+            <td class="head col_role">{{ _ndat['role'] }}</td>
+            <td class="head col_vendor">{{ _ndat['node_type'] }}</td>
+            <td class="head col_release">{{ _ndat['linux_arch'] }}/{{ _ndat['linux_codename'] }}</td>
+            <td class="head col_kernel">{{ _ndat['kernel'] }}</td>
+            <td class="head col_vcpu">
+                <div class="meters vcpu">
+                    <div class="meter cpu">{{ _ndat['lscpu']['cpus'] }}</div>
+                </div>
+            </td>
+            <td class="head col_net">
+                <div class="net_group">
+                    <div class="item net">All</div>
+                    <div class="item net">{{ _ndat['net_stats']['total'][0] }}</div>
+                    <div class="item net">{{ _ndat['net_stats']['total'][1] }}</div>
+                    <div class="item net">{{ _ndat['net_stats']['total'][2] }}</div>
+                    <div class="item net">{{ _ndat['net_stats']['total'][3] }}</div>
+                </div>
+            </td>
+            <td class="head col_ram">
+                <div class="ram_group">
+                    <div class="item ram">{{ _ndat['ram']['total'] }}</div>
+                    <div class="item ram">{{ _ndat['ram']['used'] }}</div>
+                    <div class="item ram">{{ _ndat['ram']['free'] }}</div>
+                    <div class="item ram {{ _ndat['ram']['status'] }}">{{ _ndat['ram']['available'] }}</div>
+                </div>
+            </td>
+            <td class="head col_disk">
+                <div class="disk_group">
+                    <div class="item disk path">{{ _ndat['disk_max_dev'] }}</div>
+                    {% for val in _ndat['disk'][_ndat['disk_max_dev']]['v'] %}
+                    <div class="item disk {{ _ndat['disk'][_ndat['disk_max_dev']]['f'] }}">{{ val }}</div>
+                    {% endfor %}
+                </div>
+            </td>
+        </tr>
+        <tr class="collapsable" id="info_{{ node }}">
+            <td class="status_none"></td>
+            <td class="col_node_notes" colspan="2">
+                {% if 'virsh' in _ndat %}
+                <div class="kvm_group">
+                {% for kvm_node in _ndat['virsh'].keys() | sort %}
+                    <div class="item kvm_id">{{ _ndat['virsh'][kvm_node]['id'] }}</div>
+                    <div class="item kvm_node">{{ kvm_node }}</div>
+                    <div class="item kvm_status">{{ _ndat['virsh'][kvm_node]['status'] }}</div>
+                {% endfor %}
+                </div>
+                {% endif %}
+            </td>
+            <td class="col_cpu_notes smallgreytext" colspan="2">
+                CPU Model: {{ _ndat['lscpu']['model_name'] }} at {{ _ndat['lscpu']['cpu_mhz'] }}Mhz<br>
+                Virtualization: {{ _ndat['lscpu']['virtualization'] }}
+            </td>
+            <td class="col_kernel"></td>
+            <td class="col_vcpu"></td>
+            <td class="col_net">
+                <div class="net_group">
+                    {% for cpu in _ndat['net_stats'].keys() | sort %}
+                    <div class="item net">{{ cpu }}</div>
+                    {% for val in _ndat['net_stats'][cpu] %}
+                    <div class="item net">{{ val }}</div>
+                    {% endfor %}
+                    {% endfor %}
+                </div>
+            </td>
+            <td class="col_ram"></td>
+            <td class="col_disk">
+                <div class="disk_group">
+                    {% for dev in _ndat['disk'].keys() | sort %}
+                    <div class="item disk path">{{ dev }}</div>
+                    {% for val in _ndat['disk'][dev]['v'] %}
+                    <div class="item disk {{ _ndat['disk'][dev]['f'] }}">{{ val }}</div>
+                    {% endfor %}
+                    {% endfor %}
+                </div>
+            </td>
+        </tr>
+        {% endif %}
     {% endfor %}
     </table>
     <hr>
@@ -83,13 +421,29 @@
     <h5>{{ caller() }}</h5>
     <hr>
     <table class="networks">
-        <tr class="subnet">192.168.10.0/24</tr>
-        <tr class="net collapsable">
-            <td class="status">UP</td>
-            <td class="name">cfg01.internal.net</td>
-            <td class="ip">192.168.10.11</td>
-            <td class="param">1500</td>
+        {% for net in map.keys() %}
+        <tr class="subnet" onclick="toggleClassByID('net_{{ net }}')" id="{{ net }}_net_button">
+            <td>{{ net }}</td>
         </tr>
+        <tr class="collapsable" id="net_{{ net }}"><td>
+            <div class="map_grid">
+        {% for node in map[net].keys() | sort %}
+        {% for d in map[net][node] %}
+                <div class="map_item name">{{ node }}</div>
+                <div class="map_item interface {{ d['interface_error'] }}">{{ d['interface'] }}</div>
+                <div class="map_item note"><pre>{{ d['interface_map'] | linebreaks }}</pre></div>
+                <div class="map_item ipaddr">{{ d['ip_address'] }}</div>
+                <div class="map_item ipaddr_type">{{ d['address_type'] }}</div>
+                <div class="map_item mtu {{ d['mtu_error'] }}">{{ d['rt_mtu'] }}</div>
+                <div class="map_item status {{ d['status_error'] }}">{{ d['status'] }}</div>
+                <div class="map_item gate {{ d['subnet_gateway_error'] }}">{{ d['subnet_gateway'] }}</div>
+                <div class="map_item gate">{{ d['default_gateway'] }}</div>
+                <div class="map_item error_note">{{ d['error_note'] }}</div>
+        {% endfor %}
+        {% endfor %}
+            </div>
+        </td></tr>
+        {% endfor %}
     </table>
     <hr>
 </div>
@@ -99,12 +453,50 @@
 <div id="{{ id_label }}" class="barcontent">
     <h5>{{ caller() }}</h5>
     <hr>
+    <div class="services">
+            {% for node in nodes.keys() | sort %}
+            <div class="service_node" onclick="toggleClassByID('svc_{{ node }}')" id="svc_{{ node }}_button">
+                <div class="node_name">{{ node }}</div>
+                {% for service in nodes[node]['services'].keys() | sort -%}            
+                {% if service in const['services'] %}
+                {% if not nodes[node]['services'][service] %}
+                    <div class="service_name fail">{{ service }}</div>
+                {% endif %}
+                {% endif%}
+                {% endfor%}
+            </div>
+            <div class="collapsable" id="svc_{{ node }}">
+                <div class="service_grid">
+            {% for service in nodes[node]['services'].keys() | sort -%}            
+                {% if service in const['services'] %}
+                {% if nodes[node]['services'][service] %}
+                    <div class="service on">{{ service }}</div>
+                {% else %}
+                    <div class="service fail">{{ service }}</div>
+                {% endif %}
+                {% endif%}
+            {% endfor %}
+                    <div class="service"># Other services</div>
+            {% for service in nodes[node]['services'].keys() | sort -%}            
+                {% if service not in const['services'] %}
+                {% if nodes[node]['services'][service] %}
+                    <div class="service on">{{ service }}</div>
+                {% else %}
+                    <div class="service off">{{ service }}</div>
+                {% endif %}
+                {% endif %}
+            {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+    </div>
+    <hr>
 </div>
 {% endmacro %}
 
 <!-- Cluster nodes page -->
 {% call nodes_page(nodes, "nodes") %}
-    Cluster nodes status and simple meterings
+    Cluster nodes status and simple meterings in *.{{ domain }}
 {% endcall %}
 
 <!-- Cluster nodes page -->

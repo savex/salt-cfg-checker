@@ -1,0 +1,16 @@
+{
+    "return": {
+        "minions_pre": [],
+        "minions_rejected": [],
+        "minions_denied": [],
+        "local": [
+            "master.pem",
+            "master.pub"
+        ],
+        "minions": [
+            "cfg01.fakedomain.local",
+            "cmp01.fakedomain.local",
+            "ctl01.fakedomain.local"
+        ]
+    }
+}

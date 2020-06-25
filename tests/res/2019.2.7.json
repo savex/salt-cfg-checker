@@ -1,0 +1,798 @@
+{
+  "all": {
+    "url": "http://mirror.mirantis.com/2019.2.7/ubuntu/", 
+    "ubuntu": [
+      {
+        "type": "main", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/ubuntu/dists/trusty/main/binary-amd64/Packages.gz", 
+        "arch": "amd64", 
+        "ubuntu-release": "trusty"
+      }, 
+      {
+        "type": "multiverse", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/ubuntu/dists/trusty/multiverse/binary-amd64/Packages.gz", 
+        "arch": "amd64", 
+        "ubuntu-release": "trusty"
+      }, 
+      {
+        "type": "restricted", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/ubuntu/dists/trusty/restricted/binary-amd64/Packages.gz", 
+        "arch": "amd64", 
+        "ubuntu-release": "trusty"
+      }, 
+      {
+        "type": "universe", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/ubuntu/dists/trusty/universe/binary-amd64/Packages.gz", 
+        "arch": "amd64", 
+        "ubuntu-release": "trusty"
+      }, 
+      {
+        "type": "main", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/ubuntu/dists/trusty-backports/main/binary-amd64/Packages.gz", 
+        "arch": "amd64", 
+        "ubuntu-release": "trusty-backports"
+      }, 
+      {
+        "type": "multiverse", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/ubuntu/dists/trusty-backports/multiverse/binary-amd64/Packages.gz", 
+        "arch": "amd64", 
+        "ubuntu-release": "trusty-backports"
+      }, 
+      {
+        "type": "restricted", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/ubuntu/dists/trusty-backports/restricted/binary-amd64/Packages.gz", 
+        "arch": "amd64", 
+        "ubuntu-release": "trusty-backports"
+      }, 
+      {
+        "type": "universe", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/ubuntu/dists/trusty-backports/universe/binary-amd64/Packages.gz", 
+        "arch": "amd64", 
+        "ubuntu-release": "trusty-backports"
+      }, 
+      {
+        "type": "main", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/ubuntu/dists/trusty-proposed/main/binary-amd64/Packages.gz", 
+        "arch": "amd64", 
+        "ubuntu-release": "trusty-proposed"
+      }, 
+      {
+        "type": "multiverse", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/ubuntu/dists/trusty-proposed/multiverse/binary-amd64/Packages.gz", 
+        "arch": "amd64", 
+        "ubuntu-release": "trusty-proposed"
+      }, 
+      {
+        "type": "restricted", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/ubuntu/dists/trusty-proposed/restricted/binary-amd64/Packages.gz", 
+        "arch": "amd64", 
+        "ubuntu-release": "trusty-proposed"
+      }, 
+      {
+        "type": "universe", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/ubuntu/dists/trusty-proposed/universe/binary-amd64/Packages.gz", 
+        "arch": "amd64", 
+        "ubuntu-release": "trusty-proposed"
+      }, 
+      {
+        "type": "main", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/ubuntu/dists/trusty-security/main/binary-amd64/Packages.gz", 
+        "arch": "amd64", 
+        "ubuntu-release": "trusty-security"
+      }, 
+      {
+        "type": "multiverse", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/ubuntu/dists/trusty-security/multiverse/binary-amd64/Packages.gz", 
+        "arch": "amd64", 
+        "ubuntu-release": "trusty-security"
+      }, 
+      {
+        "type": "restricted", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/ubuntu/dists/trusty-security/restricted/binary-amd64/Packages.gz", 
+        "arch": "amd64", 
+        "ubuntu-release": "trusty-security"
+      }, 
+      {
+        "type": "universe", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/ubuntu/dists/trusty-security/universe/binary-amd64/Packages.gz", 
+        "arch": "amd64", 
+        "ubuntu-release": "trusty-security"
+      }, 
+      {
+        "type": "main", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/ubuntu/dists/trusty-updates/main/binary-amd64/Packages.gz", 
+        "arch": "amd64", 
+        "ubuntu-release": "trusty-updates"
+      }, 
+      {
+        "type": "multiverse", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/ubuntu/dists/trusty-updates/multiverse/binary-amd64/Packages.gz", 
+        "arch": "amd64", 
+        "ubuntu-release": "trusty-updates"
+      }, 
+      {
+        "type": "restricted", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/ubuntu/dists/trusty-updates/restricted/binary-amd64/Packages.gz", 
+        "arch": "amd64", 
+        "ubuntu-release": "trusty-updates"
+      }, 
+      {
+        "type": "universe", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/ubuntu/dists/trusty-updates/universe/binary-amd64/Packages.gz", 
+        "arch": "amd64", 
+        "ubuntu-release": "trusty-updates"
+      }, 
+      {
+        "type": "main", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/ubuntu/dists/xenial/main/binary-amd64/Packages.gz", 
+        "arch": "amd64", 
+        "ubuntu-release": "xenial"
+      }, 
+      {
+        "type": "multiverse", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/ubuntu/dists/xenial/multiverse/binary-amd64/Packages.gz", 
+        "arch": "amd64", 
+        "ubuntu-release": "xenial"
+      }, 
+      {
+        "type": "restricted", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/ubuntu/dists/xenial/restricted/binary-amd64/Packages.gz", 
+        "arch": "amd64", 
+        "ubuntu-release": "xenial"
+      }, 
+      {
+        "type": "universe", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/ubuntu/dists/xenial/universe/binary-amd64/Packages.gz", 
+        "arch": "amd64", 
+        "ubuntu-release": "xenial"
+      }, 
+      {
+        "type": "main", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/ubuntu/dists/xenial-backports/main/binary-amd64/Packages.gz", 
+        "arch": "amd64", 
+        "ubuntu-release": "xenial-backports"
+      }, 
+      {
+        "type": "multiverse", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/ubuntu/dists/xenial-backports/multiverse/binary-amd64/Packages.gz", 
+        "arch": "amd64", 
+        "ubuntu-release": "xenial-backports"
+      }, 
+      {
+        "type": "restricted", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/ubuntu/dists/xenial-backports/restricted/binary-amd64/Packages.gz", 
+        "arch": "amd64", 
+        "ubuntu-release": "xenial-backports"
+      }, 
+      {
+        "type": "universe", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/ubuntu/dists/xenial-backports/universe/binary-amd64/Packages.gz", 
+        "arch": "amd64", 
+        "ubuntu-release": "xenial-backports"
+      }, 
+      {
+        "type": "main", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/ubuntu/dists/xenial-proposed/main/binary-amd64/Packages.gz", 
+        "arch": "amd64", 
+        "ubuntu-release": "xenial-proposed"
+      }, 
+      {
+        "type": "multiverse", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/ubuntu/dists/xenial-proposed/multiverse/binary-amd64/Packages.gz", 
+        "arch": "amd64", 
+        "ubuntu-release": "xenial-proposed"
+      }, 
+      {
+        "type": "restricted", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/ubuntu/dists/xenial-proposed/restricted/binary-amd64/Packages.gz", 
+        "arch": "amd64", 
+        "ubuntu-release": "xenial-proposed"
+      }, 
+      {
+        "type": "universe", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/ubuntu/dists/xenial-proposed/universe/binary-amd64/Packages.gz", 
+        "arch": "amd64", 
+        "ubuntu-release": "xenial-proposed"
+      }, 
+      {
+        "type": "main", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/ubuntu/dists/xenial-security/main/binary-amd64/Packages.gz", 
+        "arch": "amd64", 
+        "ubuntu-release": "xenial-security"
+      }, 
+      {
+        "type": "multiverse", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/ubuntu/dists/xenial-security/multiverse/binary-amd64/Packages.gz", 
+        "arch": "amd64", 
+        "ubuntu-release": "xenial-security"
+      }, 
+      {
+        "type": "restricted", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/ubuntu/dists/xenial-security/restricted/binary-amd64/Packages.gz", 
+        "arch": "amd64", 
+        "ubuntu-release": "xenial-security"
+      }, 
+      {
+        "type": "universe", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/ubuntu/dists/xenial-security/universe/binary-amd64/Packages.gz", 
+        "arch": "amd64", 
+        "ubuntu-release": "xenial-security"
+      }, 
+      {
+        "type": "main", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/ubuntu/dists/xenial-updates/main/binary-amd64/Packages.gz", 
+        "arch": "amd64", 
+        "ubuntu-release": "xenial-updates"
+      }, 
+      {
+        "type": "multiverse", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/ubuntu/dists/xenial-updates/multiverse/binary-amd64/Packages.gz", 
+        "arch": "amd64", 
+        "ubuntu-release": "xenial-updates"
+      }, 
+      {
+        "type": "restricted", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/ubuntu/dists/xenial-updates/restricted/binary-amd64/Packages.gz", 
+        "arch": "amd64", 
+        "ubuntu-release": "xenial-updates"
+      }, 
+      {
+        "type": "universe", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/ubuntu/dists/xenial-updates/universe/binary-amd64/Packages.gz", 
+        "arch": "amd64", 
+        "ubuntu-release": "xenial-updates"
+      }
+    ]
+  }, 
+  "glusterfs-3.8": {
+    "url": "http://mirror.mirantis.com/2019.2.7/glusterfs-3.8/", 
+    "xenial": [
+      {
+        "type": "main", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/glusterfs-3.8/xenial/dists/xenial/main/binary-amd64/Packages.gz", 
+        "arch": "amd64", 
+        "ubuntu-release": "xenial"
+      }
+    ]
+  }, 
+  "extra": {
+    "url": "http://mirror.mirantis.com/2019.2.7/extra/", 
+    "trusty": [
+      {
+        "type": "main", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/extra/trusty/dists/trusty/main/binary-amd64/Packages.gz", 
+        "arch": "amd64", 
+        "ubuntu-release": "trusty"
+      }
+    ], 
+    "xenial": [
+      {
+        "type": "main", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/extra/xenial/dists/xenial/main/binary-amd64/Packages.gz", 
+        "arch": "amd64", 
+        "ubuntu-release": "xenial"
+      }
+    ]
+  }, 
+  "glusterfs-5": {
+    "url": "http://mirror.mirantis.com/2019.2.7/glusterfs-5/", 
+    "xenial": [
+      {
+        "type": "main", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/glusterfs-5/xenial/dists/xenial/main/binary-amd64/Packages.gz", 
+        "arch": "amd64", 
+        "ubuntu-release": "xenial"
+      }
+    ]
+  }, 
+  "saltstack-2016.11": {
+    "url": "http://mirror.mirantis.com/2019.2.7/saltstack-2016.11/", 
+    "xenial": [
+      {
+        "type": "main", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/saltstack-2016.11/xenial/dists/xenial/main/binary-amd64/Packages.gz", 
+        "arch": "amd64", 
+        "ubuntu-release": "xenial"
+      }
+    ]
+  }, 
+  "openstack-pike": {
+    "url": "http://mirror.mirantis.com/2019.2.7/openstack-pike/", 
+    "xenial": [
+      {
+        "type": "main", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/openstack-pike/xenial/dists/xenial/main/binary-amd64/Packages.gz", 
+        "arch": "amd64", 
+        "ubuntu-release": "xenial"
+      }, 
+      {
+        "type": "main", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/openstack-pike/xenial/dists/xenial/main/binary-arm64/Packages.gz", 
+        "arch": "arm64", 
+        "ubuntu-release": "xenial"
+      }
+    ]
+  }, 
+  "mcp-tools": {
+    "url": "http://mirror.mirantis.com/2019.2.7/mcp-tools/", 
+    "xenial": [
+      {
+        "type": "extra", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/mcp-tools/xenial/dists/nightly/extra/binary-amd64/Packages.gz", 
+        "arch": "amd64", 
+        "ubuntu-release": "nightly"
+      }
+    ]
+  }, 
+  "kubernetes-extra": {
+    "url": "http://mirror.mirantis.com/2019.2.7/kubernetes-extra/", 
+    "xenial": [
+      {
+        "type": "main", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/kubernetes-extra/xenial/dists/xenial/main/binary-amd64/Packages.gz", 
+        "arch": "amd64", 
+        "ubuntu-release": "xenial"
+      }
+    ]
+  }, 
+  "cassandra": {
+    "url": "http://mirror.mirantis.com/2019.2.7/cassandra/", 
+    "trusty": [
+      {
+        "type": "main", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/cassandra/trusty/dists/21x/main/binary-amd64/Packages.gz", 
+        "arch": "amd64", 
+        "ubuntu-release": "21x"
+      }
+    ], 
+    "xenial": [
+      {
+        "type": "main", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/cassandra/xenial/dists/21x/main/binary-amd64/Packages.gz", 
+        "arch": "amd64", 
+        "ubuntu-release": "21x"
+      }
+    ]
+  }, 
+  "saltstack-2017.7": {
+    "url": "http://mirror.mirantis.com/2019.2.7/saltstack-2017.7/", 
+    "trusty": [
+      {
+        "type": "main", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/saltstack-2017.7/trusty/dists/trusty/main/binary-amd64/Packages.gz", 
+        "arch": "amd64", 
+        "ubuntu-release": "trusty"
+      }
+    ], 
+    "xenial": [
+      {
+        "type": "main", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/saltstack-2017.7/xenial/dists/xenial/main/binary-amd64/Packages.gz", 
+        "arch": "amd64", 
+        "ubuntu-release": "xenial"
+      }
+    ]
+  }, 
+  "opencontrail-4.1": {
+    "url": "http://mirror.mirantis.com/2019.2.7/opencontrail-4.1/", 
+    "xenial": [
+      {
+        "type": "main", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/opencontrail-4.1/xenial/dists/xenial/main/binary-amd64/Packages.gz", 
+        "arch": "amd64", 
+        "ubuntu-release": "xenial"
+      }
+    ]
+  }, 
+  "opencontrail-4.0": {
+    "url": "http://mirror.mirantis.com/2019.2.7/opencontrail-4.0/", 
+    "xenial": [
+      {
+        "type": "main", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/opencontrail-4.0/xenial/dists/xenial/main/binary-amd64/Packages.gz", 
+        "arch": "amd64", 
+        "ubuntu-release": "xenial"
+      }
+    ]
+  }, 
+  "openstack-ocata": {
+    "url": "http://mirror.mirantis.com/2019.2.7/openstack-ocata/", 
+    "xenial": [
+      {
+        "type": "main", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/openstack-ocata/xenial/dists/ocata/main/binary-amd64/Packages.gz", 
+        "arch": "amd64", 
+        "ubuntu-release": "ocata"
+      }, 
+      {
+        "type": "restricted", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/openstack-ocata/xenial/dists/ocata/restricted/binary-amd64/Packages.gz", 
+        "arch": "amd64", 
+        "ubuntu-release": "ocata"
+      }, 
+      {
+        "type": "main", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/openstack-ocata/xenial/dists/xenial/main/binary-amd64/Packages.gz", 
+        "arch": "amd64", 
+        "ubuntu-release": "xenial"
+      }, 
+      {
+        "type": "restricted", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/openstack-ocata/xenial/dists/xenial/restricted/binary-amd64/Packages.gz", 
+        "arch": "amd64", 
+        "ubuntu-release": "xenial"
+      }
+    ]
+  }, 
+  "confluent-4.1": {
+    "url": "http://mirror.mirantis.com/2019.2.7/confluent-4.1/", 
+    "xenial": [
+      {
+        "type": "main", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/confluent-4.1/xenial/dists/stable/main/binary-amd64/Packages.gz", 
+        "arch": "amd64", 
+        "ubuntu-release": "stable"
+      }
+    ]
+  }, 
+  "openstack-queens": {
+    "url": "http://mirror.mirantis.com/2019.2.7/openstack-queens/", 
+    "xenial": [
+      {
+        "type": "main", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/openstack-queens/xenial/dists/xenial/main/binary-amd64/Packages.gz", 
+        "arch": "amd64", 
+        "ubuntu-release": "xenial"
+      }, 
+      {
+        "type": "main", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/openstack-queens/xenial/dists/xenial/main/binary-arm64/Packages.gz", 
+        "arch": "arm64", 
+        "ubuntu-release": "xenial"
+      }
+    ]
+  }, 
+  "docker-1.x": {
+    "url": "http://mirror.mirantis.com/2019.2.7/docker-1.x/", 
+    "xenial": [
+      {
+        "type": "main", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/docker-1.x/xenial/dists/ubuntu-xenial/main/binary-amd64/Packages.gz", 
+        "arch": "amd64", 
+        "ubuntu-release": "ubuntu-xenial"
+      }
+    ]
+  }, 
+  "openstack-mitaka": {
+    "url": "http://mirror.mirantis.com/2019.2.7/openstack-mitaka/", 
+    "trusty": [
+      {
+        "type": "main", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/openstack-mitaka/trusty/dists/mitaka/main/binary-amd64/Packages.gz", 
+        "arch": "amd64", 
+        "ubuntu-release": "mitaka"
+      }, 
+      {
+        "type": "restricted", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/openstack-mitaka/trusty/dists/mitaka/restricted/binary-amd64/Packages.gz", 
+        "arch": "amd64", 
+        "ubuntu-release": "mitaka"
+      }, 
+      {
+        "type": "main", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/openstack-mitaka/trusty/dists/trusty/main/binary-amd64/Packages.gz", 
+        "arch": "amd64", 
+        "ubuntu-release": "trusty"
+      }, 
+      {
+        "type": "restricted", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/openstack-mitaka/trusty/dists/trusty/restricted/binary-amd64/Packages.gz", 
+        "arch": "amd64", 
+        "ubuntu-release": "trusty"
+      }
+    ], 
+    "xenial": [
+      {
+        "type": "main", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/openstack-mitaka/xenial/dists/mitaka/main/binary-amd64/Packages.gz", 
+        "arch": "amd64", 
+        "ubuntu-release": "mitaka"
+      }, 
+      {
+        "type": "restricted", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/openstack-mitaka/xenial/dists/mitaka/restricted/binary-amd64/Packages.gz", 
+        "arch": "amd64", 
+        "ubuntu-release": "mitaka"
+      }, 
+      {
+        "type": "main", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/openstack-mitaka/xenial/dists/xenial/main/binary-amd64/Packages.gz", 
+        "arch": "amd64", 
+        "ubuntu-release": "xenial"
+      }, 
+      {
+        "type": "restricted", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/openstack-mitaka/xenial/dists/xenial/restricted/binary-amd64/Packages.gz", 
+        "arch": "amd64", 
+        "ubuntu-release": "xenial"
+      }
+    ]
+  }, 
+  "jenkins": {
+    "url": "http://mirror.mirantis.com/2019.2.7/jenkins/", 
+    "xenial": [
+      {
+        "type": "main", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/jenkins/xenial/dists/binary/main/binary-all/Packages.gz", 
+        "arch": "all", 
+        "ubuntu-release": "binary"
+      }
+    ]
+  }, 
+  "glusterfs-3.12": {
+    "url": "http://mirror.mirantis.com/2019.2.7/glusterfs-3.12/", 
+    "xenial": [
+      {
+        "type": "main", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/glusterfs-3.12/xenial/dists/xenial/main/binary-amd64/Packages.gz", 
+        "arch": "amd64", 
+        "ubuntu-release": "xenial"
+      }
+    ]
+  }, 
+  "glusterfs-3.10": {
+    "url": "http://mirror.mirantis.com/2019.2.7/glusterfs-3.10/", 
+    "trusty": [
+      {
+        "type": "main", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/glusterfs-3.10/trusty/dists/trusty/main/binary-amd64/Packages.gz", 
+        "arch": "amd64", 
+        "ubuntu-release": "trusty"
+      }
+    ], 
+    "xenial": [
+      {
+        "type": "main", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/glusterfs-3.10/xenial/dists/xenial/main/binary-amd64/Packages.gz", 
+        "arch": "amd64", 
+        "ubuntu-release": "xenial"
+      }
+    ]
+  }, 
+  "maas-ephemeral-v3": {
+    "url": "http://mirror.mirantis.com/2019.2.7/maas-ephemeral-v3/", 
+    "xenial": []
+  }, 
+  "baseurl": "http://mirror.mirantis.com/2019.2.7/", 
+  "influxdb": {
+    "url": "http://mirror.mirantis.com/2019.2.7/influxdb/", 
+    "xenial": [
+      {
+        "type": "stable", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/influxdb/xenial/dists/xenial/stable/binary-amd64/Packages.gz", 
+        "arch": "amd64", 
+        "ubuntu-release": "xenial"
+      }
+    ]
+  }, 
+  "percona": {
+    "url": "http://mirror.mirantis.com/2019.2.7/percona/", 
+    "xenial": [
+      {
+        "type": "main", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/percona/xenial/dists/xenial/main/binary-amd64/Packages.gz", 
+        "arch": "amd64", 
+        "ubuntu-release": "xenial"
+      }
+    ]
+  }, 
+  "opencontrail-3.2": {
+    "url": "http://mirror.mirantis.com/2019.2.7/opencontrail-3.2/", 
+    "trusty": [
+      {
+        "type": "main", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/opencontrail-3.2/trusty/dists/trusty/main/binary-amd64/Packages.gz", 
+        "arch": "amd64", 
+        "ubuntu-release": "trusty"
+      }
+    ], 
+    "xenial": [
+      {
+        "type": "main", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/opencontrail-3.2/xenial/dists/xenial/main/binary-amd64/Packages.gz", 
+        "arch": "amd64", 
+        "ubuntu-release": "xenial"
+      }
+    ]
+  }, 
+  "maas": {
+    "url": "http://mirror.mirantis.com/2019.2.7/maas/", 
+    "xenial": [
+      {
+        "type": "main", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/maas/xenial/dists/xenial/main/binary-amd64/Packages.gz", 
+        "arch": "amd64", 
+        "ubuntu-release": "xenial"
+      }
+    ]
+  }, 
+  "saltstack": {
+    "url": "http://mirror.mirantis.com/2019.2.7/saltstack/", 
+    "xenial": [
+      {
+        "type": "main", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/saltstack/xenial/dists/xenial/main/binary-amd64/Packages.gz", 
+        "arch": "amd64", 
+        "ubuntu-release": "xenial"
+      }
+    ]
+  }, 
+  "td-agent": {
+    "url": "http://mirror.mirantis.com/2019.2.7/td-agent/", 
+    "trusty": [
+      {
+        "type": "contrib", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/td-agent/trusty/dists/trusty/contrib/binary-amd64/Packages.gz", 
+        "arch": "amd64", 
+        "ubuntu-release": "trusty"
+      }
+    ], 
+    "xenial": [
+      {
+        "type": "contrib", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/td-agent/xenial/dists/xenial/contrib/binary-amd64/Packages.gz", 
+        "arch": "amd64", 
+        "ubuntu-release": "xenial"
+      }
+    ]
+  }, 
+  "ceph-luminous": {
+    "url": "http://mirror.mirantis.com/2019.2.7/ceph-luminous/", 
+    "xenial": [
+      {
+        "type": "main", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/ceph-luminous/xenial/dists/xenial/main/binary-amd64/Packages.gz", 
+        "arch": "amd64", 
+        "ubuntu-release": "xenial"
+      }
+    ]
+  }, 
+  "saltstack-2016.3": {
+    "url": "http://mirror.mirantis.com/2019.2.7/saltstack-2016.3/", 
+    "trusty": [
+      {
+        "type": "main", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/saltstack-2016.3/trusty/dists/trusty/main/binary-amd64/Packages.gz", 
+        "arch": "amd64", 
+        "ubuntu-release": "trusty"
+      }
+    ], 
+    "xenial": [
+      {
+        "type": "main", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/saltstack-2016.3/xenial/dists/xenial/main/binary-amd64/Packages.gz", 
+        "arch": "amd64", 
+        "ubuntu-release": "xenial"
+      }
+    ]
+  }, 
+  "openstack-newton": {
+    "url": "http://mirror.mirantis.com/2019.2.7/openstack-newton/", 
+    "xenial": [
+      {
+        "type": "main", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/openstack-newton/xenial/dists/newton/main/binary-amd64/Packages.gz", 
+        "arch": "amd64", 
+        "ubuntu-release": "newton"
+      }, 
+      {
+        "type": "restricted", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/openstack-newton/xenial/dists/newton/restricted/binary-amd64/Packages.gz", 
+        "arch": "amd64", 
+        "ubuntu-release": "newton"
+      }, 
+      {
+        "type": "main", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/openstack-newton/xenial/dists/xenial/main/binary-amd64/Packages.gz", 
+        "arch": "amd64", 
+        "ubuntu-release": "xenial"
+      }, 
+      {
+        "type": "restricted", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/openstack-newton/xenial/dists/xenial/restricted/binary-amd64/Packages.gz", 
+        "arch": "amd64", 
+        "ubuntu-release": "xenial"
+      }
+    ]
+  }, 
+  "elasticsearch-6.x": {
+    "url": "http://mirror.mirantis.com/2019.2.7/elasticsearch-6.x/", 
+    "xenial": [
+      {
+        "type": "main", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/elasticsearch-6.x/xenial/dists/stable/main/binary-amd64/Packages.gz", 
+        "arch": "amd64", 
+        "ubuntu-release": "stable"
+      }
+    ]
+  }, 
+  "aptly": {
+    "url": "http://mirror.mirantis.com/2019.2.7/aptly/", 
+    "trusty": [
+      {
+        "type": "main", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/aptly/trusty/dists/squeeze/main/binary-amd64/Packages.gz", 
+        "arch": "amd64", 
+        "ubuntu-release": "squeeze"
+      }
+    ], 
+    "xenial": [
+      {
+        "type": "main", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/aptly/xenial/dists/squeeze/main/binary-amd64/Packages.gz", 
+        "arch": "amd64", 
+        "ubuntu-release": "squeeze"
+      }
+    ]
+  }, 
+  "salt-formulas": {
+    "url": "http://mirror.mirantis.com/2019.2.7/salt-formulas/", 
+    "xenial": [
+      {
+        "type": "main", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/salt-formulas/xenial/dists/xenial/main/binary-amd64/Packages.gz", 
+        "arch": "amd64", 
+        "ubuntu-release": "xenial"
+      }
+    ]
+  }, 
+  "elasticsearch-5.x": {
+    "url": "http://mirror.mirantis.com/2019.2.7/elasticsearch-5.x/", 
+    "trusty": [
+      {
+        "type": "main", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/elasticsearch-5.x/trusty/dists/stable/main/binary-amd64/Packages.gz", 
+        "arch": "amd64", 
+        "ubuntu-release": "stable"
+      }
+    ], 
+    "xenial": [
+      {
+        "type": "main", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/elasticsearch-5.x/xenial/dists/stable/main/binary-amd64/Packages.gz", 
+        "arch": "amd64", 
+        "ubuntu-release": "stable"
+      }
+    ]
+  }, 
+  "elasticsearch-curator-5": {
+    "url": "http://mirror.mirantis.com/2019.2.7/elasticsearch-curator-5/", 
+    "trusty": [
+      {
+        "type": "main", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/elasticsearch-curator-5/trusty/dists/stable/main/binary-amd64/Packages.gz", 
+        "arch": "amd64", 
+        "ubuntu-release": "stable"
+      }
+    ], 
+    "xenial": [
+      {
+        "type": "main", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/elasticsearch-curator-5/xenial/dists/stable/main/binary-amd64/Packages.gz", 
+        "arch": "amd64", 
+        "ubuntu-release": "stable"
+      }
+    ]
+  }, 
+  "docker": {
+    "url": "http://mirror.mirantis.com/2019.2.7/docker/", 
+    "xenial": [
+      {
+        "type": "stable", 
+        "filepath": "http://mirror.mirantis.com/2019.2.7/docker/xenial/dists/xenial/stable/binary-amd64/Packages.gz", 
+        "arch": "amd64", 
+        "ubuntu-release": "xenial"
+      }
+    ]
+  }
+}

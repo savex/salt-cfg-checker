@@ -3,25 +3,26 @@ Module to handle interaction with salt
 """
 import json
 import os
-import requests
 import time
 
-from cfg_checker.common import logger, logger_cli, config
+import requests
+
+from cfg_checker.common import config, logger, logger_cli
+from cfg_checker.common.exception import InvalidReturnException, SaltException
 from cfg_checker.common.other import shell
-from cfg_checker.common.exception import SaltException, InvalidReturnException
 
 
 def _extract_password(_raw):
-    if not isinstance(_raw, unicode):
+    if not isinstance(_raw, str):
         raise InvalidReturnException(_raw)
     else:
         try:
             _json = json.loads(_raw)
-        except ValueError as e:
+        except ValueError:
             raise SaltException(
                 "# Return value is not a json: '{}'".format(_raw)
             )
-    
+
     return _json["local"]
 
 
@@ -41,25 +42,47 @@ def get_remote_env_password():
         _ssh_cmd.append(config.ssh_host)
     if config.ssh_uses_sudo:
         _ssh_cmd.append("sudo")
-    
+
     _ssh_cmd.append(_salt_cmd)
     _ssh_cmd = " ".join(_ssh_cmd)
-    logger_cli.debug("...calling salt: '{}'".format(_ssh_cmd))
-    _result = shell(_ssh_cmd)
-    if len(_result) < 1:
-        raise InvalidReturnException("# Empty value returned for '{}".format(
-            _ssh_cmd
-        ))
-    else:
-        return _extract_password(_result)
+    logger_cli.debug("... calling salt: '{}'".format(_ssh_cmd))
+    try:
+        _result = shell(_ssh_cmd)
+        if len(_result) < 1:
+            raise InvalidReturnException(
+                "# Empty value returned for '{}".format(
+                    _ssh_cmd
+                )
+            )
+        else:
+            return _extract_password(_result)
+    except OSError as e:
+        raise SaltException(
+            "Salt error calling '{}': '{}'\n"
+            "\nConsider checking 'SALT_ENV' "
+            "and '<pkg>/etc/<env>.env' files".format(_ssh_cmd, e.strerror)
+        )
+
 
 def get_local_password():
     """Calls salt locally to get password from the pillar
 
     :return: password string
     """
-    _cmd = "salt-call --out=json pillar.get _param:salt_api_password"
-    _result = shell(_cmd)
+    _cmd = []
+    if config.ssh_uses_sudo:
+        _cmd = ["sudo"]
+    # salt commands
+    _cmd.append("salt-call")
+    _cmd.append("--out=json pillar.get _param:salt_api_password")
+    try:
+        _result = shell(" ".join(_cmd))
+    except OSError as e:
+        raise SaltException(
+            "Salt error calling '{}': '{}'\n"
+            "\nConsider checking 'SALT_ENV' "
+            "and '<pkg>/etc/<env>.env' files".format(_cmd, e.strerror)
+        )
     return _extract_password(_result)
 
 
@@ -86,7 +109,13 @@ class SaltRest(object):
         self._token = self._login()
         self.last_response = None
 
-    def get(self, path='', headers=default_headers, cookies=None, timeout=None):
+    def get(
+        self,
+        path='',
+        headers=default_headers,
+        cookies=None,
+        timeout=None
+    ):
         _path = os.path.join(self.uri, path)
         logger.debug("# GET '{}'\nHeaders: '{}'\nCookies: {}".format(
             _path,
@@ -108,12 +137,14 @@ class SaltRest(object):
             _data = str(data).replace(self._pass, "*****")
         else:
             _data = data
-        logger.debug("# POST '{}'\nHeaders: '{}'\nCookies: {}\nBody: {}".format(
-            _path,
-            headers,
-            cookies,
-            _data
-        ))
+        logger.debug(
+            "# POST '{}'\nHeaders: '{}'\nCookies: {}\nBody: {}".format(
+                _path,
+                headers,
+                cookies,
+                _data
+            )
+        )
         return requests.post(
             os.path.join(self.uri, path),
             headers=headers,
@@ -179,6 +210,8 @@ class SaltRest(object):
 
 
 class SaltRemote(SaltRest):
+    master_node = ""
+
     def __init__(self):
         super(SaltRemote, self).__init__()
 
@@ -289,7 +322,7 @@ class SaltRemote(SaltRest):
         """
         try:
             _r = self.salt_request('get', 'minions', timeout=10)
-        except requests.exceptions.ReadTimeout as e:
+        except requests.exceptions.ReadTimeout:
             logger_cli.debug("... timeout waiting list minions from Salt API")
             _r = None
         return _r[0] if _r else None
@@ -322,7 +355,7 @@ class SaltRemote(SaltRest):
 
     def get_active_nodes(self):
         """Used when other minion list metods fail
-        
+
         :return: json result from salt test.ping
         """
         if config.skip_nodes:
@@ -336,7 +369,7 @@ class SaltRemote(SaltRest):
                 expr_form='compound')
         else:
             _r = self.cmd('*', 'test.ping')
-        # Return all nodes that responded            
+        # Return all nodes that responded
         return [node for node in _r.keys() if _r[node]]
 
     def get_monitoring_ip(self, param_name):
@@ -352,12 +385,12 @@ class SaltRemote(SaltRest):
             "makedirs": makedirs
         }
         salt_output = self.cmd(
-            "cfg01*",
+            self.master_node,
             "file.touch",
             param=path,
             kwarg=_kwarg
         )
-        return salt_output[salt_output.keys()[0]]
+        return [*salt_output.values()][0]
 
     def f_append_master(self, path, strings_list, makedirs=True):
         _kwarg = {
@@ -366,12 +399,12 @@ class SaltRemote(SaltRest):
         _args = [path]
         _args.extend(strings_list)
         salt_output = self.cmd(
-            "cfg01*",
+            self.master_node,
             "file.write",
             param=_args,
             kwarg=_kwarg
         )
-        return salt_output[salt_output.keys()[0]]
+        return [*salt_output.values()][0]
 
     def mkdir(self, target, path, tgt_type=None):
         salt_output = self.cmd(
@@ -391,7 +424,7 @@ class SaltRemote(SaltRest):
         """
         REST variation of file.get_managed
         CLI execution goes like this (10 agrs):
-        salt cfg01\* file.manage_file /root/test_scripts/pkg_versions.py
+        salt cfg01\\* file.manage_file /root/test_scripts/pkg_versions.py
         '' '{}' /root/diff_pkg_version.py
         '{hash_type: 'md5', 'hsum': <md5sum>}' root root '755' base ''
         makedirs=True
@@ -418,12 +451,12 @@ class SaltRemote(SaltRest):
             "makedirs": makedirs
         }
         salt_output = self.cmd(
-            "cfg01*",
+            self.master_node,
             "file.manage_file",
             param=_arg,
             kwarg=_kwarg
         )
-        return salt_output[salt_output.keys()[0]]
+        return [*salt_output.values()][0]
 
     def cache_file(self, target, source_path):
         salt_output = self.cmd(
@@ -431,7 +464,7 @@ class SaltRemote(SaltRest):
             "cp.cache_file",
             param=source_path
         )
-        return salt_output[salt_output.keys()[0]]
+        return [*salt_output.values()][0]
 
     def get_file(self, target, source_path, target_path, tgt_type=None):
         return self.cmd(

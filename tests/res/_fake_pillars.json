@@ -1,0 +1,20 @@
+{
+    "cmp01.fakedomain.local": {
+        "_param:apt_mk_version": "2099.0.0",
+        "_param:openstack_version": "queens",
+        "_param:linux_system_codename": "xenial",
+        "_param:linux_system_architecture": "amd64"
+    },
+    "ctl01.fakedomain.local": {
+        "_param:apt_mk_version": "2099.0.0",
+        "_param:openstack_version": "queens",
+        "_param:linux_system_codename": "xenial",
+        "_param:linux_system_architecture": "amd64"
+    },
+    "cfg01.fakedomain.local": {
+        "_param:apt_mk_version": "2099.0.0",
+        "_param:openstack_version": "queens",
+        "_param:linux_system_codename": "xenial",
+        "_param:linux_system_architecture": "amd64"
+    }
+}

@@ -4,13 +4,15 @@
 """
 import itertools
 import os
-import yaml
 
-from cfg_checker.reports import reporter
+from functools import reduce
+
 from cfg_checker.common import logger, logger_cli
 
+import yaml
 
-def get_element(element_path, input_data):     
+
+def get_element(element_path, input_data):
     paths = element_path.split(":")
     data = input_data
     for i in range(0, len(paths)):
@@ -18,7 +20,7 @@ def get_element(element_path, input_data):
     return data
 
 
-def pop_element(element_path, input_data):     
+def pop_element(element_path, input_data):
     paths = element_path.split(":")
     data = input_data
     # Search for last dict
@@ -38,7 +40,7 @@ class ModelComparer(object):
         "03_cluster": "classes:cluster",
         "04_other": "classes"
     }
-    
+
     models = {}
     models_path = "/srv/salt/reclass"
     model_name_1 = "source"
@@ -57,11 +59,11 @@ class ModelComparer(object):
         try:
             _size = 0
             with open(fname, 'r') as f:
-                _yaml = yaml.load(f)
+                _yaml = yaml.load(f, Loader=yaml.FullLoader)
                 _size = f.tell()
             # TODO: do smth with the data
             if not _yaml:
-                logger_cli.warning("WARN: empty file '{}'".format(fname))
+                # logger.warning("WARN: empty file '{}'".format(fname))
                 _yaml = {}
             else:
                 logger.debug("...loaded YAML '{}' ({}b)".format(fname, _size))
@@ -123,7 +125,7 @@ class ModelComparer(object):
             # creating dict structure out of folder list. Pure python magic
             parent = reduce(dict.get, folders[:-1], raw_tree)
             parent[folders[-1]] = subdir
-        
+
         self.models[name] = {}
         # Brake in according to pathes
         _parts = self._model_parts.keys()
@@ -133,7 +135,7 @@ class ModelComparer(object):
                 self._model_parts[_parts[ii]],
                 raw_tree[root_key]
             )
-        
+
         # save it as a single data object
         self.models[name]["rc_diffs"] = raw_tree[root_key]
         return True
@@ -148,6 +150,15 @@ class ModelComparer(object):
                 _new_path = path + ":" + k
             # ignore _source key
             if k == "_source":
+                continue
+            # ignore secrets and other secure stuff
+            if isinstance(k, str) and k == "secrets.yml":
+                continue
+            if isinstance(k, str) and k.find("_password") > 0:
+                continue
+            if isinstance(k, str) and k.find("_key") > 0:
+                continue
+            if isinstance(k, str) and k.find("_token") > 0:
                 continue
             # check if this is an env name cluster entry
             if dict2 is not None and \
@@ -191,13 +202,13 @@ class ModelComparer(object):
                     # use ifilterfalse to compare lists of dicts
                     try:
                         _removed = list(
-                            itertools.ifilterfalse(
+                            itertools.filterfalse(
                                 lambda x: x in dict2[k],
                                 dict1[k]
                             )
                         )
                         _added = list(
-                            itertools.ifilterfalse(
+                            itertools.filterfalse(
                                 lambda x: x in dict1[k],
                                 dict2[k]
                             )
@@ -223,8 +234,7 @@ class ModelComparer(object):
                     if _removed or _added:
                         _removed_str_lst = ["- {}".format(item)
                                             for item in _removed]
-                        _added_str_lst = ["+ {}".format(item)
-                                            for item in _added]
+                        _added_str_lst = ["+ {}".format(i) for i in _added]
                         _report[_new_path] = {
                             "type": "list",
                             "raw_values": [
@@ -266,9 +276,10 @@ class ModelComparer(object):
                     except TypeError as e:
                         logger.warning(
                             "One of the values is not a dict: "
-                            "{}, {}".format(
+                            "{}, {}; {}".format(
                                 str(dict1),
-                                str(dict2)
+                                str(dict2),
+                                e.message
                             ))
                         match = False
                     if not match:
@@ -286,7 +297,6 @@ class ModelComparer(object):
                             val2
                         ))
         return _report
-
 
     def generate_model_report_tree(self):
         """Use two loaded models to generate comparison table with
@@ -327,38 +337,3 @@ class ModelComparer(object):
 
         _diff_report["diff_names"] = [self.model_name_1, self.model_name_2]
         return _diff_report
-
-    def compare_models(self):
-        # Do actual compare using model names from the class
-        self.load_model_tree(
-            self.model_name_1,
-            self.model_path_1
-        )
-        self.load_model_tree(
-            self.model_name_2,
-            self.model_path_2
-        )
-        # Models should have similar structure to be compared
-        # classes/system
-        # classes/cluster
-        # nodes
-
-        diffs = self.generate_model_report_tree()
-
-        report_file = \
-            self.model_name_1 + "-vs-" + self.model_name_2 + ".html"
-        # HTML report class is post-callable
-        report = reporter.ReportToFile(
-            reporter.HTMLModelCompare(),
-            report_file
-        )
-        logger_cli.info("...generating report to {}".format(report_file))
-        # report will have tabs for each of the comparable entities in diffs
-        report({
-            "nodes": {},
-            "rc_diffs": diffs,
-        })
-        # with open("./gen_tree.json", "w+") as _out:
-        #     _out.write(json.dumps(mComparer.generate_model_report_tree))
-
-        return

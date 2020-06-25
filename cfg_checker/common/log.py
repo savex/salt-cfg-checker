@@ -1,5 +1,5 @@
-import os
 import logging
+import os
 
 pkg_dir = os.path.dirname(__file__)
 pkg_dir = os.path.join(pkg_dir, os.pardir, os.pardir)
@@ -84,6 +84,7 @@ def setup_loggers(name, def_level=logging.DEBUG, log_fname=None):
         logger_cli.addHandler(sh)
 
     return logger, logger_cli
+
 
 # init instances of logger to be used by all other modules
 logger, logger_cli = setup_loggers(

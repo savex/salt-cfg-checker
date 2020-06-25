@@ -1,7 +1,7 @@
-import re
-import sys
-import subprocess
 import json
+import re
+import subprocess
+import sys
 
 
 def shell(command):
@@ -67,45 +67,51 @@ def get_linked_devices(if_name):
 def get_ifs_data():
     # Collect interface and IPs data
     # Compile regexps for detecting IPs
-    if_start = re.compile("^[0-9]+: .*: \<.*\> .*$")
-    if_link = re.compile("^\s{4}link\/ether\ .*$")
-    if_ipv4 = re.compile("^\s{4}inet\ .*$")
+    if_start = re.compile(r"^[0-9]+: .*: \<.*\> .*$")
+    if_link = re.compile(r"^\s{4}link\/ether\ .*$")
+    if_ipv4 = re.compile(r"^\s{4}inet\ .*$")
     # variable prototypes
     _ifs = {}
-    _if_name = None
+    _name = None
     # get the "ip a" output
     _ifs_raw = shell('ip a')
     for line in _ifs_raw.splitlines():
         _if_data = {}
         if if_start.match(line):
             _tmp = line.split(':')
-            _if_name = _tmp[1].strip()
+            _name = _tmp[1].strip()
+            _name = _name.split('@') if '@' in _name else [_name, ""]
+            _at = _name[1]
+            _name = _name[0]
             _if_options = _tmp[2].strip().split(' ')
-            _lower, _upper, _type = get_linked_devices(_if_name)
-            _if_data['order'] = _tmp[0]
+            _lower, _upper, _type = get_linked_devices(_name)
+            _if_data['if_index'] = _tmp[0]
+            _if_data['at'] = _at
             _if_data['mtu'], _if_options = cut_option("mtu", _if_options)
             _if_data['qlen'], _if_options = cut_option("qlen", _if_options)
             _if_data['state'], _if_options = cut_option("state", _if_options)
             _if_data['other'] = _if_options
             _if_data['ipv4'] = {}
-            _if_data['mac'] = {}
+            _if_data['link'] = {}
             _if_data['type'] = _type
             _if_data['upper'] = _upper
             _if_data['lower'] = _lower
-            _ifs[_if_name] = _if_data
+            _ifs[_name] = _if_data
         elif if_link.match(line):
-            if _if_name is None:
+            if _name is None:
                 continue
             else:
                 _tmp = line.strip().split(' ', 2)
                 _mac_addr = _tmp[1]
                 _options = _tmp[2].split(' ')
                 _brd, _options = cut_option("brd", _options)
-                _ifs[_if_name]['mac'][_mac_addr] = {}
-                _ifs[_if_name]['mac'][_mac_addr]['brd'] = _brd
-                _ifs[_if_name]['mac'][_mac_addr]['other'] = _options
+                _netnsid, _options = cut_option("link-netnsid", _options)
+                _ifs[_name]['link'][_mac_addr] = {}
+                _ifs[_name]['link'][_mac_addr]['brd'] = _brd
+                _ifs[_name]['link'][_mac_addr]['link-netnsid'] = _netnsid
+                _ifs[_name]['link'][_mac_addr]['other'] = _options
         elif if_ipv4.match(line):
-            if _if_name is None:
+            if _name is None:
                 continue
             else:
                 _tmp = line.strip().split(' ', 2)
@@ -113,10 +119,10 @@ def get_ifs_data():
                 _options = _tmp[2].split(' ')
                 _brd, _options = cut_option("brd", _options)
                 # TODO: Parse other options, mask, brd, etc...
-                _ifs[_if_name]['ipv4'][_ip] = {}
-                _ifs[_if_name]['ipv4'][_ip]['brd'] = _brd
-                _ifs[_if_name]['ipv4'][_ip]['other'] = _options
-    
+                _ifs[_name]['ipv4'][_ip] = {}
+                _ifs[_name]['ipv4'][_ip]['brd'] = _brd
+                _ifs[_name]['ipv4'][_ip]['other'] = _options
+
     # Collect routes data and try to match it with network
     # Compile regexp for detecting default route
     _routes = {
@@ -172,7 +178,7 @@ else:
         print("{0:8} {1:30} {2:18} {3:19} {4:5} {5:4} {6}".format(
             ifs_data[_ifs[_idx]]['type'],
             _ifs[_idx],
-            ",".join(ifs_data[_ifs[_idx]]['mac'].keys()),
+            ",".join(ifs_data[_ifs[_idx]]['link'].keys()),
             ",".join(ifs_data[_ifs[_idx]]['ipv4'].keys()),
             ifs_data[_ifs[_idx]]['mtu'],
             ifs_data[_ifs[_idx]]['state'],

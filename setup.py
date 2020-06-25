@@ -1,7 +1,7 @@
 import glob
 import os
 
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 
 here = os.path.abspath(os.path.dirname(__file__))
 README = open(os.path.join(here, 'README.md')).read()
@@ -9,7 +9,8 @@ README = open(os.path.join(here, 'README.md')).read()
 DATA = [
     ('etc', [f for f in glob.glob(os.path.join('etc', '*'))]),
     ('templates', [f for f in glob.glob(os.path.join('templates', '*'))]),
-#    ('res', [f for f in glob.glob(os.path.join('res', '*'))])
+    ('scripts', [f for f in glob.glob(os.path.join('scripts', '*'))]),
+    ('versions', [f for f in glob.glob(os.path.join('versions', '*'))])
 ]
 
 dependencies = [
@@ -17,22 +18,23 @@ dependencies = [
     'pyyaml',
     'jinja2',
     'requests',
-    'ipaddress'
+    'ipaddress',
+    'configparser'
 ]
 
 entry_points = {
     "console_scripts": [
-        "mcp-checker = cfg_checker.cfg_check:cli_main",
-        "package-report = cfg_checker.cli.package",
-        "network-check = cfg_checker.cli.network",
-        "reclass-compare = cfg_checker.cli.reclass"
+        "mcp-checker = cfg_checker.cfg_check:config_check_entrypoint",
+        "mcp-pkg = cfg_checker.cli.packages:entrypoint",
+        "mcp-net = cfg_checker.cli.network:entrypoint",
+        "cmp-reclass = cfg_checker.cli.reclass:entrypoint"
     ]
 }
 
 
 setup(
-    name="Mirantis Cloud Configuration Checker",
-    version="0.1",
+    name="mcp-checker",
+    version="0.41a",
     author="Alex Savatieiev",
     author_email="osavatieiev@mirantis.com",
     classifiers=[

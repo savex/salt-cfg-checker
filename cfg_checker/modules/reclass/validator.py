@@ -2,6 +2,7 @@ import os
 
 from cfg_checker.common import logger_cli
 
+
 def basic_model_validation_by_path(path):
     logger_cli.debug("\t...validating '{}' as a model".format(path))
     _checks = []
@@ -20,7 +21,7 @@ def basic_model_validation_by_path(path):
     _has_nodes = os.path.isdir(os.path.join(path, "nodes"))
     logger_cli.debug("\t- has nodes? -> {}".format(_has_nodes))
     _checks.append(_has_nodes)
-    
+
     logger_cli.debug("\t-> {}".format(
         all(_checks)
     ))

@@ -1,7 +1,6 @@
-import sys
-import subprocess
 import json
-
+import subprocess
+import sys
 from multiprocessing.dummy import Pool
 
 

@@ -2,8 +2,7 @@ import os
 import re
 import subprocess
 
-from cfg_checker.common.const import all_roles_map
-
+from cfg_checker.common.const import all_roles_map, uknown_code
 from cfg_checker.common.exception import ConfigException
 
 pkg_dir = os.path.dirname(__file__)
@@ -19,6 +18,35 @@ def shell(command):
     ).communicate()[0].decode()
 
     return _ps
+
+
+def merge_dict(source, destination):
+    """
+    Dict merger, thanks to vincent
+    http://stackoverflow.com/questions/20656135/python-deep-merge-dictionary-data
+
+    >>> a = { 'first' : { 'all_rows' : { 'pass' : 'dog', 'number' : '1' } } }
+    >>> b = { 'first' : { 'all_rows' : { 'fail' : 'cat', 'number' : '5' } } }
+    >>> merge(b, a) == {
+        'first': {
+            'all_rows': {
+                'pass': 'dog',
+                'fail': 'cat',
+                'number': '5'
+            }
+        }
+    }
+    True
+    """
+    for key, value in source.items():
+        if isinstance(value, dict):
+            # get node or create one
+            node = destination.setdefault(key, {})
+            merge_dict(value, node)
+        else:
+            destination[key] = value
+
+    return destination
 
 
 class Utils(object):
@@ -39,7 +67,7 @@ class Utils(object):
             return (True, _message) if message else True
 
         # node role code checks
-        _code = re.findall("[a-zA-Z]+", fqdn.split('.')[0])
+        _code = re.findall(r"[a-zA-Z]+", fqdn.split('.')[0])
         if len(_code) > 0:
             if _code[0] in all_roles_map:
                 return _result()
@@ -71,27 +99,47 @@ class Utils(object):
     def get_node_code(self, fqdn):
         # validate
         _isvalid, _message = self.validate_name(fqdn, message=True)
-        _code = re.findall("[a-zA-Z]+", fqdn.split('.')[0])
+        _code = re.findall(
+            r"[a-zA-Z]+?(?=(?:[0-9]+$)|(?:\-+?)|(?:\_+?)|$)",
+            fqdn.split('.')[0]
+        )
         # check if it is valid and raise if not
         if _isvalid:
-            return _code[0]
+            # try to match it with ones in map
+            _c = _code[0]
+            match = any([r in _c for r in all_roles_map.keys()])
+            if match:
+                # no match, try to find it
+                match = False
+                for r in all_roles_map.keys():
+                    _idx = _c.find(r)
+                    if _idx > -1:
+                        _c = _c[_idx:]
+                        match = True
+                        break
+                if match:
+                    return _c
+                else:
+                    return uknown_code
+            else:
+                return uknown_code
         else:
             raise ConfigException(_message)
 
-    def get_nodes_list(self, env, nodes_list):
+    def get_nodes_list(self, nodes_list, env_sting=None):
         _list = []
-        if env is None:
+        if env_sting is None:
             # nothing supplied, use the one in repo
             try:
                 if not nodes_list:
                     return []
-                with open(os.path.join(pkg_dir, nodes_list)) as _f:
+                with open(nodes_list) as _f:
                     _list.extend(_f.read().splitlines())
             except IOError as e:
                 raise ConfigException("# Error while loading file, '{}': "
                                       "{}".format(e.filename, e.strerror))
         else:
-            _list.extend(self.node_string_to_list(env))
+            _list.extend(self.node_string_to_list(env_sting))
 
         # validate names
         _invalid = []
@@ -103,7 +151,7 @@ class Utils(object):
             else:
                 _valid.append(_name)
 
-        return _valid
+        return _valid, _invalid
 
 
 utils = Utils()

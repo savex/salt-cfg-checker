@@ -1,0 +1,8 @@
+type,package_name,node,status,action,installed,candidate,release
+mirantis,fakepackage-m,cfg01.fakedomain.local,OK,Upgrade possible,1.2.2-0ubuntu4,1.2.3-0ubuntu4,n/a
+mirantis,fakepackage-m,cmp01.fakedomain.local,OK,Upgrade possible,1.2.2-0ubuntu4,1.2.3-0ubuntu4,n/a
+mirantis,fakepackage-m,ctl01.fakedomain.local,OK,Upgrade possible,1.2.2-0ubuntu4,1.2.3-0ubuntu4,n/a
+    
+    
+    
+    

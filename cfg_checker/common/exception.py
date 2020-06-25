@@ -1,5 +1,3 @@
-from exceptions import Exception
-
 
 class CheckerBaseExceptions(Exception):
     pass
@@ -31,3 +29,9 @@ class InvalidReturnException(CheckerException):
     def __init__(self, message, *args, **kwargs):
         super(InvalidReturnException, self).__init__(message, *args, **kwargs)
         self.message = "# Unexpected return value: {}".format(message)
+
+
+class ErrorMappingException(CheckerException):
+    def __init__(self, message, *args, **kwargs):
+        super(ErrorMappingException, self).__init__(message, *args, **kwargs)
+        self.message = "# Unexpected error mapping/type: {}".format(message)

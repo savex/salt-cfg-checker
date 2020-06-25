@@ -1,0 +1,48 @@
+Package: fakepackage-o
+Priority: optional
+Section: fakesection
+Installed-Size: 941
+Maintainer: Some non-mirantis developer <someuser@fakedomain.com>
+Original-Maintainer: Some Debian maintainer
+Architecture: amd64
+Source: fakesource
+Version: 1.2.3-0ubuntu4
+Replaces: fakepackage-r
+Depends: fakedependency
+Breaks: fakedependency
+Filename: pool/main/e/fakesource/fake
+Size: 8838
+MD5sum: f7f709442600bb60bc5e230f905773ae
+SHA1: 588d6aa693e4b9a9bda228360bc65dfab4527ed8
+SHA256: 4a34e416bb37191d0b8e6855b27cdbf7cd63fec182ab415cc9e71b19cfe55e48
+Description: Unit tests fake package
+Homepage: http://fakepage.org
+Description-md5: 1a2069e5dd5f4777061642b2d7c9a76a
+Bugs: https://fakebugs.net
+Origin: Unittests
+Supported: 1y
+Task: None
+
+Package: fakepackage-m
+Priority: optional
+Section: fakesection
+Installed-Size: 941
+Maintainer: Some mirantis developer <someuser@mirantis.com>
+Architecture: amd64
+Source: fakesource
+Version: 1.2.3-0ubuntu4
+Replaces: fakepackage-r
+Depends: fakedependency
+Breaks: fakedependency
+Filename: pool/main/e/fakesource/fake
+Size: 8838
+MD5sum: f7f709442600bb60bc5e230f905773ae
+SHA1: 588d6aa693e4b9a9bda228360bc65dfab4527ed8
+SHA256: 4a34e416bb37191d0b8e6855b27cdbf7cd63fec182ab415cc9e71b19cfe55e48
+Description: Unit tests fake package
+Homepage: http://fakepage.org
+Description-md5: 1a2069e5dd5f4777061642b2d7c9a76a
+Bugs: https://fakebugs.net
+Origin: Unittests
+Supported: 1y
+Task: None

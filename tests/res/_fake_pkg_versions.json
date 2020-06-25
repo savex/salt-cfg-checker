@@ -1,0 +1,16 @@
+{
+    "fakepackage-o": {
+        "candidate": "1.2.3-0ubuntu4",
+        "installed": "1.2.3-0ubuntu4",
+        "raw": "fakepackage-o:\n  Installed: 1.2.3-0ubuntu4\n  Candidate: 1.2.3-0ubuntu4\n  Version table:\n *** 1.2.3-0ubuntu4 500\n        500 http://mirrors.fakedomain.com/2099.0.0//ubuntu trusty/main amd64 Packages\n        100 /var/lib/dpkg/status\n     1.2.2-0ubuntu4 500\n        500 http://mirrors.fakedomain.com/2099.0.0//ubuntu trusty/main amd64 Packages"
+    },
+    "fakepackage-m": {
+        "candidate": "1.2.3-0ubuntu4",
+        "installed": "1.2.2-0ubuntu4",
+        "raw": "fakepackage-m:\n  Installed: 1.2.2-0ubuntu4\n  Candidate: 1.2.3-0ubuntu4\n  Version table:\n     1.2.3-0ubuntu4 500\n        500 http://mirrors.fakedomain.com/2099.0.0//ubuntu trusty/main amd64 Packages\n        100 /var/lib/dpkg/status\n *** 1.2.2-0ubuntu4 500\n        500 http://mirrors.fakedomain.com/2099.0.0//ubuntu trusty/main amd64 Packages"
+    }
+}
+
+
+
+

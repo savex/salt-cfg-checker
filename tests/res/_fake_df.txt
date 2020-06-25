@@ -1,0 +1,7 @@
+/dev/mapper/vg0-root 20G 14G 5.2G 73%
+/dev/vda2 971M 70M 852M 8%
+/dev/mapper/vg0-home 93M 1.7M 85M 2%
+/dev/mapper/vg0-tmp 481M 2.3M 454M 1%
+/dev/mapper/vg0-var_tmp 477M 2.3M 448M 1%
+/dev/mapper/vg0-var_log 5.7G 551M 4.9G 10%
+/dev/mapper/vg0-var_log_audit 481M 2.3M 454M 1%

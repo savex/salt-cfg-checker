@@ -5,7 +5,7 @@
         {% for action in p['results'][status].keys() | sort(reverse=true) %}
             {% for node in p['results'][status][action].keys() | sort %}
                 {% set nd = p['results'][status][action][node] %}
-{{ id_label }},{{ pkg_name }},{{ node }},{{ status | make_status_label }},{{ action | make_action_label }},{{ nd['i'].version }},{{ nd['c'].version }},{{ p['r'].version }}
+{{ id_label }},{{ pkg_name }},{{ node }},{{ status | pkg_status_label }},{{ action | pkg_action_label }},{{ nd['i'].version }},{{ nd['c'].version }},{{ p['r'].version }}
             {% endfor %}
         {% endfor %}
         {% endfor %}
